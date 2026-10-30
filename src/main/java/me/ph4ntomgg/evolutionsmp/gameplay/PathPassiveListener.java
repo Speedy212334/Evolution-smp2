@@ -22,6 +22,7 @@ import org.bukkit.scheduler.BukkitTask;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 public final class PathPassiveListener implements Listener {
     private final ProgressService progress;
@@ -99,6 +100,9 @@ public final class PathPassiveListener implements Listener {
         PlayerProgress p = progress.get(player.getUniqueId());
         if (p.path() != EvolutionPath.PROSPECTOR || p.tier().rank() < 2
                 || player.getInventory().getItemInMainHand().containsEnchantment(Enchantment.SILK_TOUCH)) return;
+        boolean ore = event.getBlockState().getType().name().contains("ORE")
+                || event.getBlockState().getType() == Material.ANCIENT_DEBRIS;
+        double chance = switch (p.tier().rank()) { case 1 -> 0.10; case 2 -> 0.20; case 3 -> 0.30; default -> 0.50; };
         for (Item dropped : event.getItems()) {
             Material replacement = switch (dropped.getItemStack().getType()) {
                 case RAW_IRON -> Material.IRON_INGOT;
@@ -107,6 +111,9 @@ public final class PathPassiveListener implements Listener {
                 default -> null;
             };
             if (replacement != null) dropped.getItemStack().setType(replacement);
+            if (ore && ThreadLocalRandom.current().nextDouble() < chance) {
+                dropped.getItemStack().setAmount(dropped.getItemStack().getAmount() + (p.tier().rank() >= 4 ? 2 : 1));
+            }
         }
     }
 
