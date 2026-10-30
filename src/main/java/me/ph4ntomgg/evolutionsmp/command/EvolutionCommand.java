@@ -43,7 +43,7 @@ public final class EvolutionCommand implements CommandExecutor {
             sender.sendMessage(ChatColor.YELLOW + "/evo status");
             sender.sendMessage(ChatColor.YELLOW + "/evo apex " + ChatColor.GRAY + "(T4: attempt Apex with 8 Echo Shards)");
             sender.sendMessage(ChatColor.YELLOW + "/evo recipes");
-            sender.sendMessage(ChatColor.YELLOW + "/evo guide [paths|tiers|death|orbs|abilities|xp]");
+            sender.sendMessage(ChatColor.YELLOW + "/evo guide [paths|tiers|death|orbs|apex|abilities|xp]");
             sender.sendMessage(ChatColor.YELLOW + "/evo pathchanger <player> " + ChatColor.GRAY + "(admin)");
             sender.sendMessage(ChatColor.YELLOW + "/evo gambit " + ChatColor.GRAY + "(Trade Apex)");
             sender.sendMessage(ChatColor.YELLOW + "/evo heart " + ChatColor.GRAY + "(Calamity Apex)");
