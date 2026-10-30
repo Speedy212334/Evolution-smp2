@@ -1,0 +1,183 @@
+# EvolutionFX custom animation library
+#
+# /evofx list
+# /evofx play <id> <player> [seconds]
+# /evofx stop <player>
+# /evofx reload
+#
+# item-model uses the resource-pack item ID (namespace:path).
+# To use your own model, add its item definition and model/texture to the resource pack,
+# then place that item-model ID here. This is client-rendered with vanilla ItemDisplay entities.
+#
+# Shapes: spin, orbit, helix, figure-eight, rise, slam, pulse, vortex
+# Particle names must be Bukkit/Paper Particle enum names. Keep particle-count modest.
+# Looping animations continue until stopped unless [seconds] is supplied to /evofx play.
+
+animations:
+  orbiting-shards:
+    material: PAPER
+    item-model: minecraft:evolution_fx_gem
+    shape: orbit
+    cycle-ticks: 70
+    loop: true
+    copies: 5
+    radius: 1.25
+    height: 1.55
+    bob: 0.13
+    scale: 0.42
+    rotation-speed: 0.16
+    tilt: 0.08
+    particle: ELECTRIC_SPARK
+    particle-count: 1
+    particle-interval-ticks: 2
+    sound: BLOCK_AMETHYST_BLOCK_CHIME
+    sound-interval-ticks: 48
+    sound-volume: 0.25
+    sound-pitch: 1.35
+
+  ender-helix:
+    material: PAPER
+    item-model: minecraft:evolution_path_ender
+    shape: helix
+    cycle-ticks: 64
+    loop: true
+    copies: 3
+    radius: 0.9
+    height: 1.45
+    bob: 0.08
+    scale: 0.44
+    rotation-speed: 0.19
+    tilt: 0.25
+    particle: REVERSE_PORTAL
+    particle-count: 1
+    particle-interval-ticks: 3
+    sound: BLOCK_PORTAL_AMBIENT
+    sound-interval-ticks: 90
+    sound-volume: 0.2
+    sound-pitch: 1.5
+
+  sigil-figure-eight:
+    material: PAPER
+    item-model: minecraft:evolution_path_enchantment
+    shape: figure-eight
+    cycle-ticks: 90
+    loop: true
+    copies: 2
+    radius: 0.85
+    height: 1.6
+    bob: 0.08
+    scale: 0.48
+    rotation-speed: 0.1
+    tilt: 0.1
+    particle: ENCHANT
+    particle-count: 1
+    particle-interval-ticks: 3
+    sound: BLOCK_ENCHANTMENT_TABLE_USE
+    sound-interval-ticks: 80
+    sound-volume: 0.2
+    sound-pitch: 1.2
+
+  calamity-slam:
+    material: PAPER
+    item-model: minecraft:evolution_path_calamity
+    shape: slam
+    cycle-ticks: 36
+    loop: false
+    copies: 5
+    radius: 1.15
+    height: 0.35
+    bob: 0.02
+    scale: 0.52
+    rotation-speed: 0.24
+    tilt: 0.35
+    particle: SOUL_FIRE_FLAME
+    particle-count: 2
+    particle-interval-ticks: 2
+    sound: BLOCK_AMETHYST_BLOCK_RESONATE
+    sound-interval-ticks: 32
+    sound-volume: 0.55
+    sound-pitch: 0.7
+
+  rising-enchantment:
+    material: PAPER
+    item-model: minecraft:evolution_path_enchantment
+    shape: rise
+    cycle-ticks: 56
+    loop: false
+    copies: 1
+    radius: 0.9
+    height: 1.15
+    bob: 0.04
+    scale: 0.62
+    rotation-speed: 0.11
+    tilt: 0.0
+    particle: ENCHANT
+    particle-count: 2
+    particle-interval-ticks: 2
+    sound: BLOCK_BEACON_POWER_SELECT
+    sound-interval-ticks: 40
+    sound-volume: 0.3
+    sound-pitch: 1.3
+
+  heart-pulse:
+    material: PAPER
+    item-model: minecraft:evolution_fx_gem
+    shape: pulse
+    cycle-ticks: 34
+    loop: true
+    copies: 1
+    radius: 0.15
+    height: 1.85
+    bob: 0.08
+    scale: 0.56
+    rotation-speed: 0.12
+    tilt: 0.0
+    particle: HEART
+    particle-count: 1
+    particle-interval-ticks: 8
+    sound: BLOCK_AMETHYST_BLOCK_CHIME
+    sound-interval-ticks: 80
+    sound-volume: 0.2
+    sound-pitch: 1.5
+
+  calamity-vortex:
+    material: PAPER
+    item-model: minecraft:evolution_path_calamity
+    shape: vortex
+    cycle-ticks: 88
+    loop: true
+    copies: 7
+    radius: 1.7
+    height: 1.35
+    bob: 0.04
+    scale: 0.34
+    rotation-speed: 0.18
+    tilt: 0.32
+    particle: SOUL_FIRE_FLAME
+    particle-count: 1
+    particle-interval-ticks: 2
+    sound: BLOCK_RESPAWN_ANCHOR_CHARGE
+    sound-interval-ticks: 100
+    sound-volume: 0.22
+    sound-pitch: 0.75
+
+  golden-spin:
+    material: PAPER
+    item-model: minecraft:evolution_fx_gem
+    shape: spin
+    cycle-ticks: 60
+    loop: true
+    copies: 1
+    radius: 0.0
+    height: 2.0
+    bob: 0.04
+    scale: 0.5
+    rotation-speed: 0.2
+    tilt: 0.18
+    particle: END_ROD
+    particle-count: 1
+    particle-interval-ticks: 4
+    sound: BLOCK_AMETHYST_BLOCK_CHIME
+    sound-interval-ticks: 60
+    sound-volume: 0.18
+    sound-pitch: 1.1
