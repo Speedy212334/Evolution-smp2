@@ -26,6 +26,10 @@ public final class EvolutionGuide {
                     "T2 uses iron, diamond and emerald blocks. T3 uses netherite ingots, totems and a beacon.",
                     "T4 uses a Nether Star, totems and Evolution Shards. It does not require a previous tier orb."
             },
+            "apex", new String[]{
+                    "Reach T4, then use /evo apex while carrying 8 Echo Shards. The attempt has a 20% success chance and consumes the shards.",
+                    "On success, the server broadcasts that the player has reached peak of evolution. Apex players do not drop death orbs."
+            },
             "abilities", new String[]{
                     "Trade Apex can activate /evo gambit: three minutes of invulnerability, then all armor in the player's inventory is destroyed and armor is locked for 20 minutes.",
                     "Calamity Apex can activate /evo heart: Strength IV, Speed III and Resistance II for 60 seconds, with a heart symbol above the player for three minutes.",
@@ -44,7 +48,7 @@ public final class EvolutionGuide {
 
     public static void send(CommandSender sender, String topic) {
         if (topic == null || topic.isBlank()) {
-            sender.sendMessage(ChatColor.GOLD + "Evolution Guide: paths, tiers, death, orbs, abilities, xp");
+            sender.sendMessage(ChatColor.GOLD + "Evolution Guide: paths, tiers, death, orbs, apex, abilities, xp");
             sender.sendMessage(ChatColor.GRAY + "Use /evo guide <topic> for a short explanation.");
             return;
         }
