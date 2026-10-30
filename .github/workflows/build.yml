@@ -28,7 +28,9 @@ jobs:
       - name: Print compatibility target
         run: gradle compatibilityReport
       - name: Compile and test
-        run: gradle clean test jar generateResourcePack
+        run: gradle clean test jar generateResourcePack verifyArtifacts
+      - name: Print artifact hashes
+        run: sha256sum build/libs/EvolutionSMP-1.0.0.jar build/pack/EvolutionSMP-ResourcePack-26.3.zip
       - name: Upload unified plugin JAR
         uses: actions/upload-artifact@v4
         with:
