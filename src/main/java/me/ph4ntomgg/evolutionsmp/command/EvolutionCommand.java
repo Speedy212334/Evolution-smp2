@@ -15,6 +15,8 @@ import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 
 import java.util.Locale;
+import java.util.concurrent.ThreadLocalRandom;
+import org.bukkit.Material;
 
 public final class EvolutionCommand implements CommandExecutor {
     private final ProgressService progress;
@@ -39,6 +41,7 @@ public final class EvolutionCommand implements CommandExecutor {
         if (args[0].equalsIgnoreCase("help")) {
             sender.sendMessage(ChatColor.GOLD + "EvolutionSMP 1.0.0 " + ChatColor.GRAY + "Commands:");
             sender.sendMessage(ChatColor.YELLOW + "/evo status");
+            sender.sendMessage(ChatColor.YELLOW + "/evo apex " + ChatColor.GRAY + "(T4: attempt Apex with 8 Echo Shards)");
             sender.sendMessage(ChatColor.YELLOW + "/evo recipes");
             sender.sendMessage(ChatColor.YELLOW + "/evo guide [paths|tiers|death|orbs|abilities|xp]");
             sender.sendMessage(ChatColor.YELLOW + "/evo pathchanger <player> " + ChatColor.GRAY + "(admin)");
@@ -69,6 +72,30 @@ public final class EvolutionCommand implements CommandExecutor {
             case "recipes" -> {
                 if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
                 recipes.open(player);
+            }
+            case "apex" -> {
+                if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
+                PlayerProgress current = progress.get(player.getUniqueId());
+                if (!current.assigned() || current.tier() != EvolutionTier.T4) { player.sendMessage(ChatColor.RED + "Apex requires an assigned path and T4."); return true; }
+                int found = 0;
+                for (org.bukkit.inventory.ItemStack item : player.getInventory().getStorageContents()) if (item != null && item.getType() == Material.ECHO_SHARD) found += item.getAmount();
+                if (found < 8) { player.sendMessage(ChatColor.RED + "You need 8 Echo Shards."); return true; }
+                int remaining = 8;
+                for (int i = 0; i < player.getInventory().getStorageContents().length && remaining > 0; i++) {
+                    org.bukkit.inventory.ItemStack item = player.getInventory().getItem(i);
+                    if (item == null || item.getType() != Material.ECHO_SHARD) continue;
+                    int take = Math.min(remaining, item.getAmount());
+                    item.setAmount(item.getAmount() - take);
+                    remaining -= take;
+                    if (item.getAmount() <= 0) player.getInventory().setItem(i, null);
+                }
+                if (ThreadLocalRandom.current().nextDouble() < 0.20) {
+                    progress.setTier(player.getUniqueId(), EvolutionTier.APEX);
+                    Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + player.getName() + " has reached peak of evolution");
+                    player.sendTitle(ChatColor.GOLD + "APEX", ChatColor.LIGHT_PURPLE + "You have reached the peak.", 10, 80, 20);
+                } else {
+                    player.sendMessage(ChatColor.RED + "The Apex attempt failed. The 8 Echo Shards were consumed.");
+                }
             }
             case "gambit" -> {
                 if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
