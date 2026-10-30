@@ -78,7 +78,7 @@ public final class AbilityService implements Listener {
 
     private void finishGambit(Player player) {
         UUID id = player.getUniqueId();
-        gambitUntil.remove(id);
+        if (gambitUntil.remove(id) == null) return;
         destroyAllArmor(player.getInventory());
         armorLockUntil.put(id, System.currentTimeMillis() + ARMOR_LOCK_MS);
         save();
