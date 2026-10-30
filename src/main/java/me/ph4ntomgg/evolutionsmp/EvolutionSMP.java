@@ -8,6 +8,7 @@ import me.ph4ntomgg.evolutionsmp.domain.PlayerProgress;
 import me.ph4ntomgg.evolutionsmp.fx.CinematicEffects;
 import me.ph4ntomgg.evolutionsmp.gameplay.GameplayListener;
 import me.ph4ntomgg.evolutionsmp.gameplay.EnderAbilityListener;
+import me.ph4ntomgg.evolutionsmp.gameplay.PathPassiveListener;
 import me.ph4ntomgg.evolutionsmp.persistence.ProgressRepository;
 import me.ph4ntomgg.evolutionsmp.service.ProgressService;
 import me.ph4ntomgg.evolutionsmp.ui.PathSelectionMenu;
@@ -29,6 +30,7 @@ public final class EvolutionSMP extends JavaPlugin implements Listener {
     private CinematicEffects effects;
     private AbilityService abilities;
     private CustomAnimationManager animations;
+    private PathPassiveListener passives;
 
     @Override
     public void onEnable() {
@@ -47,6 +49,8 @@ public final class EvolutionSMP extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getPluginManager().registerEvents(new GameplayListener(this, progress), this);
         getServer().getPluginManager().registerEvents(new EnderAbilityListener(this, progress), this);
+        passives = new PathPassiveListener(this, progress);
+        getServer().getPluginManager().registerEvents(passives, this);
         getServer().getPluginManager().registerEvents(abilities, this);
         getServer().getPluginManager().registerEvents(new RecipeMenuListener(), this);
         getServer().getPluginManager().registerEvents(new PathChangerListener(items, menu), this);
@@ -88,6 +92,7 @@ public final class EvolutionSMP extends JavaPlugin implements Listener {
         if (effects != null) effects.shutdown();
         if (abilities != null) abilities.shutdown();
         if (animations != null) animations.stopAll();
+        if (passives != null) passives.shutdown();
         getLogger().info("EvolutionSMP 1.0.0 stopped; services flushed.");
     }
 }
