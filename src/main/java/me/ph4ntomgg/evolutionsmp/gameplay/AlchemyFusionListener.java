@@ -15,7 +15,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionType;
@@ -75,6 +74,8 @@ public final class AlchemyFusionListener implements Listener {
             player.sendMessage(ChatColor.RED + "Potion Fusion requires Alchemy Tier III or higher.");
             return;
         }
+        ItemStack fused = result.clone();
+        fused.setAmount(1);
         CraftingInventory crafting = (CraftingInventory) event.getView().getTopInventory();
         ItemStack[] matrix = crafting.getMatrix();
         int count = 0;
@@ -93,8 +94,6 @@ public final class AlchemyFusionListener implements Listener {
             else matrix[i] = null;
         }
         crafting.setMatrix(matrix);
-        ItemStack fused = result.clone();
-        fused.setAmount(1);
         Map<Integer, ItemStack> overflow = player.getInventory().addItem(fused);
         overflow.values().forEach(item -> player.getWorld().dropItemNaturally(player.getLocation(), item));
         player.updateInventory();
