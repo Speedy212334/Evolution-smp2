@@ -1,16 +1,60 @@
 package me.ph4ntomgg.evolutionsmp;
 
+import me.ph4ntomgg.evolutionsmp.command.EvolutionCommand;
+import me.ph4ntomgg.evolutionsmp.domain.PlayerProgress;
+import me.ph4ntomgg.evolutionsmp.fx.CinematicEffects;
+import me.ph4ntomgg.evolutionsmp.persistence.ProgressRepository;
+import me.ph4ntomgg.evolutionsmp.service.ProgressService;
+import me.ph4ntomgg.evolutionsmp.ui.PathSelectionMenu;
+import org.bukkit.ChatColor;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public final class EvolutionSMP extends JavaPlugin {
+public final class EvolutionSMP extends JavaPlugin implements Listener {
+    private ProgressService progress;
+    private CinematicEffects effects;
+
     @Override
     public void onEnable() {
-        getLogger().info("EvolutionSMP 1.0.0 starting.");
-        getLogger().info("Core and FX will share this plugin lifecycle and one distributable JAR.");
+        saveDefaultConfig();
+        progress = new ProgressService(new ProgressRepository(this));
+        effects = new CinematicEffects(this);
+        PathSelectionMenu menu = new PathSelectionMenu(this, progress, effects);
+        getServer().getPluginManager().registerEvents(this, this);
+
+        if (getCommand("evo") == null || getCommand("evofx") == null) {
+            getLogger().severe("Command descriptors are missing; disabling plugin.");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+        getCommand("evo").setExecutor(new EvolutionCommand(progress, menu, effects));
+        getCommand("evofx").setExecutor((sender, command, label, args) -> {
+            if (!sender.hasPermission("evolution.admin")) { sender.sendMessage(ChatColor.RED + "No permission."); return true; }
+            if (args.length != 1) { sender.sendMessage(ChatColor.RED + "Usage: /evofx <player>"); return true; }
+            org.bukkit.entity.Player target = getServer().getPlayerExact(args[0]);
+            if (target == null) { sender.sendMessage(ChatColor.RED + "That player is not online."); return true; }
+            var state = progress.get(target.getUniqueId());
+            if (state.path() == null) { sender.sendMessage(ChatColor.RED + "Player has no path."); return true; }
+            effects.revealPath(target, state.path());
+            return true;
+        });
+        getLogger().info("EvolutionSMP 1.0.0 enabled. Seven paths registered; unified FX lifecycle active.");
+    }
+
+    @EventHandler
+    public void onJoin(PlayerJoinEvent event) {
+        PlayerProgress state = progress.get(event.getPlayer().getUniqueId());
+        if (state.path() == null) {
+            event.getPlayer().sendMessage(ChatColor.GRAY + "Your evolution has not begun. An administrator will assign your path.");
+        }
     }
 
     @Override
     public void onDisable() {
-        getLogger().info("EvolutionSMP 1.0.0 stopped; lifecycle services must be cleaned up here.");
+        if (progress != null) progress.flush();
+        if (effects != null) effects.shutdown();
+        getLogger().info("EvolutionSMP 1.0.0 stopped; services flushed.");
     }
 }
