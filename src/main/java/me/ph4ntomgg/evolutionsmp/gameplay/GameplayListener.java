@@ -2,6 +2,7 @@ package me.ph4ntomgg.evolutionsmp.gameplay;
 
 import me.ph4ntomgg.evolutionsmp.domain.*;
 import me.ph4ntomgg.evolutionsmp.service.ProgressService;
+import me.ph4ntomgg.evolutionsmp.item.EvolutionItems;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -35,10 +36,12 @@ public final class GameplayListener implements Listener {
     );
     private final ProgressService progress;
     private final NamespacedKey orbXp;
+    private final EvolutionItems items;
 
     public GameplayListener(JavaPlugin plugin, ProgressService progress) {
         this.progress = progress;
-        this.orbXp = new NamespacedKey(plugin, "evolution_orb_xp");
+        this.items = new EvolutionItems(plugin);
+        this.orbXp = items.orbXpKey();
     }
 
     @EventHandler
@@ -96,12 +99,7 @@ public final class GameplayListener implements Listener {
             default -> 0;
         };
         if (value > 0) {
-            ItemStack orb = new ItemStack(Material.ECHO_SHARD);
-            ItemMeta meta = orb.getItemMeta();
-            meta.setDisplayName(ChatColor.LIGHT_PURPLE + "Evolution Orb " + ChatColor.GRAY + "• " + state.tier());
-            meta.setLore(java.util.List.of(ChatColor.GRAY + "A remnant of lost evolution.", ChatColor.YELLOW + "Value: " + value + " XP"));
-            meta.getPersistentDataContainer().set(orbXp, PersistentDataType.LONG, value);
-            orb.setItemMeta(meta);
+            ItemStack orb = items.orb(state.tier());
             event.getDrops().add(orb);
         }
         progress.setTier(player.getUniqueId(), EvolutionTier.T1);
