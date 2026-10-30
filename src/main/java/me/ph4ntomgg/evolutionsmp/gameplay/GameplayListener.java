@@ -177,7 +177,17 @@ public final class GameplayListener implements Listener {
 
     @EventHandler
     public void onEnchant(EnchantItemEvent event) {
-        award(event.getEnchanter(), EvolutionPath.ENCHANTMENT, Math.max(5, event.getExpLevelCost() * 3L));
+        Player player = event.getEnchanter();
+        award(player, EvolutionPath.ENCHANTMENT, Math.max(5, event.getExpLevelCost() * 3L));
+        PlayerProgress p = progress.get(player.getUniqueId());
+        if (p.path() == EvolutionPath.ENCHANTMENT) {
+            double chance = p.tier().rank() >= 4 ? 0.30 : p.tier().rank() >= 2 ? 0.20 : 0.10;
+            if (ThreadLocalRandom.current().nextDouble() < chance) {
+                player.getInventory().addItem(new ItemStack(Material.LAPIS_LAZULI, 1))
+                        .values().forEach(item -> player.getWorld().dropItemNaturally(player.getLocation(), item));
+                player.sendMessage(ChatColor.AQUA + "Arcane Reserve refunded one lapis lazuli.");
+            }
+        }
     }
 
     @EventHandler
