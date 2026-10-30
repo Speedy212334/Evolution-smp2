@@ -1,6 +1,7 @@
 package me.ph4ntomgg.evolutionsmp;
 
 import me.ph4ntomgg.evolutionsmp.command.EvolutionCommand;
+import me.ph4ntomgg.evolutionsmp.ability.AbilityService;
 import me.ph4ntomgg.evolutionsmp.domain.PlayerProgress;
 import me.ph4ntomgg.evolutionsmp.fx.CinematicEffects;
 import me.ph4ntomgg.evolutionsmp.gameplay.GameplayListener;
@@ -16,22 +17,25 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class EvolutionSMP extends JavaPlugin implements Listener {
     private ProgressService progress;
     private CinematicEffects effects;
+    private AbilityService abilities;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
         progress = new ProgressService(new ProgressRepository(this));
         effects = new CinematicEffects(this);
+        abilities = new AbilityService(this, progress);
         PathSelectionMenu menu = new PathSelectionMenu(this, progress, effects);
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getPluginManager().registerEvents(new GameplayListener(this, progress), this);
+        getServer().getPluginManager().registerEvents(abilities, this);
 
         if (getCommand("evo") == null || getCommand("evofx") == null) {
             getLogger().severe("Command descriptors are missing; disabling plugin.");
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
-        getCommand("evo").setExecutor(new EvolutionCommand(progress, menu, effects));
+        getCommand("evo").setExecutor(new EvolutionCommand(progress, menu, effects, abilities));
         getCommand("evofx").setExecutor((sender, command, label, args) -> {
             if (!sender.hasPermission("evolution.admin")) { sender.sendMessage(ChatColor.RED + "No permission."); return true; }
             if (args.length != 1) { sender.sendMessage(ChatColor.RED + "Usage: /evofx <player>"); return true; }
@@ -57,6 +61,7 @@ public final class EvolutionSMP extends JavaPlugin implements Listener {
     public void onDisable() {
         if (progress != null) progress.flush();
         if (effects != null) effects.shutdown();
+        if (abilities != null) abilities.shutdown();
         getLogger().info("EvolutionSMP 1.0.0 stopped; services flushed.");
     }
 }
