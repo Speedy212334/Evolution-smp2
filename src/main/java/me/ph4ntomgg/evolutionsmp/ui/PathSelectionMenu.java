@@ -25,7 +25,9 @@ public final class PathSelectionMenu {
         this.plugin = plugin; this.progress = progress; this.effects = effects;
     }
 
-    public void open(Player target, Player viewer) {
+    public void open(Player target, Player viewer) { open(target, viewer, false); }
+
+    public void open(Player target, Player viewer, boolean consumeToken) {
         Inventory inv = Bukkit.createInventory(null, 27, TITLE);
         EvolutionPath[] paths = EvolutionPath.values();
         for (int i = 0; i < paths.length; i++) {
@@ -36,7 +38,7 @@ public final class PathSelectionMenu {
             item.setItemMeta(meta);
             inv.setItem(new int[]{10,11,12,13,14,15,16}[i], item);
         }
-        plugin.getServer().getPluginManager().registerEvents(new PathMenuListener(plugin, target.getUniqueId(), viewer.getUniqueId(), progress, effects), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new PathMenuListener(plugin, target.getUniqueId(), viewer.getUniqueId(), progress, effects, consumeToken), plugin);
         viewer.openInventory(inv);
     }
 }
