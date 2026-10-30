@@ -69,7 +69,7 @@ public final class EvolutionItems {
         plugin.getServer().removeRecipe(key);
         ShapedRecipe recipe = new ShapedRecipe(key, result);
         recipe.shape(shape);
-        for (int i = 0; i < ingredients.length; i += 2) recipe.setIngredient((Character) ingredients[i], (ItemStack) ingredients[i + 1]);
+        for (int i = 0; i < ingredients.length; i += 2) recipe.setIngredient((Character) ingredients[i], new org.bukkit.inventory.RecipeChoice.ExactChoice((ItemStack) ingredients[i + 1]));
         plugin.getServer().addRecipe(recipe);
     }
 
