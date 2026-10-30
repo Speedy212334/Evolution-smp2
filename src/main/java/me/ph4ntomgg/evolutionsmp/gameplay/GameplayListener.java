@@ -7,6 +7,16 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Monster;
+import io.papermc.paper.event.player.PlayerTradeEvent;
+import org.bukkit.event.inventory.BrewEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
+import org.bukkit.block.Block;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -37,6 +47,7 @@ public final class GameplayListener implements Listener {
     private final ProgressService progress;
     private final NamespacedKey orbXp;
     private final EvolutionItems items;
+    private final Map<String, RecentBrewer> recentBrewers = new HashMap<>();
 
     public GameplayListener(JavaPlugin plugin, ProgressService progress) {
         this.progress = progress;
@@ -52,13 +63,51 @@ public final class GameplayListener implements Listener {
     @EventHandler
     public void onMobKill(EntityDeathEvent event) {
         Player killer = event.getEntity().getKiller();
-        if (killer == null || event.getEntityType() == EntityType.PLAYER) return;
-        if (event.getEntityType() == EntityType.ENDER_DRAGON || event.getEntityType() == EntityType.WITHER) {
+        if (killer == null) return;
+        EntityType type = event.getEntityType();
+        if (type == EntityType.PLAYER) {
             award(killer, EvolutionPath.HUNT, 40);
-        } else if (event.getEntityType().isAlive()) {
-            award(killer, EvolutionPath.HUNT, 12);
+            return;
+        }
+        if (event.getEntity() instanceof Monster) award(killer, EvolutionPath.HUNT, 12);
+        if (type == EntityType.WITHER || type == EntityType.ENDER_DRAGON
+                || type == EntityType.WARDEN || type == EntityType.ELDER_GUARDIAN) {
+            award(killer, EvolutionPath.CALAMITY, 120);
         }
     }
+
+    @EventHandler
+    public void recordBrewingStandUser(PlayerInteractEvent event) {
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.getClickedBlock() == null
+                || event.getClickedBlock().getType() != Material.BREWING_STAND) return;
+        recentBrewers.put(blockKey(event.getClickedBlock()), new RecentBrewer(event.getPlayer().getUniqueId(), System.currentTimeMillis()));
+    }
+
+    @EventHandler
+    public void onBrewComplete(BrewEvent event) {
+        RecentBrewer recent = recentBrewers.remove(blockKey(event.getBlock()));
+        if (recent == null || System.currentTimeMillis() - recent.at() > 120_000L) return;
+        Player brewer = org.bukkit.Bukkit.getPlayer(recent.playerId());
+        if (brewer != null) award(brewer, EvolutionPath.ALCHEMY, 25);
+    }
+
+    @EventHandler
+    public void onTrade(PlayerTradeEvent event) {
+        award(event.getPlayer(), EvolutionPath.TRADE, 15);
+    }
+
+    @EventHandler
+    public void onDimensionChange(PlayerChangedWorldEvent event) {
+        if (event.getPlayer().getWorld().getEnvironment() == org.bukkit.World.Environment.THE_END) {
+            award(event.getPlayer(), EvolutionPath.ENDER, 25);
+        }
+    }
+
+    private String blockKey(Block block) {
+        return block.getWorld().getUID() + ":" + block.getX() + ":" + block.getY() + ":" + block.getZ();
+    }
+
+    private record RecentBrewer(UUID playerId, long at) { }
 
     @EventHandler
     public void onEnchant(EnchantItemEvent event) {
@@ -77,13 +126,6 @@ public final class GameplayListener implements Listener {
     public void onEnderPearlTeleport(PlayerTeleportEvent event) {
         if (event.getCause() == PlayerTeleportEvent.TeleportCause.ENDER_PEARL) {
             award(event.getPlayer(), EvolutionPath.ENDER, 8);
-        }
-    }
-
-    @EventHandler
-    public void onDamage(EntityDamageEvent event) {
-        if (event.getEntity() instanceof Player player && event.getFinalDamage() > 0) {
-            award(player, EvolutionPath.CALAMITY, 2);
         }
     }
 
