@@ -12,13 +12,18 @@ import java.util.UUID;
 
 final class PlayerProgressAssign {
     private PlayerProgressAssign() {}
-    static void assign(JavaPlugin plugin, UUID targetId, Player viewer, EvolutionPath path, ProgressService progress, CinematicEffects effects) {
+
+    static void assign(JavaPlugin plugin, UUID targetId, Player viewer, EvolutionPath path,
+                       ProgressService progress, CinematicEffects effects) {
         progress.assign(targetId, path);
         Player target = Bukkit.getPlayer(targetId);
         if (target != null) {
-            target.sendMessage(ChatColor.GREEN + "Your evolution path is now " + path.displayName() + ".");
+            // The cinematic owns the single target-facing title and path announcement.
             effects.revealPath(target, path);
         }
-        viewer.sendMessage(ChatColor.GREEN + "Assigned " + path.displayName() + " to " + (target == null ? targetId : target.getName()) + ".");
+        if (viewer != target) {
+            viewer.sendMessage(ChatColor.GREEN + "Assigned " + path.displayName()
+                    + " to " + (target == null ? targetId : target.getName()) + ".");
+        }
     }
 }
