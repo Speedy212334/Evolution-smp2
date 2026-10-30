@@ -4,43 +4,62 @@ import me.ph4ntomgg.evolutionsmp.domain.EvolutionPath;
 import me.ph4ntomgg.evolutionsmp.service.ProgressService;
 import me.ph4ntomgg.evolutionsmp.fx.CinematicEffects;
 import me.ph4ntomgg.evolutionsmp.item.EvolutionItems;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public final class PathMenuListener implements Listener {
     private final JavaPlugin plugin;
-    private final UUID target;
-    private final UUID viewer;
     private final ProgressService progress;
     private final CinematicEffects effects;
-    private final boolean consumeToken;
+    private final Map<UUID, Session> sessions = new HashMap<>();
 
-    public PathMenuListener(JavaPlugin plugin, UUID target, UUID viewer, ProgressService progress, CinematicEffects effects, boolean consumeToken) {
-        this.plugin = plugin; this.target = target; this.viewer = viewer; this.progress = progress; this.effects = effects; this.consumeToken = consumeToken;
+    public PathMenuListener(JavaPlugin plugin, ProgressService progress, CinematicEffects effects) {
+        this.plugin = plugin; this.progress = progress; this.effects = effects;
+    }
+
+    public void track(Player target, Player viewer, boolean consumeToken) {
+        sessions.put(viewer.getUniqueId(), new Session(target.getUniqueId(), consumeToken));
     }
 
     @EventHandler
     public void onClick(InventoryClickEvent event) {
         if (!PathSelectionMenu.TITLE.equals(event.getView().getTitle())) return;
         event.setCancelled(true);
-        if (!(event.getWhoClicked() instanceof Player player) || !player.getUniqueId().equals(viewer)) return;
+        if (!(event.getWhoClicked() instanceof Player player)) return;
+        Session session = sessions.get(player.getUniqueId());
+        if (session == null) return;
         int slot = event.getRawSlot();
         if (slot < 10 || slot > 16) return;
         EvolutionPath[] paths = EvolutionPath.values();
         int index = slot - 10;
         if (index >= paths.length) return;
-        if (consumeToken && !consumePathChanger(player)) { player.sendMessage(ChatColor.RED + "The path changer is missing."); player.closeInventory(); return; }
-        PlayerProgressAssign.assign(plugin, target, player, paths[index], progress, effects);
+        if (session.consumeToken() && !consumePathChanger(player)) {
+            player.sendMessage(ChatColor.RED + "The path changer is missing.");
+            sessions.remove(player.getUniqueId());
+            player.closeInventory();
+            return;
+        }
+        PlayerProgressAssign.assign(plugin, session.target(), player, paths[index], progress, effects);
+        sessions.remove(player.getUniqueId());
         player.closeInventory();
-        org.bukkit.event.HandlerList.unregisterAll(this);
+    }
+
+    @EventHandler
+    public void onClose(InventoryCloseEvent event) {
+        if (PathSelectionMenu.TITLE.equals(event.getView().getTitle()) && event.getPlayer() instanceof Player player) {
+            sessions.remove(player.getUniqueId());
+        }
     }
 
     private boolean consumePathChanger(Player player) {
@@ -56,4 +75,6 @@ public final class PathMenuListener implements Listener {
         }
         return false;
     }
+
+    private record Session(UUID target, boolean consumeToken) { }
 }
