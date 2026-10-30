@@ -42,3 +42,13 @@ tasks.register('compatibilityReport') {
         println 'Dependency resolution during compile/test is the compatibility gate.'
     }
 }
+
+
+tasks.register('generateResourcePack', Exec) {
+    def packOutput = layout.buildDirectory.file('pack/EvolutionSMP-ResourcePack-26.3.zip')
+    inputs.file('pack/generate_resource_pack.py')
+    outputs.file(packOutput)
+    doFirst { packOutput.get().asFile.parentFile.mkdirs() }
+    commandLine 'python3', 'pack/generate_resource_pack.py', '--version', '26.3',
+            '--output', packOutput.get().asFile.absolutePath
+}
