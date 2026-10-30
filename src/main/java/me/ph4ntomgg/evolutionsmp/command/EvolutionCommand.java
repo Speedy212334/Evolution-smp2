@@ -5,6 +5,7 @@ import me.ph4ntomgg.evolutionsmp.ability.AbilityService;
 import me.ph4ntomgg.evolutionsmp.fx.CinematicEffects;
 import me.ph4ntomgg.evolutionsmp.service.ProgressService;
 import me.ph4ntomgg.evolutionsmp.ui.PathSelectionMenu;
+import me.ph4ntomgg.evolutionsmp.ui.RecipeMenu;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.*;
@@ -15,11 +16,12 @@ import java.util.Locale;
 public final class EvolutionCommand implements CommandExecutor {
     private final ProgressService progress;
     private final AbilityService abilities;
+    private final RecipeMenu recipes;
     private final PathSelectionMenu menu;
     private final CinematicEffects effects;
 
-    public EvolutionCommand(ProgressService progress, PathSelectionMenu menu, CinematicEffects effects, AbilityService abilities) {
-        this.progress = progress; this.menu = menu; this.effects = effects; this.abilities = abilities;
+    public EvolutionCommand(ProgressService progress, PathSelectionMenu menu, CinematicEffects effects, AbilityService abilities, RecipeMenu recipes) {
+        this.progress = progress; this.menu = menu; this.effects = effects; this.abilities = abilities; this.recipes = recipes;
     }
 
     @Override
@@ -27,6 +29,7 @@ public final class EvolutionCommand implements CommandExecutor {
         if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
             sender.sendMessage(ChatColor.GOLD + "EvolutionSMP 1.0.0 " + ChatColor.GRAY + "Commands:");
             sender.sendMessage(ChatColor.YELLOW + "/evo status");
+            sender.sendMessage(ChatColor.YELLOW + "/evo recipes");
             sender.sendMessage(ChatColor.YELLOW + "/evo gambit " + ChatColor.GRAY + "(Trade Apex)");
             sender.sendMessage(ChatColor.YELLOW + "/evo heart " + ChatColor.GRAY + "(Calamity Apex)");
             sender.sendMessage(ChatColor.YELLOW + "/evo start <player> " + ChatColor.GRAY + "(admin: open path selection)");
@@ -36,6 +39,10 @@ public final class EvolutionCommand implements CommandExecutor {
             return true;
         }
         switch (args[0].toLowerCase(Locale.ROOT)) {
+            case "recipes" -> {
+                if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
+                recipes.open(player);
+            }
             case "gambit" -> {
                 if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
                 abilities.activateGambit(player);
