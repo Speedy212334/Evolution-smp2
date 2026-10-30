@@ -33,7 +33,10 @@ public final class EvolutionGuide {
             "abilities", new String[]{
                     "Trade Apex can activate /evo gambit: three minutes of invulnerability, then all armor in the player's inventory is destroyed and armor is locked for 20 minutes.",
                     "Calamity Apex can activate /evo heart: Strength IV, Speed III and Resistance II for 60 seconds, with a heart symbol above the player for three minutes.",
-                    "Both abilities share a 30-minute cooldown in this first implementation."
+                    "Both Apex abilities share a 30-minute cooldown in this first implementation.",
+                    "Hunt Tier IV can use /evo veil for temporary invisibility. Calamity Tier IV can use /evo fracture for a shockwave.",
+                    "Enchantment Tier IV can use /evo curse while holding an item to select Curse of Binding and Curse of Vanishing for removal.",
+                    "Ender Tier IV can open personal Ender Storage with /enderchest."
             },
             "xp", new String[]{
                     "Hunt gains XP from hostile mob and player kills.",
