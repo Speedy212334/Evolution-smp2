@@ -51,13 +51,24 @@ public final class EvolutionSMP extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new EvolutionMainMenuListener(progress, menu, recipes, effects), this);
         getServer().getPluginManager().registerEvents(curseMenu, this);
 
-        if (getCommand("evo") == null || getCommand("evofx") == null) {
+        if (getCommand("evo") == null || getCommand("evofx") == null || getCommand("enderchest") == null) {
             getLogger().severe("Command descriptors are missing; disabling plugin.");
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
         getCommand("evo").setExecutor(new EvolutionCommand(progress, menu, effects, abilities, recipes, items, mainMenu, curseMenu));
         getCommand("evofx").setExecutor(new EvolutionFXCommand(animations, effects, progress));
+        getCommand("enderchest").setExecutor((sender, command, label, args) -> {
+            if (!(sender instanceof org.bukkit.entity.Player player)) { sender.sendMessage("Players only."); return true; }
+            var state = progress.get(player.getUniqueId());
+            if (state.path() != me.ph4ntomgg.evolutionsmp.domain.EvolutionPath.ENDER
+                    || state.tier().rank() < me.ph4ntomgg.evolutionsmp.domain.EvolutionTier.T4.rank()) {
+                player.sendMessage(ChatColor.RED + "Ender Storage requires Ender Tier IV.");
+                return true;
+            }
+            player.openInventory(player.getEnderChest());
+            return true;
+        });
         getLogger().info("EvolutionSMP 1.0.0 enabled. Seven paths registered; unified FX lifecycle active.");
     }
 
