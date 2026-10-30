@@ -1,4 +1,4 @@
-package me.ph4ntomgg.evolutionfx;
+package me.ph4ntomgg.evolutionsmp.fx;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
