@@ -14,7 +14,8 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
-import org.bukkit.event.inventory.CraftItemEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionType;
@@ -58,24 +59,45 @@ public final class AlchemyFusionListener implements Listener {
     }
 
     @EventHandler
-    public void craft(CraftItemEvent event) {
-        ItemStack result = event.getRecipe().getResult();
-        if (!result.hasItemMeta()
+    public void craft(InventoryClickEvent event) {
+        if (event.getRawSlot() != 0 || !(event.getView().getTopInventory() instanceof CraftingInventory)) return;
+        ItemStack result = event.getCurrentItem();
+        if (result == null || !result.hasItemMeta()
                 || !result.getItemMeta().getPersistentDataContainer().has(fusedKey, PersistentDataType.BYTE)) return;
-        if (!(event.getWhoClicked() instanceof Player player)) {
-            event.setCancelled(true);
+        event.setCancelled(true);
+        if (!(event.getWhoClicked() instanceof Player player)) return;
+        if (event.getClick().isShiftClick() || event.getCursor() != null && !event.getCursor().getType().isAir()) {
+            player.sendMessage(ChatColor.YELLOW + "Take the fusion potion with an empty cursor; shift-click is disabled.");
             return;
         }
         PlayerProgress state = progress.get(player.getUniqueId());
         if (state.path() != EvolutionPath.ALCHEMY || state.tier().rank() < 3) {
-            event.setCancelled(true);
             player.sendMessage(ChatColor.RED + "Potion Fusion requires Alchemy Tier III or higher.");
             return;
         }
-        if (event.isShiftClick()) {
-            event.setCancelled(true);
-            player.sendMessage(ChatColor.YELLOW + "Potion Fusion is crafted one at a time.");
+        CraftingInventory crafting = (CraftingInventory) event.getView().getTopInventory();
+        ItemStack[] matrix = crafting.getMatrix();
+        int count = 0;
+        for (ItemStack ingredient : matrix) {
+            if (ingredient != null && !ingredient.getType().isAir()) {
+                if (ingredient.getType() != Material.POTION) return;
+                count++;
+            }
         }
+        if (count != 2) return;
+        crafting.setResult(null);
+        for (int i = 0; i < matrix.length; i++) {
+            ItemStack ingredient = matrix[i];
+            if (ingredient == null || ingredient.getType().isAir()) continue;
+            if (ingredient.getAmount() > 1) ingredient.setAmount(ingredient.getAmount() - 1);
+            else matrix[i] = null;
+        }
+        crafting.setMatrix(matrix);
+        ItemStack fused = result.clone();
+        fused.setAmount(1);
+        Map<Integer, ItemStack> overflow = player.getInventory().addItem(fused);
+        overflow.values().forEach(item -> player.getWorld().dropItemNaturally(player.getLocation(), item));
+        player.updateInventory();
     }
 
     private ItemStack createFusion(ItemStack first, ItemStack second) {
