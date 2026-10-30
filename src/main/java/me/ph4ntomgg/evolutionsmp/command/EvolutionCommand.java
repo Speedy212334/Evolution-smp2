@@ -78,12 +78,12 @@ public final class EvolutionCommand implements CommandExecutor {
                 PlayerProgress current = progress.get(player.getUniqueId());
                 if (!current.assigned() || current.tier() != EvolutionTier.T4) { player.sendMessage(ChatColor.RED + "Apex requires an assigned path and T4."); return true; }
                 int found = 0;
-                for (org.bukkit.inventory.ItemStack item : player.getInventory().getStorageContents()) if (item != null && item.getType() == Material.ECHO_SHARD) found += item.getAmount();
+                for (org.bukkit.inventory.ItemStack item : player.getInventory().getStorageContents()) if (items.isPlainEchoShard(item)) found += item.getAmount();
                 if (found < 8) { player.sendMessage(ChatColor.RED + "You need 8 Echo Shards."); return true; }
                 int remaining = 8;
                 for (int i = 0; i < player.getInventory().getStorageContents().length && remaining > 0; i++) {
                     org.bukkit.inventory.ItemStack item = player.getInventory().getItem(i);
-                    if (item == null || item.getType() != Material.ECHO_SHARD) continue;
+                    if (!items.isPlainEchoShard(item)) continue;
                     int take = Math.min(remaining, item.getAmount());
                     item.setAmount(item.getAmount() - take);
                     remaining -= take;
