@@ -3,9 +3,9 @@ package me.ph4ntomgg.evolutionsmp.ui;
 import me.ph4ntomgg.evolutionsmp.domain.EvolutionPath;
 import me.ph4ntomgg.evolutionsmp.service.ProgressService;
 import me.ph4ntomgg.evolutionsmp.fx.CinematicEffects;
+import me.ph4ntomgg.evolutionsmp.item.EvolutionItems;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -30,18 +30,8 @@ public final class PathSelectionMenu {
         EvolutionPath[] paths = EvolutionPath.values();
         for (int i = 0; i < paths.length; i++) {
             EvolutionPath path = paths[i];
-            Material icon = switch (path) {
-                case HUNT -> Material.IRON_SWORD;
-                case ALCHEMY -> Material.BREWING_STAND;
-                case ENCHANTMENT -> Material.ENCHANTING_TABLE;
-                case PROSPECTOR -> Material.DIAMOND_PICKAXE;
-                case ENDER -> Material.ENDER_PEARL;
-                case TRADE -> Material.EMERALD;
-                case CALAMITY -> Material.WITHER_SKELETON_SKULL;
-            };
-            ItemStack item = new ItemStack(icon);
+            ItemStack item = new EvolutionItems(plugin).pathIcon(path);
             ItemMeta meta = item.getItemMeta();
-            meta.setDisplayName(ChatColor.LIGHT_PURPLE + path.displayName());
             meta.setLore(List.of(ChatColor.GRAY + "Select this path for the target player."));
             item.setItemMeta(meta);
             inv.setItem(new int[]{10,11,12,13,14,15,16}[i], item);
