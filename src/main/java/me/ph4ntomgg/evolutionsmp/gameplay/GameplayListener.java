@@ -9,6 +9,8 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Monster;
 import io.papermc.paper.event.player.PlayerTradeEvent;
+import org.bukkit.inventory.MerchantRecipe;
+import java.util.concurrent.ThreadLocalRandom;
 import org.bukkit.event.inventory.BrewEvent;
 import org.bukkit.event.block.BrewingStartEvent;
 import org.bukkit.event.inventory.BrewingStandFuelEvent;
@@ -144,7 +146,20 @@ public final class GameplayListener implements Listener {
 
     @EventHandler
     public void onTrade(PlayerTradeEvent event) {
-        award(event.getPlayer(), EvolutionPath.TRADE, 15);
+        Player player = event.getPlayer();
+        PlayerProgress p = progress.get(player.getUniqueId());
+        if (p.path() != EvolutionPath.TRADE) return;
+        progress.award(player.getUniqueId(), 15);
+        MerchantRecipe adjusted = new MerchantRecipe(event.getTrade());
+        if (p.tier().rank() >= 2) {
+            int discount = p.tier().rank() >= 4 ? 2 : 1;
+            adjusted.setSpecialPrice(Math.max(-5, adjusted.getSpecialPrice() - discount));
+            event.setTrade(adjusted);
+        }
+        if (p.tier().rank() >= 3) {
+            double preserveChance = p.tier().rank() >= 4 ? 0.35 : 0.20;
+            if (ThreadLocalRandom.current().nextDouble() < preserveChance) event.setIncreaseTradeUses(false);
+        }
     }
 
     @EventHandler
