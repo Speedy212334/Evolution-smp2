@@ -6,6 +6,7 @@ import me.ph4ntomgg.evolutionsmp.fx.CinematicEffects;
 import me.ph4ntomgg.evolutionsmp.service.ProgressService;
 import me.ph4ntomgg.evolutionsmp.ui.PathSelectionMenu;
 import me.ph4ntomgg.evolutionsmp.ui.RecipeMenu;
+import me.ph4ntomgg.evolutionsmp.ui.EvolutionMainMenu;
 import me.ph4ntomgg.evolutionsmp.guide.EvolutionGuide;
 import me.ph4ntomgg.evolutionsmp.item.EvolutionItems;
 import org.bukkit.Bukkit;
@@ -20,16 +21,22 @@ public final class EvolutionCommand implements CommandExecutor {
     private final AbilityService abilities;
     private final RecipeMenu recipes;
     private final EvolutionItems items;
+    private final EvolutionMainMenu mainMenu;
     private final PathSelectionMenu menu;
     private final CinematicEffects effects;
 
-    public EvolutionCommand(ProgressService progress, PathSelectionMenu menu, CinematicEffects effects, AbilityService abilities, RecipeMenu recipes, EvolutionItems items) {
-        this.progress = progress; this.menu = menu; this.effects = effects; this.abilities = abilities; this.recipes = recipes; this.items = items;
+    public EvolutionCommand(ProgressService progress, PathSelectionMenu menu, CinematicEffects effects, AbilityService abilities, RecipeMenu recipes, EvolutionItems items, EvolutionMainMenu mainMenu) {
+        this.progress = progress; this.menu = menu; this.effects = effects; this.abilities = abilities; this.recipes = recipes; this.items = items; this.mainMenu = mainMenu;
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
+        if (args.length == 0) {
+            if (sender instanceof Player player) mainMenu.open(player);
+            else sender.sendMessage("Use /evo help for commands.");
+            return true;
+        }
+        if (args[0].equalsIgnoreCase("help")) {
             sender.sendMessage(ChatColor.GOLD + "EvolutionSMP 1.0.0 " + ChatColor.GRAY + "Commands:");
             sender.sendMessage(ChatColor.YELLOW + "/evo status");
             sender.sendMessage(ChatColor.YELLOW + "/evo recipes");
@@ -54,6 +61,10 @@ public final class EvolutionCommand implements CommandExecutor {
             }
             case "guide" -> {
                 EvolutionGuide.send(sender, args.length > 1 ? args[1] : null);
+            }
+            case "menu" -> {
+                if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
+                mainMenu.open(player);
             }
             case "recipes" -> {
                 if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
