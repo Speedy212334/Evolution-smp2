@@ -28,10 +28,12 @@ jobs:
       - name: Print compatibility target
         run: gradle compatibilityReport
       - name: Compile and test
-        run: gradle clean test jar
+        run: gradle clean test jar generateResourcePack
       - name: Upload unified plugin JAR
         uses: actions/upload-artifact@v4
         with:
           name: EvolutionSMP-1.0.0
-          path: build/libs/EvolutionSMP-1.0.0.jar
+          path: |
+            build/libs/EvolutionSMP-1.0.0.jar
+            build/pack/EvolutionSMP-ResourcePack-26.3.zip
           if-no-files-found: error
