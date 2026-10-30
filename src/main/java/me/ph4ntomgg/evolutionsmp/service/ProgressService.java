@@ -9,9 +9,23 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class ProgressService {
     private final ProgressRepository repository;
+    private final long t2Xp;
+    private final long t3Xp;
+    private final long t4Xp;
     private final Map<UUID, PlayerProgress> cache = new ConcurrentHashMap<>();
 
-    public ProgressService(ProgressRepository repository) { this.repository = repository; }
+    public ProgressService(ProgressRepository repository) { this(repository, ProgressionRules.DEFAULT_T2_XP, ProgressionRules.DEFAULT_T3_XP, ProgressionRules.DEFAULT_T4_XP); }
+
+    public ProgressService(ProgressRepository repository, long t2Xp, long t3Xp, long t4Xp) {
+        this.repository = repository;
+        this.t2Xp = Math.max(1, t2Xp);
+        this.t3Xp = Math.max(1, t3Xp);
+        this.t4Xp = Math.max(1, t4Xp);
+    }
+
+    public long thresholdForNextTier(EvolutionTier tier) {
+        return ProgressionRules.thresholdForNextTier(tier, t2Xp, t3Xp, t4Xp);
+    }
 
     public PlayerProgress get(UUID id) {
         return cache.computeIfAbsent(id, repository::load);
@@ -26,7 +40,7 @@ public final class ProgressService {
     public PlayerProgress award(UUID id, long amount) {
         PlayerProgress current = get(id);
         if (!current.assigned()) return current;
-        PlayerProgress updated = ProgressionRules.applyExperience(current, amount);
+        PlayerProgress updated = ProgressionRules.applyExperience(current, amount, t2Xp, t3Xp, t4Xp);
         put(updated);
         return updated;
     }
