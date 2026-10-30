@@ -11,6 +11,8 @@ import me.ph4ntomgg.evolutionsmp.ui.PathSelectionMenu;
 import me.ph4ntomgg.evolutionsmp.ui.RecipeMenu;
 import me.ph4ntomgg.evolutionsmp.ui.RecipeMenuListener;
 import me.ph4ntomgg.evolutionsmp.ui.PathChangerListener;
+import me.ph4ntomgg.evolutionsmp.ui.EvolutionMainMenu;
+import me.ph4ntomgg.evolutionsmp.ui.EvolutionMainMenuListener;
 import me.ph4ntomgg.evolutionsmp.item.EvolutionItems;
 import org.bukkit.ChatColor;
 import org.bukkit.event.EventHandler;
@@ -32,19 +34,21 @@ public final class EvolutionSMP extends JavaPlugin implements Listener {
         EvolutionItems items = new EvolutionItems(this);
         items.registerRecipes();
         RecipeMenu recipes = new RecipeMenu(items);
+        EvolutionMainMenu mainMenu = new EvolutionMainMenu(progress, items);
         PathSelectionMenu menu = new PathSelectionMenu(this, progress, effects);
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getPluginManager().registerEvents(new GameplayListener(this, progress), this);
         getServer().getPluginManager().registerEvents(abilities, this);
         getServer().getPluginManager().registerEvents(new RecipeMenuListener(), this);
         getServer().getPluginManager().registerEvents(new PathChangerListener(items, menu), this);
+        getServer().getPluginManager().registerEvents(new EvolutionMainMenuListener(progress, menu, recipes, effects), this);
 
         if (getCommand("evo") == null || getCommand("evofx") == null) {
             getLogger().severe("Command descriptors are missing; disabling plugin.");
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
-        getCommand("evo").setExecutor(new EvolutionCommand(progress, menu, effects, abilities, recipes, items));
+        getCommand("evo").setExecutor(new EvolutionCommand(progress, menu, effects, abilities, recipes, items, mainMenu));
         getCommand("evofx").setExecutor((sender, command, label, args) -> {
             if (!sender.hasPermission("evolution.admin")) { sender.sendMessage(ChatColor.RED + "No permission."); return true; }
             if (args.length != 1) { sender.sendMessage(ChatColor.RED + "Usage: /evofx <player>"); return true; }
