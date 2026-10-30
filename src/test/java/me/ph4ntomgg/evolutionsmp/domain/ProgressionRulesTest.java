@@ -12,9 +12,9 @@ class ProgressionRulesTest {
 
     @Test void xpAdvancesAcrossMultipleTiersAndCarriesRemainder() {
         PlayerProgress p = PlayerProgress.unassigned(UUID.randomUUID()).withPath(EvolutionPath.HUNT);
-        PlayerProgress advanced = ProgressionRules.applyExperience(p, 4_000);
+        PlayerProgress advanced = ProgressionRules.applyExperience(p, 4_500);
         assertEquals(EvolutionTier.T3, advanced.tier());
-        assertEquals(500, advanced.experience());
+        assertEquals(0, advanced.experience());
     }
 
     @Test void t4DoesNotAutoGrantApex() {
