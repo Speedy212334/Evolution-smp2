@@ -6,6 +6,7 @@ import me.ph4ntomgg.evolutionsmp.fx.CinematicEffects;
 import me.ph4ntomgg.evolutionsmp.service.ProgressService;
 import me.ph4ntomgg.evolutionsmp.ui.PathSelectionMenu;
 import me.ph4ntomgg.evolutionsmp.ui.RecipeMenu;
+import me.ph4ntomgg.evolutionsmp.guide.EvolutionGuide;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.*;
@@ -30,6 +31,7 @@ public final class EvolutionCommand implements CommandExecutor {
             sender.sendMessage(ChatColor.GOLD + "EvolutionSMP 1.0.0 " + ChatColor.GRAY + "Commands:");
             sender.sendMessage(ChatColor.YELLOW + "/evo status");
             sender.sendMessage(ChatColor.YELLOW + "/evo recipes");
+            sender.sendMessage(ChatColor.YELLOW + "/evo guide [paths|tiers|death|orbs|abilities|xp]");
             sender.sendMessage(ChatColor.YELLOW + "/evo gambit " + ChatColor.GRAY + "(Trade Apex)");
             sender.sendMessage(ChatColor.YELLOW + "/evo heart " + ChatColor.GRAY + "(Calamity Apex)");
             sender.sendMessage(ChatColor.YELLOW + "/evo start <player> " + ChatColor.GRAY + "(admin: open path selection)");
@@ -39,6 +41,9 @@ public final class EvolutionCommand implements CommandExecutor {
             return true;
         }
         switch (args[0].toLowerCase(Locale.ROOT)) {
+            case "guide" -> {
+                EvolutionGuide.send(sender, args.length > 1 ? args[1] : null);
+            }
             case "recipes" -> {
                 if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
                 recipes.open(player);
