@@ -70,8 +70,8 @@ public final class AlchemyFusionListener implements Listener {
             return;
         }
         PlayerProgress state = progress.get(player.getUniqueId());
-        if (state.path() != EvolutionPath.ALCHEMY || state.tier().rank() < 3) {
-            player.sendMessage(ChatColor.RED + "Potion Fusion requires Alchemy Tier III or higher.");
+        if (state.path() != EvolutionPath.ALCHEMY || state.tier().rank() < 4) {
+            player.sendMessage(ChatColor.RED + "Potion Fusion requires Alchemy Tier IV or Apex.");
             return;
         }
         ItemStack fused = result.clone();
