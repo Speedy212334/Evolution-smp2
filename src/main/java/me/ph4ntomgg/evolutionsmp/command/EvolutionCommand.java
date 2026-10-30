@@ -7,6 +7,7 @@ import me.ph4ntomgg.evolutionsmp.service.ProgressService;
 import me.ph4ntomgg.evolutionsmp.ui.PathSelectionMenu;
 import me.ph4ntomgg.evolutionsmp.ui.RecipeMenu;
 import me.ph4ntomgg.evolutionsmp.ui.EvolutionMainMenu;
+import me.ph4ntomgg.evolutionsmp.ui.CurseRemovalMenu;
 import me.ph4ntomgg.evolutionsmp.guide.EvolutionGuide;
 import me.ph4ntomgg.evolutionsmp.item.EvolutionItems;
 import org.bukkit.Bukkit;
@@ -24,11 +25,12 @@ public final class EvolutionCommand implements CommandExecutor {
     private final RecipeMenu recipes;
     private final EvolutionItems items;
     private final EvolutionMainMenu mainMenu;
+    private final CurseRemovalMenu curseMenu;
     private final PathSelectionMenu menu;
     private final CinematicEffects effects;
 
-    public EvolutionCommand(ProgressService progress, PathSelectionMenu menu, CinematicEffects effects, AbilityService abilities, RecipeMenu recipes, EvolutionItems items, EvolutionMainMenu mainMenu) {
-        this.progress = progress; this.menu = menu; this.effects = effects; this.abilities = abilities; this.recipes = recipes; this.items = items; this.mainMenu = mainMenu;
+    public EvolutionCommand(ProgressService progress, PathSelectionMenu menu, CinematicEffects effects, AbilityService abilities, RecipeMenu recipes, EvolutionItems items, EvolutionMainMenu mainMenu, CurseRemovalMenu curseMenu) {
+        this.progress = progress; this.menu = menu; this.effects = effects; this.abilities = abilities; this.recipes = recipes; this.items = items; this.mainMenu = mainMenu; this.curseMenu = curseMenu;
     }
 
     @Override
@@ -42,6 +44,7 @@ public final class EvolutionCommand implements CommandExecutor {
             sender.sendMessage(ChatColor.GOLD + "EvolutionSMP 1.0.0 " + ChatColor.GRAY + "Commands:");
             sender.sendMessage(ChatColor.YELLOW + "/evo status");
             sender.sendMessage(ChatColor.YELLOW + "/evo apex " + ChatColor.GRAY + "(T4: attempt Apex with 8 Echo Shards)");
+            sender.sendMessage(ChatColor.YELLOW + "/evo curse " + ChatColor.GRAY + "(Enchantment T4: remove held-item curses)");
             sender.sendMessage(ChatColor.YELLOW + "/evo recipes");
             sender.sendMessage(ChatColor.YELLOW + "/evo guide [paths|tiers|death|orbs|apex|abilities|xp]");
             sender.sendMessage(ChatColor.YELLOW + "/evo pathchanger <player> " + ChatColor.GRAY + "(admin)");
@@ -72,6 +75,10 @@ public final class EvolutionCommand implements CommandExecutor {
             case "recipes" -> {
                 if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
                 recipes.open(player);
+            }
+            case "curse" -> {
+                if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
+                curseMenu.open(player);
             }
             case "apex" -> {
                 if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
