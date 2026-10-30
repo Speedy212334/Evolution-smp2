@@ -1,6 +1,7 @@
 package me.ph4ntomgg.evolutionsmp.command;
 
 import me.ph4ntomgg.evolutionsmp.domain.*;
+import me.ph4ntomgg.evolutionsmp.ability.AbilityService;
 import me.ph4ntomgg.evolutionsmp.fx.CinematicEffects;
 import me.ph4ntomgg.evolutionsmp.service.ProgressService;
 import me.ph4ntomgg.evolutionsmp.ui.PathSelectionMenu;
@@ -13,11 +14,12 @@ import java.util.Locale;
 
 public final class EvolutionCommand implements CommandExecutor {
     private final ProgressService progress;
+    private final AbilityService abilities;
     private final PathSelectionMenu menu;
     private final CinematicEffects effects;
 
-    public EvolutionCommand(ProgressService progress, PathSelectionMenu menu, CinematicEffects effects) {
-        this.progress = progress; this.menu = menu; this.effects = effects;
+    public EvolutionCommand(ProgressService progress, PathSelectionMenu menu, CinematicEffects effects, AbilityService abilities) {
+        this.progress = progress; this.menu = menu; this.effects = effects; this.abilities = abilities;
     }
 
     @Override
@@ -25,6 +27,8 @@ public final class EvolutionCommand implements CommandExecutor {
         if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
             sender.sendMessage(ChatColor.GOLD + "EvolutionSMP 1.0.0 " + ChatColor.GRAY + "Commands:");
             sender.sendMessage(ChatColor.YELLOW + "/evo status");
+            sender.sendMessage(ChatColor.YELLOW + "/evo gambit " + ChatColor.GRAY + "(Trade Apex)");
+            sender.sendMessage(ChatColor.YELLOW + "/evo heart " + ChatColor.GRAY + "(Calamity Apex)");
             sender.sendMessage(ChatColor.YELLOW + "/evo start <player> " + ChatColor.GRAY + "(admin: open path selection)");
             sender.sendMessage(ChatColor.YELLOW + "/evo exp <player> <amount> " + ChatColor.GRAY + "(admin)");
             sender.sendMessage(ChatColor.YELLOW + "/evo tier <player> <T1|T2|T3|T4|APEX> " + ChatColor.GRAY + "(admin)");
@@ -32,6 +36,14 @@ public final class EvolutionCommand implements CommandExecutor {
             return true;
         }
         switch (args[0].toLowerCase(Locale.ROOT)) {
+            case "gambit" -> {
+                if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
+                abilities.activateGambit(player);
+            }
+            case "heart" -> {
+                if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
+                abilities.activateHeart(player);
+            }
             case "status" -> {
                 if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
                 PlayerProgress p = progress.get(player.getUniqueId());
