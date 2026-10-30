@@ -1,6 +1,8 @@
 package me.ph4ntomgg.evolutionsmp;
 
 import me.ph4ntomgg.evolutionsmp.command.EvolutionCommand;
+import me.ph4ntomgg.evolutionsmp.command.EvolutionFXCommand;
+import me.ph4ntomgg.evolutionsmp.fx.CustomAnimationManager;
 import me.ph4ntomgg.evolutionsmp.ability.AbilityService;
 import me.ph4ntomgg.evolutionsmp.domain.PlayerProgress;
 import me.ph4ntomgg.evolutionsmp.fx.CinematicEffects;
@@ -24,12 +26,15 @@ public final class EvolutionSMP extends JavaPlugin implements Listener {
     private ProgressService progress;
     private CinematicEffects effects;
     private AbilityService abilities;
+    private CustomAnimationManager animations;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
         progress = new ProgressService(new ProgressRepository(this));
         effects = new CinematicEffects(this);
+        animations = new CustomAnimationManager(this);
+        animations.reload();
         abilities = new AbilityService(this, progress);
         EvolutionItems items = new EvolutionItems(this);
         items.registerRecipes();
@@ -49,16 +54,7 @@ public final class EvolutionSMP extends JavaPlugin implements Listener {
             return;
         }
         getCommand("evo").setExecutor(new EvolutionCommand(progress, menu, effects, abilities, recipes, items, mainMenu));
-        getCommand("evofx").setExecutor((sender, command, label, args) -> {
-            if (!sender.hasPermission("evolution.admin")) { sender.sendMessage(ChatColor.RED + "No permission."); return true; }
-            if (args.length != 1) { sender.sendMessage(ChatColor.RED + "Usage: /evofx <player>"); return true; }
-            org.bukkit.entity.Player target = getServer().getPlayerExact(args[0]);
-            if (target == null) { sender.sendMessage(ChatColor.RED + "That player is not online."); return true; }
-            var state = progress.get(target.getUniqueId());
-            if (state.path() == null) { sender.sendMessage(ChatColor.RED + "Player has no path."); return true; }
-            effects.revealPath(target, state.path());
-            return true;
-        });
+        getCommand("evofx").setExecutor(new EvolutionFXCommand(animations, effects, progress));
         getLogger().info("EvolutionSMP 1.0.0 enabled. Seven paths registered; unified FX lifecycle active.");
     }
 
@@ -75,6 +71,7 @@ public final class EvolutionSMP extends JavaPlugin implements Listener {
         if (progress != null) progress.flush();
         if (effects != null) effects.shutdown();
         if (abilities != null) abilities.shutdown();
+        if (animations != null) animations.stopAll();
         getLogger().info("EvolutionSMP 1.0.0 stopped; services flushed.");
     }
 }
