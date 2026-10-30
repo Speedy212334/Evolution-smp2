@@ -52,3 +52,23 @@ tasks.register('generateResourcePack', Exec) {
     commandLine 'python3', 'pack/generate_resource_pack.py', '--version', '26.3',
             '--output', packOutput.get().asFile.absolutePath
 }
+
+
+tasks.register('verifyArtifacts') {
+    dependsOn 'jar', 'generateResourcePack'
+    doLast {
+        def jarFile = tasks.named('jar').get().archiveFile.get().asFile
+        def packFile = layout.buildDirectory.file('pack/EvolutionSMP-ResourcePack-26.3.zip').get().asFile
+        if (!jarFile.exists() || jarFile.length() == 0) throw new GradleException('Unified plugin JAR is missing or empty')
+        if (!packFile.exists() || packFile.length() == 0) throw new GradleException('Resource pack ZIP is missing or empty')
+        def jarEntries = zipTree(jarFile).files.collect { it.name } as Set
+        ['plugin.yml', 'config.yml', 'animations.yml'].each { required ->
+            if (!jarEntries.contains(required)) throw new GradleException('Plugin JAR is missing ' + required)
+        }
+        new java.util.zip.ZipFile(packFile).withCloseable { zip ->
+            if (zip.getEntry('pack.mcmeta') == null) throw new GradleException('Resource pack has no pack.mcmeta')
+        }
+        println "Verified " + jarFile.name + " (" + jarFile.length() + " bytes)"
+        println "Verified " + packFile.name + " (" + packFile.length() + " bytes)"
+    }
+}
