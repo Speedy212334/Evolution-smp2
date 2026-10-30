@@ -20,9 +20,12 @@ public final class PathSelectionMenu {
     private final JavaPlugin plugin;
     private final ProgressService progress;
     private final CinematicEffects effects;
+    private final PathMenuListener listener;
 
     public PathSelectionMenu(JavaPlugin plugin, ProgressService progress, CinematicEffects effects) {
         this.plugin = plugin; this.progress = progress; this.effects = effects;
+        this.listener = new PathMenuListener(plugin, progress, effects);
+        plugin.getServer().getPluginManager().registerEvents(listener, plugin);
     }
 
     public void open(Player target, Player viewer) { open(target, viewer, false); }
@@ -38,7 +41,7 @@ public final class PathSelectionMenu {
             item.setItemMeta(meta);
             inv.setItem(new int[]{10,11,12,13,14,15,16}[i], item);
         }
-        plugin.getServer().getPluginManager().registerEvents(new PathMenuListener(plugin, target.getUniqueId(), viewer.getUniqueId(), progress, effects, consumeToken), plugin);
+        listener.track(target, viewer, consumeToken);
         viewer.openInventory(inv);
     }
 }
