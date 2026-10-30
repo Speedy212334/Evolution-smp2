@@ -6,6 +6,8 @@ import me.ph4ntomgg.evolutionsmp.service.ProgressService;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Item;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -48,13 +50,25 @@ public final class PathPassiveListener implements Listener {
         if (p.path() == EvolutionPath.HUNT) {
             if (p.tier().rank() >= 3) maintain(player, PotionEffectType.SPEED, 1);
             else if (p.tier().rank() >= 1) maintain(player, PotionEffectType.SPEED, 0);
-        } else if (p.path() == EvolutionPath.PROSPECTOR && p.tier().rank() >= 3) {
-            maintain(player, PotionEffectType.HASTE, 5);
+        } else if (p.path() == EvolutionPath.PROSPECTOR && p.tier().rank() >= 4) {
+            applyProspectorEfficiency(player);
         } else if (p.path() == EvolutionPath.CALAMITY && p.tier().rank() >= 3) {
             maintain(player, PotionEffectType.STRENGTH, 0);
         } else if (p.path() == EvolutionPath.TRADE && p.tier().rank() >= 4) {
             maintain(player, PotionEffectType.HERO_OF_THE_VILLAGE, 1);
             maintain(player, PotionEffectType.LUCK, 1);
+        }
+    }
+
+    private void applyProspectorEfficiency(Player player) {
+        // Tier IV and Apex Prospectors receive Efficiency X on every pickaxe in their inventory.
+        for (int slot = 0; slot < player.getInventory().getSize(); slot++) {
+            ItemStack item = player.getInventory().getItem(slot);
+            if (item == null || item.getType().isAir() || !item.getType().name().endsWith("_PICKAXE")) continue;
+            ItemMeta meta = item.getItemMeta();
+            if (meta == null || meta.getEnchantLevel(Enchantment.EFFICIENCY) >= 10) continue;
+            meta.addEnchant(Enchantment.EFFICIENCY, 10, true);
+            item.setItemMeta(meta);
         }
     }
 
