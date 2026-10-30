@@ -10,6 +10,12 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Monster;
 import io.papermc.paper.event.player.PlayerTradeEvent;
 import org.bukkit.event.inventory.BrewEvent;
+import org.bukkit.event.block.BrewingStartEvent;
+import org.bukkit.event.inventory.BrewingStandFuelEvent;
+import org.bukkit.event.entity.EntityPotionEffectEvent;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
@@ -45,12 +51,14 @@ public final class GameplayListener implements Listener {
             Material.NETHER_GOLD_ORE, Material.NETHER_QUARTZ_ORE, Material.ANCIENT_DEBRIS
     );
     private final ProgressService progress;
+    private final JavaPlugin plugin;
     private final NamespacedKey orbXp;
     private final EvolutionItems items;
     private final Map<String, RecentBrewer> recentBrewers = new HashMap<>();
 
     public GameplayListener(JavaPlugin plugin, ProgressService progress) {
         this.progress = progress;
+        this.plugin = plugin;
         this.items = new EvolutionItems(plugin);
         this.orbXp = items.orbXpKey();
     }
@@ -91,6 +99,49 @@ public final class GameplayListener implements Listener {
         if (brewer != null) award(brewer, EvolutionPath.ALCHEMY, 25);
     }
 
+
+    @EventHandler
+    public void onBrewingStart(BrewingStartEvent event) {
+        RecentBrewer recent = recentBrewers.get(blockKey(event.getBlock()));
+        if (recent == null || System.currentTimeMillis() - recent.at() > 120_000L) return;
+        Player brewer = org.bukkit.Bukkit.getPlayer(recent.playerId());
+        if (brewer == null) return;
+        PlayerProgress p = progress.get(brewer.getUniqueId());
+        if (p.path() != EvolutionPath.ALCHEMY) return;
+        int base = event.getBrewingTime();
+        int adjusted = switch (p.tier().rank()) {
+            case 1 -> (int) Math.ceil(base * 0.75);
+            case 2 -> (int) Math.ceil(base * 0.55);
+            case 3 -> (int) Math.ceil(base * 0.35);
+            default -> 1;
+        };
+        event.setBrewingTime(Math.max(1, adjusted));
+    }
+
+    @EventHandler
+    public void onBrewingFuel(BrewingStandFuelEvent event) {
+        RecentBrewer recent = recentBrewers.get(blockKey(event.getBlock()));
+        if (recent == null || System.currentTimeMillis() - recent.at() > 120_000L) return;
+        Player brewer = org.bukkit.Bukkit.getPlayer(recent.playerId());
+        if (brewer == null) return;
+        PlayerProgress p = progress.get(brewer.getUniqueId());
+        if (p.path() == EvolutionPath.ALCHEMY && p.tier().rank() >= 1) {
+            event.setFuelPower(Math.max(30, event.getFuelPower()));
+        }
+    }
+
+    @EventHandler
+    public void onHarmfulPotionEffect(EntityPotionEffectEvent event) {
+        if (!(event.getEntity() instanceof Player player) || event.getNewEffect() == null) return;
+        PlayerProgress p = progress.get(player.getUniqueId());
+        if (p.path() != EvolutionPath.ALCHEMY || p.tier().rank() < 2) return;
+        String effect = event.getNewEffect().getType().getKey().getKey();
+        if (Set.of("poison", "wither", "slowness", "weakness", "blindness", "hunger",
+                "mining_fatigue", "nausea", "darkness", "levitation").contains(effect)) {
+            event.setCancelled(true);
+        }
+    }
+
     @EventHandler
     public void onTrade(PlayerTradeEvent event) {
         award(event.getPlayer(), EvolutionPath.TRADE, 15);
@@ -117,9 +168,24 @@ public final class GameplayListener implements Listener {
     @EventHandler
     public void onPotionConsume(PlayerItemConsumeEvent event) {
         Material type = event.getItem().getType();
-        if (type == Material.POTION || type == Material.SPLASH_POTION || type == Material.LINGERING_POTION) {
-            award(event.getPlayer(), EvolutionPath.ALCHEMY, 10);
-        }
+        if (type != Material.POTION && type != Material.SPLASH_POTION && type != Material.LINGERING_POTION) return;
+        Player player = event.getPlayer();
+        award(player, EvolutionPath.ALCHEMY, 10);
+        PlayerProgress p = progress.get(player.getUniqueId());
+        if (p.path() != EvolutionPath.ALCHEMY || p.tier().rank() < 3
+                || !(event.getItem().getItemMeta() instanceof PotionMeta meta)) return;
+        double multiplier = p.tier().rank() >= 4 ? 2.0 : 1.5;
+        java.util.List<PotionEffect> expected = new java.util.ArrayList<>(meta.getAllEffects());
+        plugin.getServer().getScheduler().runTask(plugin, () -> {
+            if (!player.isOnline()) return;
+            for (PotionEffect effect : expected) {
+                PotionEffect active = player.getPotionEffect(effect.getType());
+                if (active == null) continue;
+                int duration = Math.min(24_000, (int) Math.ceil(active.getDuration() * multiplier));
+                player.addPotionEffect(new PotionEffect(active.getType(), duration, active.getAmplifier(),
+                        active.isAmbient(), active.hasParticles(), active.hasIcon()), true);
+            }
+        });
     }
 
     @EventHandler
