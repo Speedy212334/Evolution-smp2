@@ -285,7 +285,7 @@ def main():
 
     # These custom icons are also exposed as direct item models. Core and FX bind the
     # items to these identifiers explicitly, avoiding fragile CMD-only dispatch on newer clients.
-    direct_item_models = ['evolution_path_changer', *[f'evolution_path_{name}' for _, (name, _, _) in path_specs.items()]]
+    direct_item_models = ['evolution_path_changer', 'evolution_fx_gem', *[f'evolution_path_{name}' for _, (name, _, _) in path_specs.items()]]
     for item_model_name in direct_item_models:
         (item_defs/f'{item_model_name}.json').write_text(
             json.dumps({'model': model_ref(item_model_name)}, indent=2) + '\n', encoding='utf-8')
