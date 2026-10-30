@@ -45,6 +45,8 @@ public final class EvolutionCommand implements CommandExecutor {
             sender.sendMessage(ChatColor.YELLOW + "/evo status");
             sender.sendMessage(ChatColor.YELLOW + "/evo apex " + ChatColor.GRAY + "(T4: attempt Apex with 8 Echo Shards)");
             sender.sendMessage(ChatColor.YELLOW + "/evo curse " + ChatColor.GRAY + "(Enchantment T4: remove held-item curses)");
+            sender.sendMessage(ChatColor.YELLOW + "/evo veil " + ChatColor.GRAY + "(Hunt T4: temporary invisibility)");
+            sender.sendMessage(ChatColor.YELLOW + "/evo fracture " + ChatColor.GRAY + "(Calamity T4: shockwave)");
             sender.sendMessage(ChatColor.YELLOW + "/evo recipes");
             sender.sendMessage(ChatColor.YELLOW + "/evo guide [paths|tiers|death|orbs|apex|abilities|xp]");
             sender.sendMessage(ChatColor.YELLOW + "/evo pathchanger <player> " + ChatColor.GRAY + "(admin)");
@@ -75,6 +77,14 @@ public final class EvolutionCommand implements CommandExecutor {
             case "recipes" -> {
                 if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
                 recipes.open(player);
+            }
+            case "veil" -> {
+                if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
+                abilities.activateVeil(player);
+            }
+            case "fracture" -> {
+                if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
+                abilities.activateFracture(player);
             }
             case "curse" -> {
                 if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
