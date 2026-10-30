@@ -47,6 +47,7 @@ public final class EvolutionCommand implements CommandExecutor {
             sender.sendMessage(ChatColor.YELLOW + "/evo curse " + ChatColor.GRAY + "(Enchantment T4: remove held-item curses)");
             sender.sendMessage(ChatColor.YELLOW + "/evo veil " + ChatColor.GRAY + "(Hunt T4: temporary invisibility)");
             sender.sendMessage(ChatColor.YELLOW + "/evo fracture " + ChatColor.GRAY + "(Calamity T4: shockwave)");
+            sender.sendMessage(ChatColor.YELLOW + "/evo swap <player> " + ChatColor.GRAY + "(Ender T4: swap positions)");
             sender.sendMessage(ChatColor.YELLOW + "/evo recipes");
             sender.sendMessage(ChatColor.YELLOW + "/evo guide [paths|tiers|death|orbs|apex|abilities|xp]");
             sender.sendMessage(ChatColor.YELLOW + "/evo pathchanger <player> " + ChatColor.GRAY + "(admin)");
@@ -81,6 +82,13 @@ public final class EvolutionCommand implements CommandExecutor {
             case "veil" -> {
                 if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
                 abilities.activateVeil(player);
+            }
+            case "swap" -> {
+                if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
+                if (args.length != 2) { player.sendMessage(ChatColor.RED + "Usage: /evo swap <player>"); return true; }
+                Player target = Bukkit.getPlayerExact(args[1]);
+                if (target == null) { player.sendMessage(ChatColor.RED + "Target is not online."); return true; }
+                abilities.activateVoidSwap(player, target);
             }
             case "fracture" -> {
                 if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
