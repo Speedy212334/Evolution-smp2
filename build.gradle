@@ -1,0 +1,44 @@
+plugins {
+    id 'java'
+}
+
+group = 'me.ph4ntomgg'
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://repo.papermc.io/repository/maven-public/' }
+}
+
+def paperApiVersion = providers.gradleProperty('paperApiVersion').getOrElse('26.3.build.+')
+dependencies {
+    compileOnly "io.papermc.paper:paper-api:${paperApiVersion}"
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(25)
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 25
+}
+
+tasks.test {
+    useJUnitPlatform()
+}
+
+jar {
+    archiveBaseName = 'EvolutionSMP'
+}
+
+tasks.register('compatibilityReport') {
+    doLast {
+        println "EvolutionSMP ${project.version}"
+        println "Java toolchain: ${java.toolchain.languageVersion.get()}"
+        println "Paper API requested: ${paperApiVersion}"
+        println 'Dependency resolution during compile/test is the compatibility gate.'
+    }
+}
