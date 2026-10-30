@@ -26,8 +26,9 @@ public final class EvolutionItems {
     public ItemStack orb(EvolutionTier tier) {
         if (tier == EvolutionTier.T1 || tier == EvolutionTier.APEX) throw new IllegalArgumentException("Only T2-T4 have normal evolution orbs");
         long xp = switch (tier) { case T2 -> 250L; case T3 -> 600L; case T4 -> 1_200L; default -> 0L; };
-        int model = switch (tier) { case T2 -> 8102; case T3 -> 8103; case T4 -> 8104; default -> 0; };
-        ItemStack item = new ItemStack(Material.ECHO_SHARD);
+        int model = switch (tier) { case T2 -> 7801; case T3 -> 7802; case T4 -> 7803; default -> 0; };
+        Material carrier = switch (tier) { case T2 -> Material.ECHO_SHARD; case T3 -> Material.AMETHYST_SHARD; case T4 -> Material.NETHER_STAR; default -> Material.AIR; };
+        ItemStack item = new ItemStack(carrier);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.LIGHT_PURPLE + "Evolution Orb " + ChatColor.GRAY + "• " + tier.name());
         meta.setLore(List.of(ChatColor.GRAY + "A remnant of lost evolution.", ChatColor.YELLOW + "Value: " + xp + " XP"));
@@ -39,11 +40,11 @@ public final class EvolutionItems {
     }
 
     public ItemStack shard() {
-        ItemStack item = new ItemStack(Material.AMETHYST_SHARD);
+        ItemStack item = new ItemStack(Material.ECHO_SHARD);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.AQUA + "Evolution Shard");
         meta.setLore(List.of(ChatColor.GRAY + "A concentrated fragment of evolution.", ChatColor.DARK_GRAY + "Used in advanced crafting."));
-        meta.setCustomModelData(8110);
+        meta.setCustomModelData(7804);
         meta.getPersistentDataContainer().set(itemId, PersistentDataType.STRING, "evolution_shard");
         item.setItemMeta(meta);
         return item;
