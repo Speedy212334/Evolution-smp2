@@ -15,7 +15,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
-import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionType;
@@ -44,18 +43,17 @@ public final class AlchemyFusionListener implements Listener {
         CraftingInventory inventory = event.getInventory();
         ItemStack[] matrix = inventory.getMatrix();
         List<ItemStack> ingredients = new ArrayList<>();
+        boolean hasOtherIngredient = false;
         for (ItemStack item : matrix) {
             if (item == null || item.getType().isAir()) continue;
             if (item.getType() != Material.POTION || !(item.getItemMeta() instanceof PotionMeta)) {
-                inventory.setResult(null);
-                return;
+                hasOtherIngredient = true;
+                break;
             }
             ingredients.add(item);
         }
-        if (ingredients.size() != 2) {
-            inventory.setResult(null);
-            return;
-        }
+        // Leave every ordinary crafting recipe untouched.
+        if (hasOtherIngredient || ingredients.size() != 2) return;
         inventory.setResult(createFusion(ingredients.get(0), ingredients.get(1)));
     }
 
