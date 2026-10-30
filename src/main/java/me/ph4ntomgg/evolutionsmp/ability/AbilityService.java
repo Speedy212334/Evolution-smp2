@@ -54,6 +54,7 @@ public final class AbilityService implements Listener {
     private final Map<UUID, Boolean> previousInvisible = new HashMap<>();
     private final Map<UUID, Boolean> previousSilent = new HashMap<>();
     private final Map<UUID, Long> fractureCooldown = new HashMap<>();
+    private final Map<UUID, Long> swapCooldown = new HashMap<>();
 
     public AbilityService(JavaPlugin plugin, ProgressService progress) {
         this.plugin = plugin;
@@ -181,6 +182,44 @@ public final class AbilityService implements Listener {
         previousInvisible.remove(id);
         previousSilent.remove(id);
         if (player.isOnline()) player.sendMessage(ChatColor.GRAY + "Veil has ended.");
+    }
+
+
+    public boolean activateVoidSwap(Player player, Player target) {
+        PlayerProgress p = progress.get(player.getUniqueId());
+        if (p.path() != EvolutionPath.ENDER || p.tier().rank() < 4) {
+            player.sendMessage(ChatColor.RED + "Void Swap requires Ender Tier IV.");
+            return false;
+        }
+        if (target == player || !target.isOnline() || !target.getWorld().equals(player.getWorld())
+                || target.getLocation().distanceSquared(player.getLocation()) > 400.0) {
+            player.sendMessage(ChatColor.RED + "Target must be another player within 20 blocks in your world.");
+            return false;
+        }
+        long now = System.currentTimeMillis();
+        if (swapCooldown.getOrDefault(player.getUniqueId(), 0L) > now) {
+            player.sendMessage(ChatColor.RED + "Void Swap is still recharging.");
+            return false;
+        }
+        Location first = player.getLocation().clone();
+        Location second = target.getLocation().clone();
+        if (!safeSwapLocation(first) || !safeSwapLocation(second)) {
+            player.sendMessage(ChatColor.RED + "One of the swap locations is unsafe.");
+            return false;
+        }
+        swapCooldown.put(player.getUniqueId(), now + 30_000L);
+        player.teleport(second);
+        target.teleport(first);
+        player.getWorld().spawnParticle(Particle.PORTAL, first.add(0, 1, 0), 45, 0.35, 0.55, 0.35, 0.2);
+        target.getWorld().spawnParticle(Particle.PORTAL, second.add(0, 1, 0), 45, 0.35, 0.55, 0.35, 0.2);
+        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 0.9f, 0.7f);
+        target.sendMessage(ChatColor.DARK_PURPLE + "An Ender has swapped your position.");
+        return true;
+    }
+
+    private boolean safeSwapLocation(Location location) {
+        return location.getBlock().isPassable() && location.clone().add(0, 1, 0).getBlock().isPassable()
+                && location.clone().add(0, -1, 0).getBlock().getType().isSolid();
     }
 
     public boolean activateFracture(Player player) {
