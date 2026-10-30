@@ -24,7 +24,7 @@ A clean-slate evolution-based Minecraft SMP plugin for Paper 26.3 and Java 25.
 - Calamity Tier IV: `/evo fracture` releases a damaging knockback shockwave.
 - Ender Tier IV: `/evo swap <player>` swaps positions with a nearby player; Void Step can rescue the player from the void, and fall damage is negated.
 - Enchantment Tier IV: `/evo curse` opens a held-item curse-removal GUI.
-- Passive path perks include Hunt speed/fall mitigation, Alchemy brewing and potion mastery, Prospector bonus ore yields/Auto Smelt/Haste, Enchantment lapis refunds, Trade discounts/trade-use preservation, and Calamity damage mitigation/Strength.
+- Passive path perks include Hunt speed/fall mitigation, Alchemy brewing and potion mastery, Prospector bonus ore yields/Auto Smelt and Efficiency X on pickaxes at Tier IV and Apex, Enchantment lapis refunds, Trade discounts/trade-use preservation, and Calamity damage mitigation/Strength.
 - Both Apex abilities currently share a 30-minute cooldown.
 - The Evolution Path Changer can be issued by an admin with `/evo pathchanger <player>`; right-click it to select a new path.
 
