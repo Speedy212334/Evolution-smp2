@@ -10,6 +10,9 @@ import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.util.Vector;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -45,6 +48,11 @@ public final class AbilityService implements Listener {
     private final Map<UUID, Long> heartUntil = new HashMap<>();
     private final Map<UUID, Long> cooldownUntil = new HashMap<>();
     private final Map<UUID, BukkitTask> heartTasks = new HashMap<>();
+    private final Map<UUID, BukkitTask> veilTasks = new HashMap<>();
+    private final Map<UUID, java.util.Set<UUID>> veilViewers = new HashMap<>();
+    private final Map<UUID, Boolean> previousInvisible = new HashMap<>();
+    private final Map<UUID, Boolean> previousSilent = new HashMap<>();
+    private final Map<UUID, Long> fractureCooldown = new HashMap<>();
 
     public AbilityService(JavaPlugin plugin, ProgressService progress) {
         this.plugin = plugin;
@@ -126,6 +134,100 @@ public final class AbilityService implements Listener {
             player.getWorld().spawnParticle(Particle.HEART, player.getLocation().add(0, 2.25, 0), 1, 0.12, 0.08, 0.12, 0);
         }, 0L, 10L);
         heartTasks.put(id, task);
+    }
+
+
+    public boolean activateVeil(Player player) {
+        PlayerProgress p = progress.get(player.getUniqueId());
+        if (p.path() != EvolutionPath.HUNT || p.tier().rank() < 4) {
+            player.sendMessage(ChatColor.RED + "Veil requires Hunt Tier IV.");
+            return false;
+        }
+        UUID id = player.getUniqueId();
+        if (veilTasks.containsKey(id)) {
+            player.sendMessage(ChatColor.YELLOW + "Veil is already active.");
+            return false;
+        }
+        previousInvisible.put(id, player.isInvisible());
+        previousSilent.put(id, player.isSilent());
+        java.util.Set<UUID> viewers = new java.util.HashSet<>();
+        for (Player viewer : Bukkit.getOnlinePlayers()) {
+            if (viewer.equals(player) || !viewer.getWorld().equals(player.getWorld())) continue;
+            if (viewer.canSee(player)) viewers.add(viewer.getUniqueId());
+            viewer.hidePlayer(plugin, player);
+        }
+        veilViewers.put(id, viewers);
+        player.setInvisible(true);
+        player.setSilent(true);
+        player.sendTitle(ChatColor.DARK_PURPLE + "VEIL", ChatColor.GRAY + "Your presence fades.", 5, 35, 10);
+        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 0.5f, 1.5f);
+        BukkitTask task = Bukkit.getScheduler().runTaskLater(plugin, () -> restoreVeil(player), 600L);
+        veilTasks.put(id, task);
+        return true;
+    }
+
+    private void restoreVeil(Player player) {
+        UUID id = player.getUniqueId();
+        BukkitTask task = veilTasks.remove(id);
+        if (task != null && !task.isCancelled()) task.cancel();
+        java.util.Set<UUID> viewers = veilViewers.remove(id);
+        if (viewers != null) for (UUID viewerId : viewers) {
+            Player viewer = Bukkit.getPlayer(viewerId);
+            if (viewer != null && viewer.isOnline()) viewer.showPlayer(plugin, player);
+        }
+        player.setInvisible(previousInvisible.getOrDefault(id, false));
+        player.setSilent(previousSilent.getOrDefault(id, false));
+        previousInvisible.remove(id);
+        previousSilent.remove(id);
+        if (player.isOnline()) player.sendMessage(ChatColor.GRAY + "Veil has ended.");
+    }
+
+    public boolean activateFracture(Player player) {
+        PlayerProgress p = progress.get(player.getUniqueId());
+        if (p.path() != EvolutionPath.CALAMITY || p.tier().rank() < 4) {
+            player.sendMessage(ChatColor.RED + "Calamity Fracture requires Calamity Tier IV.");
+            return false;
+        }
+        long now = System.currentTimeMillis();
+        if (fractureCooldown.getOrDefault(player.getUniqueId(), 0L) > now) {
+            player.sendMessage(ChatColor.RED + "Fracture is still recharging.");
+            return false;
+        }
+        fractureCooldown.put(player.getUniqueId(), now + 20_000L);
+        Location center = player.getLocation();
+        for (int i = 0; i < 36; i++) {
+            double angle = Math.PI * 2 * i / 36.0;
+            Location point = center.clone().add(Math.cos(angle) * 3.0, 0.15, Math.sin(angle) * 3.0);
+            player.getWorld().spawnParticle(Particle.CRIT, point, 3, 0.08, 0.08, 0.08, 0.02);
+        }
+        player.getWorld().playSound(center, Sound.ENTITY_WARDEN_SONIC_BOOM, 0.8f, 0.85f);
+        for (org.bukkit.entity.Entity entity : player.getNearbyEntities(6, 3, 6)) {
+            if (!(entity instanceof LivingEntity living) || entity instanceof Player || !entity.isValid()) continue;
+            living.damage(8.0, player);
+            Vector direction = living.getLocation().toVector().subtract(center.toVector());
+            if (direction.lengthSquared() > 0.01) living.setVelocity(direction.normalize().multiply(1.25).setY(0.45));
+        }
+        return true;
+    }
+
+    @EventHandler
+    public void onJoinVeil(PlayerJoinEvent event) {
+        Player joining = event.getPlayer();
+        for (UUID hiddenId : new java.util.HashSet<>(veilTasks.keySet())) {
+            Player hidden = Bukkit.getPlayer(hiddenId);
+            if (hidden != null && hidden.isOnline() && !joining.equals(hidden)
+                    && joining.getWorld().equals(hidden.getWorld())) {
+                veilViewers.computeIfAbsent(hiddenId, ignored -> new java.util.HashSet<>()).add(joining.getUniqueId());
+                joining.hidePlayer(plugin, hidden);
+            }
+        }
+    }
+
+    @EventHandler
+    public void onQuitVeil(PlayerQuitEvent event) {
+        UUID id = event.getPlayer().getUniqueId();
+        for (java.util.Set<UUID> viewers : veilViewers.values()) viewers.remove(id);
+        if (veilTasks.containsKey(id)) restoreVeil(event.getPlayer());
     }
 
     @EventHandler
@@ -247,6 +349,12 @@ public final class AbilityService implements Listener {
     public void shutdown() {
         heartTasks.values().forEach(BukkitTask::cancel);
         heartTasks.clear();
+        for (UUID id : new java.util.HashSet<>(veilTasks.keySet())) {
+            Player player = Bukkit.getPlayer(id);
+            if (player != null) restoreVeil(player);
+        }
+        veilTasks.values().forEach(BukkitTask::cancel);
+        veilTasks.clear();
         save();
     }
 }
