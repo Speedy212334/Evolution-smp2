@@ -15,6 +15,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 
 import java.util.EnumSet;
 import java.util.List;
@@ -74,6 +75,10 @@ public final class CurseRemovalMenu implements Listener {
             boolean removed = false;
             if (selected.contains(Curse.BINDING)) removed |= meta.removeEnchant(Enchantment.BINDING_CURSE);
             if (selected.contains(Curse.VANISHING)) removed |= meta.removeEnchant(Enchantment.VANISHING_CURSE);
+            if (meta instanceof EnchantmentStorageMeta stored) {
+                if (selected.contains(Curse.BINDING)) removed |= stored.removeStoredEnchant(Enchantment.BINDING_CURSE);
+                if (selected.contains(Curse.VANISHING)) removed |= stored.removeStoredEnchant(Enchantment.VANISHING_CURSE);
+            }
             if (removed) {
                 held.setItemMeta(meta);
                 player.sendMessage(ChatColor.GREEN + "Selected curses removed.");
