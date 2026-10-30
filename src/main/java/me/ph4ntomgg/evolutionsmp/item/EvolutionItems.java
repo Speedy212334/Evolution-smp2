@@ -74,6 +74,38 @@ public final class EvolutionItems {
         plugin.getServer().addRecipe(recipe);
     }
 
+
+    public ItemStack pathIcon(me.ph4ntomgg.evolutionsmp.domain.EvolutionPath path) {
+        int model = switch (path) {
+            case HUNT -> 7901;
+            case ALCHEMY -> 7902;
+            case ENCHANTMENT -> 7903;
+            case PROSPECTOR -> 7904;
+            case ENDER -> 7905;
+            case TRADE -> 7906;
+            case CALAMITY -> 7907;
+        };
+        ItemStack item = new ItemStack(Material.PAPER);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.LIGHT_PURPLE + path.displayName());
+        meta.setLore(List.of(ChatColor.GRAY + "Select this evolution path."));
+        meta.setCustomModelData(model);
+        meta.getPersistentDataContainer().set(itemId, PersistentDataType.STRING, "path_" + path.name().toLowerCase());
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    public ItemStack pathChanger() {
+        ItemStack item = new ItemStack(Material.COMPASS);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.AQUA + "Evolution Path Changer");
+        meta.setLore(List.of(ChatColor.GRAY + "Right-click to choose a new path."));
+        meta.setCustomModelData(7805);
+        meta.getPersistentDataContainer().set(itemId, PersistentDataType.STRING, "path_changer");
+        item.setItemMeta(meta);
+        return item;
+    }
+
     public NamespacedKey orbXpKey() { return orbXp; }
     public NamespacedKey itemIdKey() { return itemId; }
 }
