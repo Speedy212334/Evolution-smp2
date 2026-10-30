@@ -1,0 +1,17 @@
+name: EvolutionSMP
+version: 1.0.0
+main: me.ph4ntomgg.evolutionsmp.EvolutionSMP
+api-version: '1.21'
+author: Ph4ntomgg
+description: A unified evolution progression and cinematic effects plugin.
+commands:
+  evo:
+    description: Main EvolutionSMP command
+    usage: /evo
+  evofx:
+    description: EvolutionSMP cinematic effects controls
+    usage: /evofx
+permissions:
+  evolution.admin:
+    description: Allows administration of EvolutionSMP
+    default: op
