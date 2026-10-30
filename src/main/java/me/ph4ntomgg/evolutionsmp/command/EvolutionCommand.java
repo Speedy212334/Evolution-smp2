@@ -7,6 +7,7 @@ import me.ph4ntomgg.evolutionsmp.service.ProgressService;
 import me.ph4ntomgg.evolutionsmp.ui.PathSelectionMenu;
 import me.ph4ntomgg.evolutionsmp.ui.RecipeMenu;
 import me.ph4ntomgg.evolutionsmp.guide.EvolutionGuide;
+import me.ph4ntomgg.evolutionsmp.item.EvolutionItems;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.*;
@@ -18,11 +19,12 @@ public final class EvolutionCommand implements CommandExecutor {
     private final ProgressService progress;
     private final AbilityService abilities;
     private final RecipeMenu recipes;
+    private final EvolutionItems items;
     private final PathSelectionMenu menu;
     private final CinematicEffects effects;
 
-    public EvolutionCommand(ProgressService progress, PathSelectionMenu menu, CinematicEffects effects, AbilityService abilities, RecipeMenu recipes) {
-        this.progress = progress; this.menu = menu; this.effects = effects; this.abilities = abilities; this.recipes = recipes;
+    public EvolutionCommand(ProgressService progress, PathSelectionMenu menu, CinematicEffects effects, AbilityService abilities, RecipeMenu recipes, EvolutionItems items) {
+        this.progress = progress; this.menu = menu; this.effects = effects; this.abilities = abilities; this.recipes = recipes; this.items = items;
     }
 
     @Override
@@ -32,6 +34,7 @@ public final class EvolutionCommand implements CommandExecutor {
             sender.sendMessage(ChatColor.YELLOW + "/evo status");
             sender.sendMessage(ChatColor.YELLOW + "/evo recipes");
             sender.sendMessage(ChatColor.YELLOW + "/evo guide [paths|tiers|death|orbs|abilities|xp]");
+            sender.sendMessage(ChatColor.YELLOW + "/evo pathchanger <player> " + ChatColor.GRAY + "(admin)");
             sender.sendMessage(ChatColor.YELLOW + "/evo gambit " + ChatColor.GRAY + "(Trade Apex)");
             sender.sendMessage(ChatColor.YELLOW + "/evo heart " + ChatColor.GRAY + "(Calamity Apex)");
             sender.sendMessage(ChatColor.YELLOW + "/evo start <player> " + ChatColor.GRAY + "(admin: open path selection)");
@@ -41,6 +44,14 @@ public final class EvolutionCommand implements CommandExecutor {
             return true;
         }
         switch (args[0].toLowerCase(Locale.ROOT)) {
+            case "pathchanger" -> {
+                if (!sender.hasPermission("evolution.admin")) { sender.sendMessage(ChatColor.RED + "No permission."); return true; }
+                if (args.length != 2) { sender.sendMessage(ChatColor.RED + "Usage: /evo pathchanger <player>"); return true; }
+                Player target = Bukkit.getPlayerExact(args[1]);
+                if (target == null) { sender.sendMessage(ChatColor.RED + "That player is not online."); return true; }
+                target.getInventory().addItem(items.pathChanger()).values().forEach(item -> target.getWorld().dropItemNaturally(target.getLocation(), item));
+                sender.sendMessage(ChatColor.GREEN + "Gave a Path Changer to " + target.getName() + ".");
+            }
             case "guide" -> {
                 EvolutionGuide.send(sender, args.length > 1 ? args[1] : null);
             }
