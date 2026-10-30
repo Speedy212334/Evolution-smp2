@@ -106,6 +106,12 @@ public final class EvolutionItems {
         return item;
     }
 
+
+    public boolean isPlainEchoShard(ItemStack item) {
+        return item != null && item.getType() == Material.ECHO_SHARD
+                && (!item.hasItemMeta() || !item.getItemMeta().getPersistentDataContainer().has(itemId));
+    }
+
     public NamespacedKey orbXpKey() { return orbXp; }
     public NamespacedKey itemIdKey() { return itemId; }
 }
