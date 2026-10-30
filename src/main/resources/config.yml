@@ -1,0 +1,10 @@
+progression:
+  thresholds:
+    t2: 1000
+    t3: 3500
+    t4: 9000
+death:
+  drop-orbs: true
+  apex-drops-orbs: false
+effects:
+  path-reveal: true
