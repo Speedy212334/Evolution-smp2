@@ -34,9 +34,9 @@ public final class EvolutionGuide {
                     "Trade Apex can activate /evo gambit: three minutes of invulnerability, then all armor in the player's inventory is destroyed and armor is locked for 20 minutes.",
                     "Calamity Apex can activate /evo heart: Strength IV, Speed III and Resistance II for 60 seconds, with a heart symbol above the player for three minutes.",
                     "Both Apex abilities share a 30-minute cooldown in this first implementation.",
-                    "Hunt Tier IV can use /evo veil for temporary invisibility. Calamity Tier IV can use /evo fracture for a shockwave.",
-                    "Enchantment Tier IV can use /evo curse while holding an item to select Curse of Binding and Curse of Vanishing for removal.",
-                    "Ender Tier IV can open personal Ender Storage with /enderchest."
+                    "Hunt Tier IV can use /evo veil for temporary invisibility. Calamity Tier IV can use /evo fracture for a shockwave. Hunt gains Speed and reduced fall damage; Prospector gains ore bonuses, Auto Smelt and Haste; Calamity gains its damage ward and Strength; Trade gains discounts and improved trade outcomes. Alchemy gains faster brewing, harmful-effect resistance and longer potion effects at higher tiers.",
+                    "Enchantment Tier IV can use /evo curse while holding an item to select Curse of Binding and Curse of Vanishing for removal. Enchantment players also have a chance to refund lapis when enchanting.",
+                    "Ender Tier IV can use /evo swap player to exchange positions with a nearby player, and /enderchest opens personal Ender Storage. Ender Tier IV also has Void Step and no fall damage."
             },
             "xp", new String[]{
                     "Hunt gains XP from hostile mob and player kills.",
