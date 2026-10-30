@@ -7,6 +7,7 @@ import me.ph4ntomgg.evolutionsmp.ability.AbilityService;
 import me.ph4ntomgg.evolutionsmp.domain.PlayerProgress;
 import me.ph4ntomgg.evolutionsmp.fx.CinematicEffects;
 import me.ph4ntomgg.evolutionsmp.gameplay.GameplayListener;
+import me.ph4ntomgg.evolutionsmp.gameplay.EnderAbilityListener;
 import me.ph4ntomgg.evolutionsmp.persistence.ProgressRepository;
 import me.ph4ntomgg.evolutionsmp.service.ProgressService;
 import me.ph4ntomgg.evolutionsmp.ui.PathSelectionMenu;
@@ -45,6 +46,7 @@ public final class EvolutionSMP extends JavaPlugin implements Listener {
         PathSelectionMenu menu = new PathSelectionMenu(this, progress, effects);
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getPluginManager().registerEvents(new GameplayListener(this, progress), this);
+        getServer().getPluginManager().registerEvents(new EnderAbilityListener(this, progress), this);
         getServer().getPluginManager().registerEvents(abilities, this);
         getServer().getPluginManager().registerEvents(new RecipeMenuListener(), this);
         getServer().getPluginManager().registerEvents(new PathChangerListener(items, menu), this);
