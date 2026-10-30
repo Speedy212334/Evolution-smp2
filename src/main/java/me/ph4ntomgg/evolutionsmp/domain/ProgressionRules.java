@@ -28,6 +28,7 @@ public final class ProgressionRules {
     }
 
     public static PlayerProgress applyExperience(PlayerProgress current, long amount) {
+        if (!current.assigned() || current.apex()) return current;
         PlayerProgress updated = current.addExperience(amount);
         while (!updated.apex() && updated.assigned()) {
             long threshold = thresholdForNextTier(updated.tier());
