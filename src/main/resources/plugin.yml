@@ -11,6 +11,9 @@ commands:
   evofx:
     description: EvolutionSMP cinematic effects controls
     usage: /evofx
+  enderchest:
+    description: Open Ender Storage (Ender Tier IV)
+    usage: /enderchest
 permissions:
   evolution.admin:
     description: Allows administration of EvolutionSMP
