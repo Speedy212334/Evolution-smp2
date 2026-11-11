@@ -50,6 +50,7 @@ public final class AbilityService implements Listener {
     private final Map<UUID, Long> cooldownUntil = new HashMap<>();
     private final Map<UUID, BukkitTask> heartTasks = new HashMap<>();
     private final Map<UUID, BukkitTask> veilTasks = new HashMap<>();
+    private final Map<UUID, Long> veilCooldownUntil = new HashMap<>();
     private final Map<UUID, java.util.Set<UUID>> veilViewers = new HashMap<>();
     private final Map<UUID, Boolean> previousInvisible = new HashMap<>();
     private final Map<UUID, Boolean> previousSilent = new HashMap<>();
@@ -150,6 +151,15 @@ public final class AbilityService implements Listener {
             player.sendMessage(ChatColor.YELLOW + "Veil is already active.");
             return false;
         }
+        long now = System.currentTimeMillis();
+        long cooldownEnd = veilCooldownUntil.getOrDefault(id, 0L);
+        if (cooldownEnd > now) {
+            long seconds = Math.max(1L, (cooldownEnd - now + 999L) / 1_000L);
+            player.sendMessage(ChatColor.RED + "Veil is recharging for " + seconds + "s.");
+            return false;
+        }
+        veilCooldownUntil.put(id, now + 60_000L);
+        save();
         previousInvisible.put(id, player.isInvisible());
         previousSilent.put(id, player.isSilent());
         java.util.Set<UUID> viewers = new java.util.HashSet<>();
@@ -207,11 +217,23 @@ public final class AbilityService implements Listener {
             player.sendMessage(ChatColor.RED + "One of the swap locations is unsafe.");
             return false;
         }
+        // Teleports can be cancelled by protection plugins. Treat the swap as a
+        // transaction: do not consume cooldown unless both sides reach their destination.
+        if (!player.teleport(second)) {
+            player.sendMessage(ChatColor.RED + "Void Swap was blocked by another plugin.");
+            return false;
+        }
+        if (!target.teleport(first)) {
+            boolean rolledBack = player.teleport(first);
+            if (!rolledBack) plugin.getLogger().warning("Void Swap rollback failed for " + player.getUniqueId());
+            player.sendMessage(ChatColor.RED + "Void Swap could not move the target; no cooldown was consumed.");
+            return false;
+        }
         swapCooldown.put(player.getUniqueId(), now + 30_000L);
-        player.teleport(second);
-        target.teleport(first);
-        player.getWorld().spawnParticle(Particle.PORTAL, first.add(0, 1, 0), 45, 0.35, 0.55, 0.35, 0.2);
-        target.getWorld().spawnParticle(Particle.PORTAL, second.add(0, 1, 0), 45, 0.35, 0.55, 0.35, 0.2);
+        Location firstFx = first.clone().add(0, 1, 0);
+        Location secondFx = second.clone().add(0, 1, 0);
+        player.getWorld().spawnParticle(Particle.PORTAL, firstFx, 18, 0.2, 0.35, 0.2, 0.08);
+        target.getWorld().spawnParticle(Particle.PORTAL, secondFx, 18, 0.2, 0.35, 0.2, 0.08);
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 0.9f, 0.7f);
         target.sendMessage(ChatColor.DARK_PURPLE + "An Ender has swapped your position.");
         return true;
@@ -242,7 +264,7 @@ public final class AbilityService implements Listener {
         }
         player.getWorld().playSound(center, Sound.ENTITY_WARDEN_SONIC_BOOM, 0.8f, 0.85f);
         for (org.bukkit.entity.Entity entity : player.getNearbyEntities(6, 3, 6)) {
-            if (!(entity instanceof LivingEntity living) || entity instanceof Player || !entity.isValid()) continue;
+            if (!(entity instanceof LivingEntity living) || !entity.isValid()) continue;
             living.damage(8.0, player);
             Vector direction = living.getLocation().toVector().subtract(center.toVector());
             if (direction.lengthSquared() > 0.01) living.setVelocity(direction.normalize().multiply(1.25).setY(0.45));
@@ -257,8 +279,10 @@ public final class AbilityService implements Listener {
             Player hidden = Bukkit.getPlayer(hiddenId);
             if (hidden != null && hidden.isOnline() && !joining.equals(hidden)
                     && joining.getWorld().equals(hidden.getWorld())) {
-                veilViewers.computeIfAbsent(hiddenId, ignored -> new java.util.HashSet<>()).add(joining.getUniqueId());
-                joining.hidePlayer(plugin, hidden);
+                if (joining.canSee(hidden)) {
+                    veilViewers.computeIfAbsent(hiddenId, ignored -> new java.util.HashSet<>()).add(joining.getUniqueId());
+                    joining.hidePlayer(plugin, hidden);
+                }
             }
         }
     }
@@ -362,10 +386,12 @@ public final class AbilityService implements Listener {
                 long armor = state.getLong(root + "armor-lock-until", 0);
                 long heart = state.getLong(root + "heart-until", 0);
                 long cooldown = state.getLong(root + "cooldown-until", 0);
+                long veilCooldown = state.getLong(root + "veil-cooldown-until", 0);
                 if (gambit > 0) gambitUntil.put(id, gambit);
                 if (armor > 0) armorLockUntil.put(id, armor);
                 if (heart > 0) heartUntil.put(id, heart);
                 if (cooldown > 0) cooldownUntil.put(id, cooldown);
+                if (veilCooldown > 0) veilCooldownUntil.put(id, veilCooldown);
             } catch (IllegalArgumentException ignored) { }
         }
     }
@@ -374,13 +400,14 @@ public final class AbilityService implements Listener {
         state.set("players", null);
         java.util.Set<UUID> ids = new java.util.HashSet<>();
         ids.addAll(gambitUntil.keySet()); ids.addAll(armorLockUntil.keySet());
-        ids.addAll(heartUntil.keySet()); ids.addAll(cooldownUntil.keySet());
+        ids.addAll(heartUntil.keySet()); ids.addAll(cooldownUntil.keySet()); ids.addAll(veilCooldownUntil.keySet());
         for (UUID id : ids) {
             String root = "players." + id + ".";
             state.set(root + "gambit-until", gambitUntil.getOrDefault(id, 0L));
             state.set(root + "armor-lock-until", armorLockUntil.getOrDefault(id, 0L));
             state.set(root + "heart-until", heartUntil.getOrDefault(id, 0L));
             state.set(root + "cooldown-until", cooldownUntil.getOrDefault(id, 0L));
+            state.set(root + "veil-cooldown-until", veilCooldownUntil.getOrDefault(id, 0L));
         }
         try { state.save(file); }
         catch (IOException ex) { plugin.getLogger().severe("Could not save ability state: " + ex.getMessage()); }
