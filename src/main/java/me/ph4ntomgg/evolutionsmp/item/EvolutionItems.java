@@ -107,9 +107,10 @@ public final class EvolutionItems {
     }
 
 
-    public boolean isPlainEchoShard(ItemStack item) {
-        return item != null && item.getType() == Material.ECHO_SHARD
-                && (!item.hasItemMeta() || !item.getItemMeta().getPersistentDataContainer().has(itemId));
+    public boolean isEvolutionShard(ItemStack item) {
+        return item != null && item.getType() == Material.ECHO_SHARD && item.hasItemMeta()
+                && "evolution_shard".equals(item.getItemMeta().getPersistentDataContainer()
+                        .get(itemId, PersistentDataType.STRING));
     }
 
     public NamespacedKey orbXpKey() { return orbXp; }
