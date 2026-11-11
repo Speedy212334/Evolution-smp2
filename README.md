@@ -20,7 +20,7 @@ A clean-slate evolution-based Minecraft SMP plugin for Paper 26.3 and Java 25.
 - T4 players can attempt Apex using 8 Echo Shards. Success chance: 20%. A successful ascension is broadcast.
 - Trade Apex: `/evo gambit` grants 3 minutes of invulnerability, then destroys armor in the player's inventory and locks armor use for 20 minutes.
 - Calamity Apex: `/evo heart` grants its combat effects for 60 seconds and displays a heart symbol for 3 minutes.
-- Hunt Tier IV: `/evo veil` hides the player temporarily.
+- Hunt Tier IV: `/evo veil` hides the player for 30 seconds with a 60-second cooldown.
 - Calamity Tier IV: `/evo fracture` releases a damaging knockback shockwave.
 - Ender Tier IV: `/evo swap <player>` swaps positions with a nearby player; Void Step can rescue the player from the void, and fall damage is negated.
 - Enchantment Tier IV: `/evo curse` opens a held-item curse-removal GUI.
@@ -40,7 +40,7 @@ A clean-slate evolution-based Minecraft SMP plugin for Paper 26.3 and Java 25.
 | `/evo start <player>` | Admin path assignment/reassignment |
 | `/evo exp <player> <amount>` | Admin XP award |
 | `/evo tier <player> <tier>` | Admin tier adjustment |
-| `/evo apex` | T4 Apex attempt with 8 Echo Shards |
+| `/evo ascend` | T4 Apex attempt with 8 Evolution Shards |
 | `/evo gambit` | Trade Apex ability |
 | `/evo heart` | Calamity Apex ability |
 | `/evo veil` | Hunt Tier IV ability |
@@ -75,7 +75,7 @@ The GitHub Actions workflow builds and uploads both artifacts on pushes to `main
 python3 pack/generate_resource_pack.py --version 26.3 --output build/pack/EvolutionSMP-ResourcePack-26.3.zip
 ```
 
-The generator checks distinct T2/T3/T4 orb silhouettes, Echo Shard separation, the Totem texture and animated particle atlas, seven path sigils, Path Changer, FX gem model references, PNG integrity, and pack metadata.
+The generator checks distinct T2/T3/T4 orb silhouettes, Evolution Shard separation, the animated Totem particle atlas, seven path sigils, Path Changer, FX gem model references, PNG integrity, pack metadata, and that vanilla item/block assets are not overridden.
 
 ## Verification boundaries
 
