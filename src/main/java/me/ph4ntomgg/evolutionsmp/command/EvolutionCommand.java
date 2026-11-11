@@ -43,7 +43,7 @@ public final class EvolutionCommand implements CommandExecutor {
         if (args[0].equalsIgnoreCase("help")) {
             sender.sendMessage(ChatColor.GOLD + "EvolutionSMP 1.0.0 " + ChatColor.GRAY + "Commands:");
             sender.sendMessage(ChatColor.YELLOW + "/evo status");
-            sender.sendMessage(ChatColor.YELLOW + "/evo apex " + ChatColor.GRAY + "(T4: attempt Apex with 8 Echo Shards)");
+            sender.sendMessage(ChatColor.YELLOW + "/evo apex " + ChatColor.GRAY + "(T4: attempt Apex with 8 Evolution Shards)");
             sender.sendMessage(ChatColor.YELLOW + "/evo curse " + ChatColor.GRAY + "(Enchantment T4: remove held-item curses)");
             sender.sendMessage(ChatColor.YELLOW + "/evo veil " + ChatColor.GRAY + "(Hunt T4: temporary invisibility)");
             sender.sendMessage(ChatColor.YELLOW + "/evo fracture " + ChatColor.GRAY + "(Calamity T4: shockwave)");
@@ -103,12 +103,12 @@ public final class EvolutionCommand implements CommandExecutor {
                 PlayerProgress current = progress.get(player.getUniqueId());
                 if (!current.assigned() || current.tier() != EvolutionTier.T4) { player.sendMessage(ChatColor.RED + "Apex requires an assigned path and T4."); return true; }
                 int found = 0;
-                for (org.bukkit.inventory.ItemStack item : player.getInventory().getStorageContents()) if (items.isPlainEchoShard(item)) found += item.getAmount();
-                if (found < 8) { player.sendMessage(ChatColor.RED + "You need 8 Echo Shards."); return true; }
+                for (org.bukkit.inventory.ItemStack item : player.getInventory().getStorageContents()) if (items.isEvolutionShard(item)) found += item.getAmount();
+                if (found < 8) { player.sendMessage(ChatColor.RED + "You need 8 Evolution Shards."); return true; }
                 int remaining = 8;
                 for (int i = 0; i < player.getInventory().getStorageContents().length && remaining > 0; i++) {
                     org.bukkit.inventory.ItemStack item = player.getInventory().getItem(i);
-                    if (!items.isPlainEchoShard(item)) continue;
+                    if (!items.isEvolutionShard(item)) continue;
                     int take = Math.min(remaining, item.getAmount());
                     item.setAmount(item.getAmount() - take);
                     remaining -= take;
@@ -143,8 +143,13 @@ public final class EvolutionCommand implements CommandExecutor {
                 if (args.length < 2) { sender.sendMessage(ChatColor.RED + "Usage: /evo start <player>"); return true; }
                 Player target = Bukkit.getPlayerExact(args[1]);
                 if (target == null) { sender.sendMessage(ChatColor.RED + "That player is not online."); return true; }
-                if (!(sender instanceof Player viewer)) { sender.sendMessage("Run this command in-game so you can use the selection menu."); return true; }
-                menu.open(target, viewer);
+                if (sender instanceof Player viewer) {
+                    menu.open(target, viewer);
+                } else {
+                    // Console admins can initiate the flow; the online target receives the menu.
+                    menu.open(target, target);
+                    sender.sendMessage("Opened the path-selection menu for " + target.getName() + ".");
+                }
             }
             case "exp" -> {
                 if (!sender.hasPermission("evolution.admin")) { sender.sendMessage(ChatColor.RED + "No permission."); return true; }
