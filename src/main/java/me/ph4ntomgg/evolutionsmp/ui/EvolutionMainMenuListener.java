@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 
 public final class EvolutionMainMenuListener implements Listener {
     private final ProgressService progress;
@@ -19,6 +20,11 @@ public final class EvolutionMainMenuListener implements Listener {
 
     public EvolutionMainMenuListener(ProgressService progress, PathSelectionMenu paths, RecipeMenu recipes, CinematicEffects effects) {
         this.progress = progress; this.paths = paths; this.recipes = recipes; this.effects = effects;
+    }
+
+    @EventHandler
+    public void drag(InventoryDragEvent event) {
+        if (EvolutionMainMenu.TITLE.equals(event.getView().getTitle())) event.setCancelled(true);
     }
 
     @EventHandler
