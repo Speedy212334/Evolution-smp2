@@ -64,5 +64,8 @@ public final class ProgressService {
         repository.save(progress);
     }
 
-    public void flush() { cache.values().forEach(repository::save); }
+    public void flush() {
+        cache.values().forEach(repository::save);
+        repository.flush();
+    }
 }
