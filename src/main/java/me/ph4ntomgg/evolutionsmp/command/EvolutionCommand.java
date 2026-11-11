@@ -2,6 +2,7 @@ package me.ph4ntomgg.evolutionsmp.command;
 
 import me.ph4ntomgg.evolutionsmp.domain.*;
 import me.ph4ntomgg.evolutionsmp.ability.AbilityService;
+import me.ph4ntomgg.evolutionsmp.ability.OreResonanceService;
 import me.ph4ntomgg.evolutionsmp.fx.CinematicEffects;
 import me.ph4ntomgg.evolutionsmp.service.ProgressService;
 import me.ph4ntomgg.evolutionsmp.ui.PathSelectionMenu;
@@ -22,6 +23,7 @@ import org.bukkit.Material;
 public final class EvolutionCommand implements CommandExecutor {
     private final ProgressService progress;
     private final AbilityService abilities;
+    private final OreResonanceService resonance;
     private final RecipeMenu recipes;
     private final EvolutionItems items;
     private final EvolutionMainMenu mainMenu;
@@ -29,8 +31,8 @@ public final class EvolutionCommand implements CommandExecutor {
     private final PathSelectionMenu menu;
     private final CinematicEffects effects;
 
-    public EvolutionCommand(ProgressService progress, PathSelectionMenu menu, CinematicEffects effects, AbilityService abilities, RecipeMenu recipes, EvolutionItems items, EvolutionMainMenu mainMenu, CurseRemovalMenu curseMenu) {
-        this.progress = progress; this.menu = menu; this.effects = effects; this.abilities = abilities; this.recipes = recipes; this.items = items; this.mainMenu = mainMenu; this.curseMenu = curseMenu;
+    public EvolutionCommand(ProgressService progress, PathSelectionMenu menu, CinematicEffects effects, AbilityService abilities, OreResonanceService resonance, RecipeMenu recipes, EvolutionItems items, EvolutionMainMenu mainMenu, CurseRemovalMenu curseMenu) {
+        this.progress = progress; this.menu = menu; this.effects = effects; this.abilities = abilities; this.resonance = resonance; this.recipes = recipes; this.items = items; this.mainMenu = mainMenu; this.curseMenu = curseMenu;
     }
 
     @Override
@@ -46,6 +48,7 @@ public final class EvolutionCommand implements CommandExecutor {
             sender.sendMessage(ChatColor.YELLOW + "/evo ascend " + ChatColor.GRAY + "(T4: attempt Apex with 8 Evolution Shards)");
             sender.sendMessage(ChatColor.YELLOW + "/evo curse " + ChatColor.GRAY + "(Enchantment T4: remove held-item curses)");
             sender.sendMessage(ChatColor.YELLOW + "/evo veil " + ChatColor.GRAY + "(Hunt T4: temporary invisibility)");
+            sender.sendMessage(ChatColor.YELLOW + "/evo resonance " + ChatColor.GRAY + "(Prospector T4: coloured ore highlights within 50 blocks)");
             sender.sendMessage(ChatColor.YELLOW + "/evo fracture " + ChatColor.GRAY + "(Calamity T4: shockwave)");
             sender.sendMessage(ChatColor.YELLOW + "/evo swap <player> " + ChatColor.GRAY + "(Ender T4: swap positions)");
             sender.sendMessage(ChatColor.YELLOW + "/evo recipes");
@@ -78,6 +81,10 @@ public final class EvolutionCommand implements CommandExecutor {
             case "recipes" -> {
                 if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
                 recipes.open(player);
+            }
+            case "resonance" -> {
+                if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
+                resonance.activate(player);
             }
             case "veil" -> {
                 if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
