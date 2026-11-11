@@ -254,7 +254,7 @@ def main():
             'parent':'minecraft:item/generated',
             'textures':{'layer0':f'{namespace}:item/{texture_name}'}
         }
-        (models/f'{name}.json').write_text(json.dumps(model,indent=2)+'\\n',encoding='utf-8')
+        (models/f'{name}.json').write_text(json.dumps(model,indent=2)+'\n',encoding='utf-8')
 
     for name in model_textures:
         write_model(name,name)
@@ -276,7 +276,7 @@ def main():
 
     for item_id,model_name in item_models.items():
         definition={'model':{'type':'minecraft:model','model':f'{namespace}:item/{model_name}'}}
-        (item_defs/f'{item_id}.json').write_text(json.dumps(definition,indent=2)+'\\n',encoding='utf-8')
+        (item_defs/f'{item_id}.json').write_text(json.dumps(definition,indent=2)+'\n',encoding='utf-8')
 
     # A custom animated Totem particle is an effects-only override; no vanilla
     # Totem item texture, model, or item definition is touched.
@@ -284,7 +284,7 @@ def main():
     particle_dir.mkdir(parents=True,exist_ok=True)
     png_rgba(particle_dir/'totem_of_undying.png',totem_particle_texture(),16,128)
     (particle_dir/'totem_of_undying.png.mcmeta').write_text(
-        json.dumps({'animation':{'frametime':2,'interpolate':False,'frames':list(range(8))}},indent=2)+'\\n',
+        json.dumps({'animation':{'frametime':2,'interpolate':False,'frames':list(range(8))}},indent=2)+'\n',
         encoding='utf-8'
     )
 
@@ -292,11 +292,11 @@ def main():
     (root/'pack.mcmeta').write_text(json.dumps({
         'pack':{'min_format':pack_format,'max_format':pack_format,
                 'description':'§5EvolutionSMP §8• §fRiftbound Relics (26.3)'}
-    },indent=2)+'\\n',encoding='utf-8')
+    },indent=2)+'\n',encoding='utf-8')
     (root/'README.txt').write_text(
-        'EvolutionSMP Resource Pack 1.0.0\\nMinecraft Java 26.3\\n'
-        'Custom namespaced Evolution orbs, shards, path sigils, Path Changer, and FX gem.\\n'
-        'Only the Totem particle atlas is overridden in the minecraft namespace; vanilla item/block assets remain untouched.\\n',
+        'EvolutionSMP Resource Pack 1.0.0\nMinecraft Java 26.3\n'
+        'Custom namespaced Evolution orbs, shards, path sigils, Path Changer, and FX gem.\n'
+        'Only the Totem particle atlas is overridden in the minecraft namespace; vanilla item/block assets remain untouched.\n',
         encoding='utf-8'
     )
 
@@ -337,7 +337,7 @@ def main():
                 assert target_path in names, f'Missing model target {target}'
         for name in names:
             if name.endswith('.png'):
-                assert z.read(name).startswith(b'\\x89PNG\\r\\n\\x1a\\n'), f'Invalid PNG: {name}'
+                assert z.read(name).startswith(b'\x89PNG\r\n\x1a\n'), f'Invalid PNG: {name}'
         # Verify all seven distinct path sigils are packaged.
         for name in path_specs:
             assert f'assets/{namespace}/textures/item/evolution_path_{name}.png' in names
