@@ -9,10 +9,11 @@ python3 pack/generate_resource_pack.py --version 26.3 --output build/pack/Evolut
 The generator is deterministic and validates:
 - Distinct Tier II, Tier III, and Tier IV orb silhouettes.
 - A separate Echo Shard texture.
-- A Totem of Undying texture and animated particle atlas.
+- An animated Totem particle atlas (the vanilla Totem item texture/model is untouched).
 - Seven unique path sigils.
 - A dedicated Path Changer model.
-- Minecraft 26.3 item definitions and model references.
+- Namespaced Minecraft 26.3 item definitions and model references.
+- No vanilla item or block model/texture overrides.
 - PNG integrity and pack metadata.
 
 The resource pack is built as a separate artifact beside the single unified plugin JAR. Automatic server delivery remains disabled until a real public HTTPS hosting URL and matching SHA-1 are configured.
