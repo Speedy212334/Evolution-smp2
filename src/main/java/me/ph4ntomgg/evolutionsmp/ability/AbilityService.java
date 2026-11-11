@@ -413,6 +413,31 @@ public final class AbilityService implements Listener {
         catch (IOException ex) { plugin.getLogger().severe("Could not save ability state: " + ex.getMessage()); }
     }
 
+    /** Clears temporary ability state when a player changes evolution paths. */
+    public void resetPathCooldowns(UUID id) {
+        gambitUntil.remove(id);
+        armorLockUntil.remove(id);
+        cooldownUntil.remove(id);
+        heartUntil.remove(id);
+        veilCooldownUntil.remove(id);
+        fractureCooldown.remove(id);
+        swapCooldown.remove(id);
+        BukkitTask heartTask = heartTasks.remove(id);
+        if (heartTask != null) heartTask.cancel();
+        Player player = Bukkit.getPlayer(id);
+        if (veilTasks.containsKey(id)) {
+            if (player != null) restoreVeil(player);
+            else {
+                BukkitTask veilTask = veilTasks.remove(id);
+                if (veilTask != null) veilTask.cancel();
+                veilViewers.remove(id);
+                previousInvisible.remove(id);
+                previousSilent.remove(id);
+            }
+        }
+        save();
+    }
+
     public void shutdown() {
         heartTasks.values().forEach(BukkitTask::cancel);
         heartTasks.clear();
