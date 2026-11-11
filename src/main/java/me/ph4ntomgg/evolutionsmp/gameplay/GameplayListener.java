@@ -252,6 +252,15 @@ public final class GameplayListener implements Listener {
             player.sendMessage(ChatColor.RED + "You need an evolution path before collecting an Evolution Orb.");
             return;
         }
+        // Orbs are consumable progression items, not reusable inventory tokens.
+        // Cancel normal pickup and consume exactly one orb from the dropped stack.
+        event.setCancelled(true);
+        if (stack.getAmount() > 1) {
+            stack.setAmount(stack.getAmount() - 1);
+            event.getItem().setItemStack(stack);
+        } else {
+            event.getItem().remove();
+        }
         progress.award(player.getUniqueId(), value);
         player.sendMessage(ChatColor.LIGHT_PURPLE + "Evolution Orb absorbed: +" + value + " XP");
     }
