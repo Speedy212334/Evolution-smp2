@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
@@ -32,6 +33,11 @@ public final class PathMenuListener implements Listener {
 
     public void track(Player target, Player viewer, boolean consumeToken) {
         sessions.put(viewer.getUniqueId(), new Session(target.getUniqueId(), consumeToken));
+    }
+
+    @EventHandler
+    public void onDrag(InventoryDragEvent event) {
+        if (PathSelectionMenu.TITLE.equals(event.getView().getTitle())) event.setCancelled(true);
     }
 
     @EventHandler
