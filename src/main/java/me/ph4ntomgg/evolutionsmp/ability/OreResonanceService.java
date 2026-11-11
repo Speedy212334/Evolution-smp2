@@ -35,7 +35,8 @@ import java.util.UUID;
 
 public final class OreResonanceService implements Listener {
     private static final int RADIUS = 50;
-    private static final int MAX_MARKERS = 256;
+    private static final int MAX_MARKERS = 128;
+    private static final int MAX_GLOBAL_MARKERS = 512;
     private static final long DURATION_TICKS = 1_200L;
     private static final long COOLDOWN_MS = 300_000L;
 
@@ -43,6 +44,7 @@ public final class OreResonanceService implements Listener {
     private final ProgressService progress;
     private final NamespacedKey cooldownKey;
     private final Map<UUID, Session> sessions = new HashMap<>();
+    private int activeMarkerCount;
 
     public OreResonanceService(JavaPlugin plugin, ProgressService progress) {
         this.plugin = plugin;
@@ -101,7 +103,7 @@ public final class OreResonanceService implements Listener {
             finish(session);
             return;
         }
-        if (session.nextDy > RADIUS || session.markers.size() >= MAX_MARKERS) {
+        if (session.nextDy > RADIUS || session.markers.size() >= MAX_MARKERS || activeMarkerCount >= MAX_GLOBAL_MARKERS) {
             if (session.scanTask != null) session.scanTask.cancel();
             session.scanTask = null;
             if (session.markers.isEmpty()) {
@@ -145,7 +147,7 @@ public final class OreResonanceService implements Listener {
 
     private void addMarker(Session session, Location location, org.bukkit.block.data.BlockData data, OreStyle style) {
         Player owner = Bukkit.getPlayer(session.owner);
-        if (owner == null) return;
+        if (owner == null || activeMarkerCount >= MAX_GLOBAL_MARKERS) return;
         BlockDisplay display = session.world.spawn(location, BlockDisplay.class, marker -> {
             marker.setBlock(data);
             marker.setPersistent(false);
@@ -164,6 +166,7 @@ public final class OreResonanceService implements Listener {
             if (!viewer.equals(owner)) viewer.hideEntity(plugin, display);
         }
         session.markers.add(new Marker(display, team));
+        activeMarkerCount++;
         session.world.spawnParticle(Particle.DUST, location.clone().add(0.5, 0.5, 0.5), 2,
                 0.18, 0.18, 0.18, 0.0,
                 new Particle.DustOptions(style.rgb, 0.8f));
@@ -201,6 +204,7 @@ public final class OreResonanceService implements Listener {
         if (session.cleanupTask != null) session.cleanupTask.cancel();
         for (Marker marker : session.markers) {
             if (marker.display.isValid()) marker.display.remove();
+            activeMarkerCount = Math.max(0, activeMarkerCount - 1);
             marker.team.removeEntry(marker.display.getUniqueId().toString());
             if (marker.team.getEntries().isEmpty()) marker.team.unregister();
         }
