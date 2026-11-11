@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.UUID;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.enchantment.EnchantItemEvent;
@@ -65,7 +66,7 @@ public final class GameplayListener implements Listener {
         this.orbXp = items.orbXpKey();
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onOreBreak(BlockBreakEvent event) {
         if (ORES.contains(event.getBlock().getType())) award(event.getPlayer(), EvolutionPath.PROSPECTOR, 8);
     }
@@ -86,7 +87,7 @@ public final class GameplayListener implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void recordBrewingStandUser(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.getClickedBlock() == null
                 || event.getClickedBlock().getType() != Material.BREWING_STAND) return;
@@ -144,7 +145,7 @@ public final class GameplayListener implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onTrade(PlayerTradeEvent event) {
         Player player = event.getPlayer();
         PlayerProgress p = progress.get(player.getUniqueId());
@@ -175,7 +176,7 @@ public final class GameplayListener implements Listener {
 
     private record RecentBrewer(UUID playerId, long at) { }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onEnchant(EnchantItemEvent event) {
         Player player = event.getEnchanter();
         award(player, EvolutionPath.ENCHANTMENT, Math.max(5, event.getExpLevelCost() * 3L));
@@ -190,7 +191,7 @@ public final class GameplayListener implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPotionConsume(PlayerItemConsumeEvent event) {
         Material type = event.getItem().getType();
         if (type != Material.POTION && type != Material.SPLASH_POTION && type != Material.LINGERING_POTION) return;
@@ -213,7 +214,7 @@ public final class GameplayListener implements Listener {
         });
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onEnderPearlTeleport(PlayerTeleportEvent event) {
         if (event.getCause() == PlayerTeleportEvent.TeleportCause.ENDER_PEARL) {
             award(event.getPlayer(), EvolutionPath.ENDER, 8);
@@ -239,7 +240,7 @@ public final class GameplayListener implements Listener {
         player.sendMessage(ChatColor.RED + "Your evolution has regressed to T1.");
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onOrbPickup(EntityPickupItemEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
         ItemStack stack = event.getItem().getItemStack();
