@@ -16,7 +16,7 @@
 animations:
   orbiting-shards:
     material: PAPER
-    item-model: minecraft:evolution_fx_gem
+    item-model: evolutionsmp:fx_gem
     shape: orbit
     cycle-ticks: 70
     loop: true
@@ -37,7 +37,7 @@ animations:
 
   ender-helix:
     material: PAPER
-    item-model: minecraft:evolution_path_ender
+    item-model: evolutionsmp:path_ender
     shape: helix
     cycle-ticks: 64
     loop: true
@@ -58,7 +58,7 @@ animations:
 
   sigil-figure-eight:
     material: PAPER
-    item-model: minecraft:evolution_path_enchantment
+    item-model: evolutionsmp:path_enchantment
     shape: figure-eight
     cycle-ticks: 90
     loop: true
@@ -79,7 +79,7 @@ animations:
 
   calamity-slam:
     material: PAPER
-    item-model: minecraft:evolution_path_calamity
+    item-model: evolutionsmp:path_calamity
     shape: slam
     cycle-ticks: 36
     loop: false
@@ -100,7 +100,7 @@ animations:
 
   rising-enchantment:
     material: PAPER
-    item-model: minecraft:evolution_path_enchantment
+    item-model: evolutionsmp:path_enchantment
     shape: rise
     cycle-ticks: 56
     loop: false
@@ -121,7 +121,7 @@ animations:
 
   heart-pulse:
     material: PAPER
-    item-model: minecraft:evolution_fx_gem
+    item-model: evolutionsmp:fx_gem
     shape: pulse
     cycle-ticks: 34
     loop: true
@@ -142,7 +142,7 @@ animations:
 
   calamity-vortex:
     material: PAPER
-    item-model: minecraft:evolution_path_calamity
+    item-model: evolutionsmp:path_calamity
     shape: vortex
     cycle-ticks: 88
     loop: true
@@ -163,7 +163,7 @@ animations:
 
   golden-spin:
     material: PAPER
-    item-model: minecraft:evolution_fx_gem
+    item-model: evolutionsmp:fx_gem
     shape: spin
     cycle-ticks: 60
     loop: true
