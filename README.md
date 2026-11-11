@@ -21,7 +21,8 @@ A clean-slate evolution-based Minecraft SMP plugin for Paper 26.3 and Java 25.
 - Trade Apex: `/evo gambit` grants 3 minutes of invulnerability, then destroys armor in the player's inventory and locks armor use for 20 minutes.
 - Calamity Apex: `/evo heart` grants its combat effects for 60 seconds and displays a heart symbol for 3 minutes.
 - Hunt Tier IV: `/evo veil` hides the player for 30 seconds with a 60-second cooldown.
-- Calamity Tier IV: `/evo fracture` releases a damaging knockback shockwave.
+- Prospector Tier IV: `/evo resonance` scans loaded chunks within a 50-block radius and creates player-only, ore-coloured glowing outlines for 60 seconds; it does not reveal coordinates or load chunks.
+- Calamity Tier IV: `/evo fracture` telegraphs an expanding ring before its damaging knockback shockwave.
 - Ender Tier IV: `/evo swap <player>` swaps positions with a nearby player; Void Step can rescue the player from the void, and fall damage is negated.
 - Enchantment Tier IV: `/evo curse` opens a held-item curse-removal GUI.
 - Alchemy Tier IV and Apex: combine two drinkable potions in any crafting grid to fuse their effects into one potion. Distinct effects are retained; duplicate effects keep the stronger amplifier, or the longer duration when amplifiers match. Fusion is one-at-a-time and does not consume bottles or other ingredients.
@@ -44,6 +45,7 @@ A clean-slate evolution-based Minecraft SMP plugin for Paper 26.3 and Java 25.
 | `/evo gambit` | Trade Apex ability |
 | `/evo heart` | Calamity Apex ability |
 | `/evo veil` | Hunt Tier IV ability |
+| `/evo resonance` | Prospector Tier IV ore highlighting |
 | `/evo fracture` | Calamity Tier IV ability |
 | `/evo swap <player>` | Ender Tier IV position swap |
 | `/evo curse` | Enchantment Tier IV curse-removal GUI |
