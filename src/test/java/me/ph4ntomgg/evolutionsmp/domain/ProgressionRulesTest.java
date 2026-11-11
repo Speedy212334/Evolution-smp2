@@ -22,6 +22,15 @@ class ProgressionRulesTest {
         assertThrows(IllegalArgumentException.class, () -> ProgressionRules.applyExperience(p, -1));
     }
 
+    @Test void tierFourDoesNotAccumulateUnusedXp() {
+        PlayerProgress p = PlayerProgress.unassigned(UUID.randomUUID()).withPath(EvolutionPath.ENDER)
+                .withTier(EvolutionTier.T4, 25);
+        PlayerProgress advanced = ProgressionRules.applyExperience(p, 10_000);
+        assertEquals(EvolutionTier.T4, advanced.tier());
+        assertEquals(25, advanced.experience());
+        assertFalse(advanced.apex());
+    }
+
     @Test void t4DoesNotAutoGrantApex() {
         PlayerProgress p = PlayerProgress.unassigned(UUID.randomUUID()).withPath(EvolutionPath.ENDER)
                 .withTier(EvolutionTier.T4, 20_000);
