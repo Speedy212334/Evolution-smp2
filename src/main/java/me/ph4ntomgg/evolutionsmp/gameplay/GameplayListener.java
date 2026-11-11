@@ -224,6 +224,13 @@ public final class GameplayListener implements Listener {
     @EventHandler
     public void onDeath(PlayerDeathEvent event) {
         Player player = event.getEntity();
+        Player killer = player.getKiller();
+        if (killer != null) {
+            PlayerProgress hunter = progress.get(killer.getUniqueId());
+            if (hunter.path() == EvolutionPath.HUNT && hunter.tier().rank() >= 3) {
+                event.setDeathMessage(null);
+            }
+        }
         PlayerProgress state = progress.get(player.getUniqueId());
         if (!state.assigned() || state.apex() || state.tier().rank() < 2) return;
         long value = switch (state.tier()) {
