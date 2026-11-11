@@ -107,6 +107,32 @@ public final class EvolutionItems {
     }
 
 
+    /** Migrates legacy custom-model-data items to namespaced item-model components. */
+    public void migrateInventory(org.bukkit.entity.Player player) {
+        for (int slot = 0; slot < player.getInventory().getSize(); slot++) {
+            ItemStack item = player.getInventory().getItem(slot);
+            if (applyNamespacedModel(item)) player.getInventory().setItem(slot, item);
+        }
+        ItemStack offhand = player.getInventory().getItemInOffHand();
+        if (applyNamespacedModel(offhand)) player.getInventory().setItemInOffHand(offhand);
+    }
+
+    private boolean applyNamespacedModel(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return false;
+        ItemMeta meta = item.getItemMeta();
+        String id = meta.getPersistentDataContainer().get(itemId, PersistentDataType.STRING);
+        if (id == null) return false;
+        boolean known = id.equals("orb_t2") || id.equals("orb_t3") || id.equals("orb_t4")
+                || id.equals("evolution_shard") || id.equals("path_changer")
+                || id.equals("path_hunt") || id.equals("path_alchemy") || id.equals("path_enchantment")
+                || id.equals("path_prospector") || id.equals("path_ender") || id.equals("path_trade")
+                || id.equals("path_calamity");
+        if (!known) return false;
+        meta.setItemModel(new NamespacedKey(plugin, id));
+        item.setItemMeta(meta);
+        return true;
+    }
+
     public boolean isEvolutionShard(ItemStack item) {
         return item != null && item.getType() == Material.ECHO_SHARD && item.hasItemMeta()
                 && "evolution_shard".equals(item.getItemMeta().getPersistentDataContainer()
