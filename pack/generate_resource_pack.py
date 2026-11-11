@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Generate deterministic 26.3 EvolutionSMP orb textures and a resource-pack ZIP."""
-import json, math, os, struct, zlib, zipfile, argparse
+import json, math, os, struct, zlib, zipfile, argparse, shutil
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -216,6 +216,9 @@ def main():
     args=ap.parse_args()
 
     root=ROOT/'build'
+    assets_root=root/'assets'
+    if assets_root.exists():
+        shutil.rmtree(assets_root)
     namespace='evolutionsmp'
     assets=root/'assets'/namespace
     textures=assets/'textures/item'
@@ -303,8 +306,9 @@ def main():
     out=Path(args.output)
     out.parent.mkdir(parents=True,exist_ok=True)
     with zipfile.ZipFile(out,'w',zipfile.ZIP_DEFLATED,compresslevel=9) as z:
-        for f in sorted(root.rglob('*')):
-            if f.is_file(): z.write(f,f.relative_to(root).as_posix())
+        pack_files=[root/'pack.mcmeta',root/'README.txt'] + sorted(assets_root.rglob('*'))
+        for f in pack_files:
+            if f.is_file() and f.resolve()!=out.resolve(): z.write(f,f.relative_to(root).as_posix())
 
     with zipfile.ZipFile(out) as z:
         names=set(z.namelist())
