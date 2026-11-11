@@ -159,12 +159,11 @@ public final class GameplayListener implements Listener {
         }
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onTrade(PlayerTradeEvent event) {
         Player player = event.getPlayer();
         PlayerProgress p = progress.get(player.getUniqueId());
         if (p.path() != EvolutionPath.TRADE) return;
-        progress.award(player.getUniqueId(), 15);
         MerchantRecipe adjusted = new MerchantRecipe(event.getTrade());
         if (p.tier().rank() >= 2) {
             int discount = p.tier().rank() >= 4 ? 2 : 1;
@@ -175,6 +174,12 @@ public final class GameplayListener implements Listener {
             double preserveChance = p.tier().rank() >= 4 ? 0.35 : 0.20;
             if (ThreadLocalRandom.current().nextDouble() < preserveChance) event.setIncreaseTradeUses(false);
         }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onTradeReward(PlayerTradeEvent event) {
+        Player player = event.getPlayer();
+        award(player, EvolutionPath.TRADE, 15);
     }
 
     @EventHandler
