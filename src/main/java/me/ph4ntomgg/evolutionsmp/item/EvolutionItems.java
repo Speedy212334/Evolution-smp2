@@ -75,6 +75,14 @@ public final class EvolutionItems {
     }
 
 
+    public ItemStack fxGem() {
+        ItemStack item = new ItemStack(Material.PAPER);
+        ItemMeta meta = item.getItemMeta();
+        meta.setItemModel(new NamespacedKey(plugin, "fx_gem"));
+        item.setItemMeta(meta);
+        return item;
+    }
+
     public ItemStack pathIcon(me.ph4ntomgg.evolutionsmp.domain.EvolutionPath path) {
         int model = switch (path) {
             case HUNT -> 7901;
