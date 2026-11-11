@@ -17,6 +17,11 @@ class ProgressionRulesTest {
         assertEquals(0, advanced.experience());
     }
 
+    @Test void negativeXpIsRejectedEvenForUnassignedPlayers() {
+        PlayerProgress p = PlayerProgress.unassigned(UUID.randomUUID());
+        assertThrows(IllegalArgumentException.class, () -> ProgressionRules.applyExperience(p, -1));
+    }
+
     @Test void t4DoesNotAutoGrantApex() {
         PlayerProgress p = PlayerProgress.unassigned(UUID.randomUUID()).withPath(EvolutionPath.ENDER)
                 .withTier(EvolutionTier.T4, 20_000);
