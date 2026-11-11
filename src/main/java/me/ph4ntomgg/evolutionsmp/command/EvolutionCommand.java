@@ -43,7 +43,7 @@ public final class EvolutionCommand implements CommandExecutor {
         if (args[0].equalsIgnoreCase("help")) {
             sender.sendMessage(ChatColor.GOLD + "EvolutionSMP 1.0.0 " + ChatColor.GRAY + "Commands:");
             sender.sendMessage(ChatColor.YELLOW + "/evo status");
-            sender.sendMessage(ChatColor.YELLOW + "/evo apex " + ChatColor.GRAY + "(T4: attempt Apex with 8 Evolution Shards)");
+            sender.sendMessage(ChatColor.YELLOW + "/evo ascend " + ChatColor.GRAY + "(T4: attempt Apex with 8 Evolution Shards)");
             sender.sendMessage(ChatColor.YELLOW + "/evo curse " + ChatColor.GRAY + "(Enchantment T4: remove held-item curses)");
             sender.sendMessage(ChatColor.YELLOW + "/evo veil " + ChatColor.GRAY + "(Hunt T4: temporary invisibility)");
             sender.sendMessage(ChatColor.YELLOW + "/evo fracture " + ChatColor.GRAY + "(Calamity T4: shockwave)");
@@ -98,7 +98,7 @@ public final class EvolutionCommand implements CommandExecutor {
                 if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
                 curseMenu.open(player);
             }
-            case "apex" -> {
+            case "apex", "ascend" -> {
                 if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
                 PlayerProgress current = progress.get(player.getUniqueId());
                 if (!current.assigned() || current.tier() != EvolutionTier.T4) { player.sendMessage(ChatColor.RED + "Apex requires an assigned path and T4."); return true; }
