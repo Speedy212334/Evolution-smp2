@@ -26,13 +26,13 @@ public final class EvolutionItems {
     public ItemStack orb(EvolutionTier tier) {
         if (tier == EvolutionTier.T1 || tier == EvolutionTier.APEX) throw new IllegalArgumentException("Only T2-T4 have normal evolution orbs");
         long xp = switch (tier) { case T2 -> 250L; case T3 -> 600L; case T4 -> 1_200L; default -> 0L; };
-        int model = switch (tier) { case T2 -> 7801; case T3 -> 7802; case T4 -> 7803; default -> 0; };
+        String model = switch (tier) { case T2 -> "orb_t2"; case T3 -> "orb_t3"; case T4 -> "orb_t4"; default -> throw new IllegalArgumentException("Unsupported orb tier"); };
         Material carrier = switch (tier) { case T2 -> Material.ECHO_SHARD; case T3 -> Material.AMETHYST_SHARD; case T4 -> Material.NETHER_STAR; default -> Material.AIR; };
         ItemStack item = new ItemStack(carrier);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.LIGHT_PURPLE + "Evolution Orb " + ChatColor.GRAY + "• " + tier.name());
         meta.setLore(List.of(ChatColor.GRAY + "A remnant of lost evolution.", ChatColor.YELLOW + "Value: " + xp + " XP"));
-        meta.setCustomModelData(model);
+        meta.setItemModel(new NamespacedKey(plugin, model));
         meta.getPersistentDataContainer().set(itemId, PersistentDataType.STRING, "orb_" + tier.name().toLowerCase());
         meta.getPersistentDataContainer().set(orbXp, PersistentDataType.LONG, xp);
         item.setItemMeta(meta);
@@ -44,7 +44,7 @@ public final class EvolutionItems {
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.AQUA + "Evolution Shard");
         meta.setLore(List.of(ChatColor.GRAY + "A concentrated fragment of evolution.", ChatColor.DARK_GRAY + "Used in advanced crafting."));
-        meta.setCustomModelData(7804);
+        meta.setItemModel(new NamespacedKey(plugin, "evolution_shard"));
         meta.getPersistentDataContainer().set(itemId, PersistentDataType.STRING, "evolution_shard");
         item.setItemMeta(meta);
         return item;
@@ -89,7 +89,7 @@ public final class EvolutionItems {
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.LIGHT_PURPLE + path.displayName());
         meta.setLore(List.of(ChatColor.GRAY + "Select this evolution path."));
-        meta.setCustomModelData(model);
+        meta.setItemModel(new NamespacedKey(plugin, "path_" + path.name().toLowerCase(java.util.Locale.ROOT)));
         meta.getPersistentDataContainer().set(itemId, PersistentDataType.STRING, "path_" + path.name().toLowerCase());
         item.setItemMeta(meta);
         return item;
@@ -100,7 +100,7 @@ public final class EvolutionItems {
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.AQUA + "Evolution Path Changer");
         meta.setLore(List.of(ChatColor.GRAY + "Right-click to choose a new path."));
-        meta.setCustomModelData(7805);
+        meta.setItemModel(new NamespacedKey(plugin, "path_changer"));
         meta.getPersistentDataContainer().set(itemId, PersistentDataType.STRING, "path_changer");
         item.setItemMeta(meta);
         return item;
