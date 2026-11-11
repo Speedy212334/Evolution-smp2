@@ -5,6 +5,7 @@ import me.ph4ntomgg.evolutionsmp.command.EvolutionFXCommand;
 import me.ph4ntomgg.evolutionsmp.fx.CustomAnimationManager;
 import me.ph4ntomgg.evolutionsmp.ability.AbilityService;
 import me.ph4ntomgg.evolutionsmp.domain.PlayerProgress;
+import me.ph4ntomgg.evolutionsmp.domain.ProgressionRules;
 import me.ph4ntomgg.evolutionsmp.fx.CinematicEffects;
 import me.ph4ntomgg.evolutionsmp.gameplay.GameplayListener;
 import me.ph4ntomgg.evolutionsmp.gameplay.AlchemyFusionListener;
@@ -36,7 +37,10 @@ public final class EvolutionSMP extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         saveDefaultConfig();
-        progress = new ProgressService(new ProgressRepository(this));
+        progress = new ProgressService(new ProgressRepository(this),
+                getConfig().getLong("progression.thresholds.t2", ProgressionRules.DEFAULT_T2_XP),
+                getConfig().getLong("progression.thresholds.t3", ProgressionRules.DEFAULT_T3_XP),
+                getConfig().getLong("progression.thresholds.t4", ProgressionRules.DEFAULT_T4_XP));
         effects = new CinematicEffects(this);
         animations = new CustomAnimationManager(this);
         animations.reload();
