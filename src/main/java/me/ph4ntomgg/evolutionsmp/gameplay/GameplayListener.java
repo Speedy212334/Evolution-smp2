@@ -272,11 +272,16 @@ public final class GameplayListener implements Listener {
         ItemStack stack = event.getItem().getItemStack();
         if (!stack.hasItemMeta()) return;
         Long value = stack.getItemMeta().getPersistentDataContainer().get(orbXp, PersistentDataType.LONG);
-        if (value == null) return;
+        if (value == null || value <= 0 || value > 5_000) return;
         PlayerProgress state = progress.get(player.getUniqueId());
         if (!state.assigned()) {
             event.setCancelled(true);
             player.sendMessage(ChatColor.RED + "You need an evolution path before collecting an Evolution Orb.");
+            return;
+        }
+        if (state.tier() == EvolutionTier.T4 || state.apex()) {
+            event.setCancelled(true);
+            player.sendMessage(ChatColor.YELLOW + "T4 and Apex players cannot absorb additional Evolution Orb XP.");
             return;
         }
         // Orbs are consumable progression items, not reusable inventory tokens.
