@@ -256,19 +256,48 @@ public final class AbilityService implements Listener {
             return false;
         }
         fractureCooldown.put(player.getUniqueId(), now + 20_000L);
-        Location center = player.getLocation();
-        for (int i = 0; i < 36; i++) {
-            double angle = Math.PI * 2 * i / 36.0;
-            Location point = center.clone().add(Math.cos(angle) * 3.0, 0.15, Math.sin(angle) * 3.0);
-            player.getWorld().spawnParticle(Particle.CRIT, point, 3, 0.08, 0.08, 0.08, 0.02);
-        }
-        player.getWorld().playSound(center, Sound.ENTITY_WARDEN_SONIC_BOOM, 0.8f, 0.85f);
-        for (org.bukkit.entity.Entity entity : player.getNearbyEntities(6, 3, 6)) {
-            if (!(entity instanceof LivingEntity living) || !entity.isValid()) continue;
-            living.damage(8.0, player);
-            Vector direction = living.getLocation().toVector().subtract(center.toVector());
-            if (direction.lengthSquared() > 0.01) living.setVelocity(direction.normalize().multiply(1.25).setY(0.45));
-        }
+        Location center = player.getLocation().clone();
+        org.bukkit.World world = player.getWorld();
+        player.sendMessage(ChatColor.DARK_RED + "Fracture is charging...");
+        world.playSound(center, Sound.BLOCK_RESPAWN_ANCHOR_CHARGE, 0.8f, 0.65f);
+
+        // A readable expanding ground ring telegraphs the shockwave before impact.
+        Bukkit.getScheduler().runTaskTimer(plugin, new org.bukkit.scheduler.BukkitRunnable() {
+            private int tick;
+
+            @Override public void run() {
+                if (!player.isOnline() || player.getWorld() != world || tick > 8) {
+                    cancel();
+                    return;
+                }
+                double radius = 1.0 + tick * 0.65;
+                for (int i = 0; i < 48; i++) {
+                    double angle = Math.PI * 2.0 * i / 48.0;
+                    Location point = center.clone().add(Math.cos(angle) * radius, 0.12, Math.sin(angle) * radius);
+                    world.spawnParticle(Particle.DUST, point, 1, 0.015, 0.01, 0.015, 0.0,
+                            new Particle.DustOptions(org.bukkit.Color.fromRGB(178, 28, 64), 1.15f));
+                    if (tick % 2 == 0) {
+                        world.spawnParticle(Particle.ELECTRIC_SPARK, point, 1, 0.02, 0.02, 0.02, 0.0);
+                    }
+                }
+
+                if (tick == 8) {
+                    world.spawnParticle(Particle.EXPLOSION, center.clone().add(0, 0.25, 0), 2, 0.35, 0.12, 0.35, 0.0);
+                    world.playSound(center, Sound.ENTITY_WARDEN_SONIC_BOOM, 0.9f, 0.8f);
+                    for (org.bukkit.entity.Entity entity : world.getNearbyEntities(center, 6.0, 3.0, 6.0)) {
+                        if (!(entity instanceof LivingEntity living) || entity == player || !entity.isValid()) continue;
+                        living.damage(8.0, player);
+                        Vector direction = living.getLocation().toVector().subtract(center.toVector());
+                        if (direction.lengthSquared() < 0.01) {
+                            direction = player.getLocation().getDirection().clone().setY(0);
+                        }
+                        if (direction.lengthSquared() < 0.01) direction = new Vector(1, 0, 0);
+                        living.setVelocity(direction.normalize().multiply(1.7).setY(0.65));
+                    }
+                }
+                tick++;
+            }
+        }, 0L, 1L);
         return true;
     }
 
