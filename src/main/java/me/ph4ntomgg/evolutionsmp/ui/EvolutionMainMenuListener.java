@@ -1,7 +1,6 @@
 package me.ph4ntomgg.evolutionsmp.ui;
 
 import me.ph4ntomgg.evolutionsmp.domain.PlayerProgress;
-import me.ph4ntomgg.evolutionsmp.domain.ProgressionRules;
 import me.ph4ntomgg.evolutionsmp.fx.CinematicEffects;
 import me.ph4ntomgg.evolutionsmp.guide.EvolutionGuide;
 import me.ph4ntomgg.evolutionsmp.service.ProgressService;
@@ -57,7 +56,9 @@ public final class EvolutionMainMenuListener implements Listener {
                 player.closeInventory();
                 if (!p.assigned()) player.sendMessage(ChatColor.GRAY + "Your evolution has not begun.");
                 else if (p.apex()) player.sendMessage(ChatColor.GOLD + "Apex achieved. You have reached the peak of evolution.");
-                else player.sendMessage(ChatColor.GRAY + "XP: " + p.experience() + " / " + ProgressionRules.thresholdForNextTier(p.tier()) + " toward the next tier.");
+                else if (p.tier() == me.ph4ntomgg.evolutionsmp.domain.EvolutionTier.T4) {
+                    player.sendMessage(ChatColor.LIGHT_PURPLE + "Tier IV reached. Use /evo ascend with 8 Evolution Shards to attempt Apex.");
+                } else player.sendMessage(ChatColor.GRAY + "XP: " + p.experience() + " / " + progress.thresholdForNextTier(p.tier()) + " toward the next tier.");
             }
             case 30 -> {
                 player.closeInventory();
