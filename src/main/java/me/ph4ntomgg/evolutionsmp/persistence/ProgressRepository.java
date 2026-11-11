@@ -30,6 +30,7 @@ public final class ProgressRepository {
         String root = "players." + id;
         String pathName = data.getString(root + ".path");
         EvolutionPath path = pathName == null ? null : EvolutionPath.fromId(pathName).orElse(null);
+        if (path == null) return PlayerProgress.unassigned(id);
         EvolutionTier tier;
         try { tier = EvolutionTier.valueOf(data.getString(root + ".tier", "T1")); }
         catch (IllegalArgumentException ex) { tier = EvolutionTier.T1; }
