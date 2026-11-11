@@ -19,6 +19,14 @@ import org.bukkit.event.block.BlockDispenseArmorEvent;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.ProjectileLaunchEvent;
+import org.bukkit.entity.Projectile;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -360,8 +368,60 @@ public final class AbilityService implements Listener {
         }
     }
 
+    @EventHandler(priority = org.bukkit.event.EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onVeilAttack(EntityDamageByEntityEvent event) {
+        Player attacker = null;
+        if (event.getDamager() instanceof Player player) attacker = player;
+        else if (event.getDamager() instanceof Projectile projectile
+                && projectile.getShooter() instanceof Player player) attacker = player;
+        if (attacker != null && veilTasks.containsKey(attacker.getUniqueId())) event.setCancelled(true);
+    }
+
+    @EventHandler(priority = org.bukkit.event.EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onVeilProjectile(ProjectileLaunchEvent event) {
+        if (event.getEntity().getShooter() instanceof Player player
+                && veilTasks.containsKey(player.getUniqueId())) event.setCancelled(true);
+    }
+
+    @EventHandler(priority = org.bukkit.event.EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onVeilBlockBreak(BlockBreakEvent event) {
+        if (veilTasks.containsKey(event.getPlayer().getUniqueId())) event.setCancelled(true);
+    }
+
+    @EventHandler(priority = org.bukkit.event.EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onVeilBlockPlace(BlockPlaceEvent event) {
+        if (veilTasks.containsKey(event.getPlayer().getUniqueId())) event.setCancelled(true);
+    }
+
+    @EventHandler(priority = org.bukkit.event.EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onVeilEntityInteract(PlayerInteractEntityEvent event) {
+        if (veilTasks.containsKey(event.getPlayer().getUniqueId())) event.setCancelled(true);
+    }
+
+    @EventHandler(priority = org.bukkit.event.EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onVeilDrop(PlayerDropItemEvent event) {
+        if (veilTasks.containsKey(event.getPlayer().getUniqueId())) event.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onVeilWorldChange(PlayerChangedWorldEvent event) {
+        Player hidden = event.getPlayer();
+        UUID hiddenId = hidden.getUniqueId();
+        if (!veilTasks.containsKey(hiddenId)) return;
+        java.util.Set<UUID> viewers = veilViewers.computeIfAbsent(hiddenId, ignored -> new java.util.HashSet<>());
+        for (Player viewer : Bukkit.getOnlinePlayers()) {
+            if (viewer.equals(hidden) || !viewer.getWorld().equals(hidden.getWorld()) || !viewer.canSee(hidden)) continue;
+            viewers.add(viewer.getUniqueId());
+            viewer.hidePlayer(plugin, hidden);
+        }
+    }
+
     @EventHandler
     public void onArmorQuickEquip(PlayerInteractEvent event) {
+        if (veilTasks.containsKey(event.getPlayer().getUniqueId())) {
+            event.setCancelled(true);
+            return;
+        }
         if (!armorLocked(event.getPlayer())) return;
         if (event.getItem() != null && isArmor(event.getItem())) {
             event.setCancelled(true);
