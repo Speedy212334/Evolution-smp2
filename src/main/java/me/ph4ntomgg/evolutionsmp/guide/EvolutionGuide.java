@@ -27,7 +27,7 @@ public final class EvolutionGuide {
                     "T4 uses a Nether Star, totems and Evolution Shards. It does not require a previous tier orb."
             },
             "apex", new String[]{
-                    "Reach T4, then use /evo apex while carrying 8 Echo Shards. The attempt has a 20% success chance and consumes the shards.",
+                    "Reach T4, then use /evo apex while carrying 8 Evolution Shards. The attempt has a 20% success chance and consumes the shards.",
                     "On success, the server broadcasts that the player has reached peak of evolution. Apex players do not drop death orbs."
             },
             "abilities", new String[]{
