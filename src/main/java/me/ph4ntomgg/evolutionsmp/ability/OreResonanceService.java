@@ -97,6 +97,14 @@ public final class OreResonanceService implements Listener {
         return true;
     }
 
+    /** Clears the active scan and cooldown when a Path Changer is used. */
+    public void resetPathState(UUID playerId) {
+        Session active = sessions.get(playerId);
+        if (active != null) finish(active);
+        Player player = Bukkit.getPlayer(playerId);
+        if (player != null) player.getPersistentDataContainer().remove(cooldownKey);
+    }
+
     private void scanLayer(Session session) {
         Player owner = Bukkit.getPlayer(session.owner);
         if (owner == null || !owner.isOnline() || owner.getWorld() != session.world) {
