@@ -89,6 +89,7 @@ public final class EvolutionSMP extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
+        new EvolutionItems(this).migrateInventory(event.getPlayer());
         PlayerProgress state = progress.get(event.getPlayer().getUniqueId());
         if (state.path() == null) {
             event.getPlayer().sendMessage(ChatColor.GRAY + "Your evolution has not begun. An administrator will assign your path.");
