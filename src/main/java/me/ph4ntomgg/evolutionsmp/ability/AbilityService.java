@@ -551,6 +551,7 @@ public final class AbilityService implements Listener {
         fractureCooldown.remove(id);
         swapCooldown.remove(id);
         Player player = Bukkit.getPlayer(id);
+        if (player != null) player.setCooldown(Material.ENDER_PEARL, 0);
         if (veilTasks.containsKey(id)) {
             if (player != null) restoreVeil(player);
             else {
