@@ -4,6 +4,7 @@ import me.ph4ntomgg.evolutionsmp.command.EvolutionCommand;
 import me.ph4ntomgg.evolutionsmp.command.EvolutionFXCommand;
 import me.ph4ntomgg.evolutionsmp.fx.CustomAnimationManager;
 import me.ph4ntomgg.evolutionsmp.ability.AbilityService;
+import me.ph4ntomgg.evolutionsmp.ability.OreResonanceService;
 import me.ph4ntomgg.evolutionsmp.domain.PlayerProgress;
 import me.ph4ntomgg.evolutionsmp.domain.ProgressionRules;
 import me.ph4ntomgg.evolutionsmp.fx.CinematicEffects;
@@ -32,6 +33,7 @@ public final class EvolutionSMP extends JavaPlugin implements Listener {
     private ProgressService progress;
     private CinematicEffects effects;
     private AbilityService abilities;
+    private OreResonanceService resonance;
     private CustomAnimationManager animations;
     private PathPassiveListener passives;
     private BukkitTask progressFlushTask;
@@ -48,6 +50,7 @@ public final class EvolutionSMP extends JavaPlugin implements Listener {
         animations = new CustomAnimationManager(this);
         animations.reload();
         abilities = new AbilityService(this, progress);
+        resonance = new OreResonanceService(this, progress);
         EvolutionItems items = new EvolutionItems(this);
         items.registerRecipes();
         RecipeMenu recipes = new RecipeMenu(items);
@@ -61,6 +64,7 @@ public final class EvolutionSMP extends JavaPlugin implements Listener {
         passives = new PathPassiveListener(this, progress);
         getServer().getPluginManager().registerEvents(passives, this);
         getServer().getPluginManager().registerEvents(abilities, this);
+        getServer().getPluginManager().registerEvents(resonance, this);
         getServer().getPluginManager().registerEvents(new RecipeMenuListener(), this);
         getServer().getPluginManager().registerEvents(new PathChangerListener(items, menu), this);
         getServer().getPluginManager().registerEvents(new EvolutionMainMenuListener(progress, menu, recipes, effects), this);
@@ -71,7 +75,7 @@ public final class EvolutionSMP extends JavaPlugin implements Listener {
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
-        getCommand("evo").setExecutor(new EvolutionCommand(progress, menu, effects, abilities, recipes, items, mainMenu, curseMenu));
+        getCommand("evo").setExecutor(new EvolutionCommand(progress, menu, effects, abilities, resonance, recipes, items, mainMenu, curseMenu));
         getCommand("evofx").setExecutor(new EvolutionFXCommand(animations, effects, progress));
         getCommand("enderchest").setExecutor((sender, command, label, args) -> {
             if (!(sender instanceof org.bukkit.entity.Player player)) { sender.sendMessage("Players only."); return true; }
@@ -102,6 +106,7 @@ public final class EvolutionSMP extends JavaPlugin implements Listener {
         if (progress != null) progress.flush();
         if (effects != null) effects.shutdown();
         if (abilities != null) abilities.shutdown();
+        if (resonance != null) resonance.shutdown();
         if (animations != null) animations.stopAll();
         if (passives != null) passives.shutdown();
         getLogger().info("EvolutionSMP 1.0.0 stopped; services flushed.");
