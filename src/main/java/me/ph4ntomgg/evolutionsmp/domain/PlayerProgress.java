@@ -8,6 +8,9 @@ public record PlayerProgress(UUID playerId, EvolutionPath path, EvolutionTier ti
         Objects.requireNonNull(playerId, "playerId");
         Objects.requireNonNull(tier, "tier");
         if (experience < 0) throw new IllegalArgumentException("experience cannot be negative");
+        if (path == null && (tier != EvolutionTier.T1 || experience != 0 || apex)) {
+            throw new IllegalArgumentException("Unassigned players must remain at T1 with zero XP");
+        }
         if (apex && path == null) throw new IllegalArgumentException("Apex players must have a path");
         if (apex && tier != EvolutionTier.APEX) throw new IllegalArgumentException("Apex flag and tier must agree");
         if (!apex && tier == EvolutionTier.APEX) throw new IllegalArgumentException("Apex tier requires Apex flag");
