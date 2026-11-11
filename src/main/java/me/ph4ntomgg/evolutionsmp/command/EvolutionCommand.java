@@ -163,13 +163,23 @@ public final class EvolutionCommand implements CommandExecutor {
                 if (args.length != 3) { sender.sendMessage(ChatColor.RED + "Usage: /evo exp <player> <amount>"); return true; }
                 Player target = Bukkit.getPlayerExact(args[1]);
                 if (target == null) { sender.sendMessage(ChatColor.RED + "That player is not online."); return true; }
+                PlayerProgress current = progress.get(target.getUniqueId());
+                if (!current.assigned()) { sender.sendMessage(ChatColor.RED + "Assign a path before awarding evolution XP."); return true; }
+                if (current.tier() == EvolutionTier.T4 || current.apex()) {
+                    sender.sendMessage(ChatColor.YELLOW + "T4 and Apex players do not accumulate additional evolution XP.");
+                    return true;
+                }
                 try {
                     long amount = Long.parseLong(args[2]);
                     if (amount < 1) throw new NumberFormatException();
                     PlayerProgress updated = progress.award(target.getUniqueId(), amount);
                     sender.sendMessage(ChatColor.GREEN + "Awarded " + amount + " XP. " + updated.tier());
                     target.sendMessage(ChatColor.GREEN + "You received " + amount + " evolution XP.");
-                } catch (NumberFormatException ex) { sender.sendMessage(ChatColor.RED + "Amount must be a positive whole number."); }
+                } catch (NumberFormatException ex) {
+                    sender.sendMessage(ChatColor.RED + "Amount must be a positive whole number.");
+                } catch (ArithmeticException ex) {
+                    sender.sendMessage(ChatColor.RED + "That XP amount is too large.");
+                }
             }
             case "tier" -> {
                 if (!sender.hasPermission("evolution.admin")) { sender.sendMessage(ChatColor.RED + "No permission."); return true; }
