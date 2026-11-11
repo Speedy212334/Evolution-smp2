@@ -37,7 +37,7 @@ public final class ProgressionRules {
 
     public static PlayerProgress applyExperience(PlayerProgress current, long amount, long t2, long t3, long t4) {
         if (amount < 0 || t2 < 1 || t3 < 1 || t4 < 1) throw new IllegalArgumentException("XP values must be positive");
-        if (!current.assigned() || current.apex()) return current;
+        if (!current.assigned() || current.tier() == EvolutionTier.T4 || current.apex()) return current;
         PlayerProgress updated = current.addExperience(amount);
         while (!updated.apex() && updated.assigned()) {
             long threshold = thresholdForNextTier(updated.tier(), t2, t3, t4);
