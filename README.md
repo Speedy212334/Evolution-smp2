@@ -17,7 +17,7 @@ A clean-slate evolution-based Minecraft SMP plugin for Paper 26.3 and Java 25.
 - Path-specific XP sources for all seven paths.
 - T2–T4 death drops a distinct Evolution Orb and regresses the player to T1. Apex players do not drop orbs and do not regress through this rule.
 - T2, T3, and T4 have separate shaped recipes. T4 does not require a previous tier orb.
-- T4 players can attempt Apex using 8 Echo Shards. Success chance: 20%. A successful ascension is broadcast.
+- T4 players can attempt Apex using 8 Evolution Shards. Success chance: 20%. A successful ascension is broadcast.
 - Trade Apex: `/evo gambit` grants 3 minutes of invulnerability, then destroys armor in the player's inventory and locks armor use for 20 minutes.
 - Calamity Apex: `/evo heart` grants its combat effects for 60 seconds and displays a heart symbol for 3 minutes.
 - Hunt Tier IV: `/evo veil` hides the player for 30 seconds with a 60-second cooldown.
