@@ -12,7 +12,6 @@ import org.bukkit.entity.Display;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.Material;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -80,9 +79,8 @@ public final class CinematicEffects {
                 allDisplays.add(display);
             }
             for (int i = 0; i < GEM_COUNT; i++) {
-                // The resource pack turns this vanilla carrier into the FX Gold Gem.
-                ItemDisplay display = spawnDisplay(world, spawn,
-                        new ItemStack(Material.GOLD_INGOT), 0.38f, false);
+                // Use the plugin-owned FX item model; vanilla gold ingot assets remain untouched.
+                ItemDisplay display = spawnDisplay(world, spawn, items.fxGem(), 0.38f, false);
                 gemDisplays.add(display);
                 allDisplays.add(display);
             }
