@@ -405,14 +405,21 @@ public final class AbilityService implements Listener {
 
     @EventHandler
     public void onVeilWorldChange(PlayerChangedWorldEvent event) {
-        Player hidden = event.getPlayer();
-        UUID hiddenId = hidden.getUniqueId();
-        if (!veilTasks.containsKey(hiddenId)) return;
-        java.util.Set<UUID> viewers = veilViewers.computeIfAbsent(hiddenId, ignored -> new java.util.HashSet<>());
-        for (Player viewer : Bukkit.getOnlinePlayers()) {
-            if (viewer.equals(hidden) || !viewer.getWorld().equals(hidden.getWorld()) || !viewer.canSee(hidden)) continue;
-            viewers.add(viewer.getUniqueId());
-            viewer.hidePlayer(plugin, hidden);
+        Player changed = event.getPlayer();
+        for (UUID hiddenId : new java.util.HashSet<>(veilTasks.keySet())) {
+            Player hidden = Bukkit.getPlayer(hiddenId);
+            if (hidden == null) continue;
+            java.util.Set<UUID> viewers = veilViewers.computeIfAbsent(hiddenId, ignored -> new java.util.HashSet<>());
+            if (hidden.equals(changed)) {
+                for (Player viewer : Bukkit.getOnlinePlayers()) {
+                    if (viewer.equals(hidden) || !viewer.getWorld().equals(hidden.getWorld()) || !viewer.canSee(hidden)) continue;
+                    viewers.add(viewer.getUniqueId());
+                    viewer.hidePlayer(plugin, hidden);
+                }
+            } else if (changed.getWorld().equals(hidden.getWorld()) && changed.canSee(hidden)) {
+                viewers.add(changed.getUniqueId());
+                changed.hidePlayer(plugin, hidden);
+            }
         }
     }
 
