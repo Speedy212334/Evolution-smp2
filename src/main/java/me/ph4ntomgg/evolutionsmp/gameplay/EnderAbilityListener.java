@@ -41,7 +41,7 @@ public final class EnderAbilityListener implements Listener {
         PlayerProgress p = progress.get(player.getUniqueId());
         if (p.path() != EvolutionPath.ENDER || p.tier().rank() < 2) return;
         int cooldown = p.tier().rank() >= 4 ? 2 : p.tier().rank() >= 3 ? 5 : 10;
-        player.setCooldown(Material.ENDER_PEARL, cooldown);
+        player.setCooldown(Material.ENDER_PEARL, cooldown * 20);
         if (p.tier().rank() >= 3) pearl.setVelocity(pearl.getVelocity().multiply(p.tier().rank() >= 4 ? 1.5 : 1.35));
     }
 
