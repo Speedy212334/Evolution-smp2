@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Alchemy's potion fusion system. Tier III+ Alchemists can fuse two ordinary
+ * Alchemy's potion fusion system. Tier IV and Apex Alchemists can fuse two ordinary
  * drinkable potions into one potion carrying the union of their effects.
  */
 public final class AlchemyFusionListener implements Listener {
