@@ -197,6 +197,8 @@ public final class PathPassiveListener implements Listener {
     @EventHandler
     public void onDeath(PlayerDeathEvent event) {
         for (ItemStack drop : event.getDrops()) restoreEfficiencyItem(drop);
+        // Also handle keep-inventory deaths, where the enchanted tools are not dropped.
+        restoreInventoryEfficiency(event.getEntity());
     }
 
     private boolean isProspectorTierFour(Player player) {
