@@ -119,7 +119,7 @@ public final class EvolutionCommand implements CommandExecutor {
                     Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + player.getName() + " has reached peak of evolution");
                     player.sendTitle(ChatColor.GOLD + "APEX", ChatColor.LIGHT_PURPLE + "You have reached the peak.", 10, 80, 20);
                 } else {
-                    player.sendMessage(ChatColor.RED + "The Apex attempt failed. The 8 Echo Shards were consumed.");
+                    player.sendMessage(ChatColor.RED + "The Apex attempt failed. The 8 Evolution Shards were consumed.");
                 }
             }
             case "gambit" -> {
