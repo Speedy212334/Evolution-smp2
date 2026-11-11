@@ -18,7 +18,9 @@ import org.bukkit.event.entity.EntityPotionEffectEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.inventory.meta.PotionMeta;
-import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.ClickType;
+import org.bukkit.inventory.BrewerInventory;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.block.Block;
@@ -87,11 +89,23 @@ public final class GameplayListener implements Listener {
         }
     }
 
-    @EventHandler(ignoreCancelled = true)
-    public void recordBrewingStandUser(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.getClickedBlock() == null
-                || event.getClickedBlock().getType() != Material.BREWING_STAND) return;
-        recentBrewers.put(blockKey(event.getClickedBlock()), new RecentBrewer(event.getPlayer().getUniqueId(), System.currentTimeMillis()));
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void recordBrewerContribution(InventoryClickEvent event) {
+        if (!(event.getWhoClicked() instanceof Player player)
+                || !(event.getView().getTopInventory() instanceof BrewerInventory brewer)
+                || event.getClickedInventory() != event.getView().getTopInventory()) return;
+        int slot = event.getRawSlot();
+        if (slot != 3 && slot != 4) return; // ingredient and fuel slots only
+        ItemStack contribution = event.getCursor();
+        if ((contribution == null || contribution.getType().isAir())
+                && event.getClick() == ClickType.NUMBER_KEY && event.getHotbarButton() >= 0) {
+            contribution = player.getInventory().getItem(event.getHotbarButton());
+        }
+        if (contribution == null || contribution.getType().isAir()) return;
+        org.bukkit.Location location = brewer.getLocation();
+        if (location == null) return;
+        recentBrewers.put(blockKey(location.getBlock()),
+                new RecentBrewer(player.getUniqueId(), System.currentTimeMillis()));
     }
 
     @EventHandler
