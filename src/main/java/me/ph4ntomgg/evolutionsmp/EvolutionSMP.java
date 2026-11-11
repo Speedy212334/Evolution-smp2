@@ -26,6 +26,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitTask;
 
 public final class EvolutionSMP extends JavaPlugin implements Listener {
     private ProgressService progress;
@@ -33,6 +34,7 @@ public final class EvolutionSMP extends JavaPlugin implements Listener {
     private AbilityService abilities;
     private CustomAnimationManager animations;
     private PathPassiveListener passives;
+    private BukkitTask progressFlushTask;
 
     @Override
     public void onEnable() {
@@ -41,6 +43,7 @@ public final class EvolutionSMP extends JavaPlugin implements Listener {
                 getConfig().getLong("progression.thresholds.t2", ProgressionRules.DEFAULT_T2_XP),
                 getConfig().getLong("progression.thresholds.t3", ProgressionRules.DEFAULT_T3_XP),
                 getConfig().getLong("progression.thresholds.t4", ProgressionRules.DEFAULT_T4_XP));
+        progressFlushTask = getServer().getScheduler().runTaskTimer(this, progress::flush, 100L, 100L);
         effects = new CinematicEffects(this);
         animations = new CustomAnimationManager(this);
         animations.reload();
@@ -94,6 +97,7 @@ public final class EvolutionSMP extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
+        if (progressFlushTask != null) progressFlushTask.cancel();
         if (progress != null) progress.flush();
         if (effects != null) effects.shutdown();
         if (abilities != null) abilities.shutdown();
