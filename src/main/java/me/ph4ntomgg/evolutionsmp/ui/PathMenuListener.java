@@ -50,7 +50,7 @@ public final class PathMenuListener implements Listener {
             player.closeInventory();
             return;
         }
-        PlayerProgressAssign.assign(plugin, session.target(), player, paths[index], progress, effects);
+        PlayerProgressAssign.assign(plugin, session.target(), player, paths[index], progress, effects, session.consumeToken());
         sessions.remove(player.getUniqueId());
         player.closeInventory();
     }
