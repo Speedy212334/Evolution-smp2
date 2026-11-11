@@ -544,15 +544,12 @@ public final class AbilityService implements Listener {
 
     /** Clears temporary ability state when a player changes evolution paths. */
     public void resetPathCooldowns(UUID id) {
-        gambitUntil.remove(id);
-        armorLockUntil.remove(id);
+        // Reset cooldowns, not active effects or their consequences. A Path Changer
+        // must not let a player escape Gambit's delayed armor destruction/lock.
         cooldownUntil.remove(id);
-        heartUntil.remove(id);
         veilCooldownUntil.remove(id);
         fractureCooldown.remove(id);
         swapCooldown.remove(id);
-        BukkitTask heartTask = heartTasks.remove(id);
-        if (heartTask != null) heartTask.cancel();
         Player player = Bukkit.getPlayer(id);
         if (veilTasks.containsKey(id)) {
             if (player != null) restoreVeil(player);
