@@ -104,6 +104,7 @@ public final class OreResonanceService implements Listener {
             return;
         }
         if (session.nextDy > RADIUS || session.markers.size() >= MAX_MARKERS || activeMarkerCount >= MAX_GLOBAL_MARKERS) {
+            session.capacityLimited = session.markers.size() >= MAX_MARKERS || activeMarkerCount >= MAX_GLOBAL_MARKERS;
             if (session.scanTask != null) session.scanTask.cancel();
             session.scanTask = null;
             if (session.markers.isEmpty()) {
@@ -111,6 +112,9 @@ public final class OreResonanceService implements Listener {
             } else {
                 owner.sendMessage(ChatColor.AQUA + "Ore Resonance highlighted " + session.markers.size()
                         + " ore blocks. No coordinates were revealed.");
+                if (session.capacityLimited) {
+                    owner.sendMessage(ChatColor.GRAY + "The visual safety limit was reached; some nearby ores may not be highlighted.");
+                }
             }
             return;
         }
@@ -253,6 +257,7 @@ public final class OreResonanceService implements Listener {
         private final Set<Long> loadedChunks;
         private final List<Marker> markers = new ArrayList<>();
         private int nextDy = -RADIUS;
+        private boolean capacityLimited;
         private BukkitTask scanTask;
         private BukkitTask cleanupTask;
 
