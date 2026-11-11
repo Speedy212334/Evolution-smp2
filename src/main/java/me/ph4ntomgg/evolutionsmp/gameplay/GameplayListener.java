@@ -58,6 +58,8 @@ public final class GameplayListener implements Listener {
     private final ProgressService progress;
     private final JavaPlugin plugin;
     private final NamespacedKey orbXp;
+    private final NamespacedKey endEntryXpCooldownKey;
+    private final NamespacedKey huntKillXpKey;
     private final EvolutionItems items;
     private final Map<String, RecentBrewer> recentBrewers = new HashMap<>();
 
@@ -66,6 +68,8 @@ public final class GameplayListener implements Listener {
         this.plugin = plugin;
         this.items = new EvolutionItems(plugin);
         this.orbXp = items.orbXpKey();
+        this.endEntryXpCooldownKey = new NamespacedKey(plugin, "ender_end_entry_xp_cooldown");
+        this.huntKillXpKey = new NamespacedKey(plugin, "hunt_player_kill_xp_cooldown");
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -79,7 +83,18 @@ public final class GameplayListener implements Listener {
         if (killer == null) return;
         EntityType type = event.getEntityType();
         if (type == EntityType.PLAYER) {
-            award(killer, EvolutionPath.HUNT, 40);
+            PlayerProgress hunter = progress.get(killer.getUniqueId());
+            if (hunter.path() == EvolutionPath.HUNT) {
+                long now = System.currentTimeMillis();
+                long last = event.getEntity().getPersistentDataContainer()
+                        .getOrDefault(huntKillXpKey, PersistentDataType.LONG, 0L);
+                if (now - last >= 600_000L) {
+                    event.getEntity().getPersistentDataContainer().set(huntKillXpKey, PersistentDataType.LONG, now);
+                    award(killer, EvolutionPath.HUNT, 40);
+                } else {
+                    killer.sendMessage(ChatColor.GRAY + "Hunt XP protection: this player was recently defeated.");
+                }
+            }
             return;
         }
         if (event.getEntity() instanceof Monster) award(killer, EvolutionPath.HUNT, 12);
@@ -184,9 +199,14 @@ public final class GameplayListener implements Listener {
 
     @EventHandler
     public void onDimensionChange(PlayerChangedWorldEvent event) {
-        if (event.getPlayer().getWorld().getEnvironment() == org.bukkit.World.Environment.THE_END) {
-            award(event.getPlayer(), EvolutionPath.ENDER, 25);
-        }
+        Player player = event.getPlayer();
+        if (player.getWorld().getEnvironment() != org.bukkit.World.Environment.THE_END) return;
+        long now = System.currentTimeMillis();
+        long until = player.getPersistentDataContainer()
+                .getOrDefault(endEntryXpCooldownKey, PersistentDataType.LONG, 0L);
+        if (until > now) return;
+        player.getPersistentDataContainer().set(endEntryXpCooldownKey, PersistentDataType.LONG, now + 300_000L);
+        award(player, EvolutionPath.ENDER, 25);
     }
 
     private String blockKey(Block block) {
