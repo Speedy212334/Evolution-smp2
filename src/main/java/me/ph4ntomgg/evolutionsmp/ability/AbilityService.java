@@ -14,6 +14,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.util.Vector;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerSwapHandItemsEvent;
+import org.bukkit.event.block.BlockDispenseArmorEvent;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -49,6 +51,7 @@ public final class AbilityService implements Listener {
     private final Map<UUID, Long> heartUntil = new HashMap<>();
     private final Map<UUID, Long> cooldownUntil = new HashMap<>();
     private final Map<UUID, BukkitTask> heartTasks = new HashMap<>();
+    private final Map<UUID, BukkitTask> gambitTasks = new HashMap<>();
     private final Map<UUID, BukkitTask> veilTasks = new HashMap<>();
     private final Map<UUID, Long> veilCooldownUntil = new HashMap<>();
     private final Map<UUID, java.util.Set<UUID>> veilViewers = new HashMap<>();
@@ -83,12 +86,15 @@ public final class AbilityService implements Listener {
         player.sendMessage(ChatColor.DARK_PURPLE + "IDLE DEATH GAMBIT " + ChatColor.GRAY + "— invulnerability for 3 minutes.");
         player.sendTitle(ChatColor.DARK_PURPLE + "IDLE DEATH GAMBIT", ChatColor.LIGHT_PURPLE + "Three minutes. No damage.", 5, 50, 10);
         player.getWorld().playSound(player.getLocation(), Sound.BLOCK_RESPAWN_ANCHOR_CHARGE, 0.8f, 0.7f);
-        Bukkit.getScheduler().runTaskLater(plugin, () -> finishGambit(player), 3_600L);
+        BukkitTask task = Bukkit.getScheduler().runTaskLater(plugin, () -> finishGambit(player), 3_600L);
+        gambitTasks.put(id, task);
         return true;
     }
 
     private void finishGambit(Player player) {
         UUID id = player.getUniqueId();
+        BukkitTask task = gambitTasks.remove(id);
+        if (task != null && !task.isCancelled()) task.cancel();
         if (gambitUntil.remove(id) == null) return;
         destroyAllArmor(player.getInventory());
         armorLockUntil.put(id, System.currentTimeMillis() + ARMOR_LOCK_MS);
@@ -320,6 +326,8 @@ public final class AbilityService implements Listener {
     public void onQuitVeil(PlayerQuitEvent event) {
         UUID id = event.getPlayer().getUniqueId();
         for (java.util.Set<UUID> viewers : veilViewers.values()) viewers.remove(id);
+        BukkitTask gambitTask = gambitTasks.remove(id);
+        if (gambitTask != null) gambitTask.cancel();
         if (veilTasks.containsKey(id)) restoreVeil(event.getPlayer());
     }
 
@@ -333,7 +341,11 @@ public final class AbilityService implements Listener {
     @EventHandler
     public void onArmorClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player) || !armorLocked(player)) return;
-        if (isArmor(event.getCursor()) || isArmor(event.getCurrentItem()) || event.getSlotType() == org.bukkit.event.inventory.InventoryType.SlotType.ARMOR) {
+        ItemStack hotbarItem = event.getClick() == org.bukkit.event.inventory.ClickType.NUMBER_KEY
+                && event.getHotbarButton() >= 0
+                ? player.getInventory().getItem(event.getHotbarButton()) : null;
+        if (isArmor(event.getCursor()) || isArmor(event.getCurrentItem()) || isArmor(hotbarItem)
+                || event.getSlotType() == org.bukkit.event.inventory.InventoryType.SlotType.ARMOR) {
             event.setCancelled(true);
             player.sendMessage(ChatColor.RED + "Armor is locked by Gambit for " + remainingMinutes(player) + " more minutes.");
         }
@@ -365,7 +377,9 @@ public final class AbilityService implements Listener {
         Long gambitEnd = gambitUntil.get(id);
         if (gambitEnd != null) {
             if (gambitEnd > now) {
-                Bukkit.getScheduler().runTaskLater(plugin, () -> finishGambit(player), Math.max(1L, (gambitEnd - now) / 50L));
+                BukkitTask task = Bukkit.getScheduler().runTaskLater(plugin,
+                        () -> finishGambit(player), Math.max(1L, (gambitEnd - now) / 50L));
+                gambitTasks.put(id, task);
             } else {
                 finishGambit(player);
             }
@@ -373,6 +387,24 @@ public final class AbilityService implements Listener {
         Long heartEnd = heartUntil.get(id);
         if (heartEnd != null && heartEnd > now) startHeartSymbol(player);
         else heartUntil.remove(id);
+    }
+
+    @EventHandler
+    public void onArmorHandSwap(PlayerSwapHandItemsEvent event) {
+        Player player = event.getPlayer();
+        if (!armorLocked(player)) return;
+        if (isArmor(event.getMainHandItem()) || isArmor(event.getOffHandItem())) {
+            event.setCancelled(true);
+            player.sendMessage(ChatColor.RED + "Armor is locked by Gambit for " + remainingMinutes(player) + " more minutes.");
+        }
+    }
+
+    @EventHandler
+    public void onArmorDispenser(BlockDispenseArmorEvent event) {
+        if (event.getTargetEntity() instanceof Player player && armorLocked(player) && isArmor(event.getItem())) {
+            event.setCancelled(true);
+            player.sendMessage(ChatColor.RED + "Armor is locked by Gambit for " + remainingMinutes(player) + " more minutes.");
+        }
     }
 
     private boolean armorLocked(Player player) {
@@ -404,6 +436,7 @@ public final class AbilityService implements Listener {
         inventory.setChestplate(null);
         inventory.setLeggings(null);
         inventory.setBoots(null);
+        if (isArmor(inventory.getItemInOffHand())) inventory.setItemInOffHand(null);
     }
 
     private void load() {
@@ -468,6 +501,8 @@ public final class AbilityService implements Listener {
     }
 
     public void shutdown() {
+        gambitTasks.values().forEach(BukkitTask::cancel);
+        gambitTasks.clear();
         heartTasks.values().forEach(BukkitTask::cancel);
         heartTasks.clear();
         for (UUID id : new java.util.HashSet<>(veilTasks.keySet())) {
