@@ -37,6 +37,12 @@ public final class ProgressService {
         return updated;
     }
 
+    public PlayerProgress changePath(UUID id, EvolutionPath path) {
+        PlayerProgress updated = get(id).withPathPreservingTier(path);
+        put(updated);
+        return updated;
+    }
+
     public PlayerProgress award(UUID id, long amount) {
         PlayerProgress current = get(id);
         if (!current.assigned()) return current;
