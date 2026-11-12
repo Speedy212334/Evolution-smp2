@@ -6,10 +6,20 @@ import org.bukkit.util.Vector;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
+import java.lang.reflect.Proxy;
 
 class FracturePhysicsTest {
-    private final World world = mock(World.class);
+    private final World world = fakeWorld();
+
+    private static World fakeWorld() {
+        return (World) Proxy.newProxyInstance(World.class.getClassLoader(), new Class<?>[]{World.class},
+                (proxy, method, args) -> switch (method.getName()) {
+                    case "equals" -> proxy == args[0];
+                    case "hashCode" -> System.identityHashCode(proxy);
+                    case "toString" -> "FractureTestWorld";
+                    default -> null;
+                });
+    }
 
     @Test
     void radiusUsesThreeDimensionalSphereRatherThanAxisAlignedBox() {
@@ -22,7 +32,7 @@ class FracturePhysicsTest {
     void radiusRejectsDifferentWorldsAndInvalidRadii() {
         Location center = new Location(world, 0, 64, 0);
         assertFalse(FracturePhysics.withinRadius(center,
-                new Location(mock(World.class), 0, 64, 0), 6));
+                new Location(fakeWorld(), 0, 64, 0), 6));
         assertFalse(FracturePhysics.withinRadius(center, center, -1));
     }
 
