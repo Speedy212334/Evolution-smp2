@@ -20,7 +20,7 @@ A clean-slate evolution-based Minecraft SMP plugin for Paper 26.3 and Java 25.
 - T4 players can attempt Apex using 8 Evolution Shards. Success chance: 20%. A successful ascension is broadcast.
 - Trade Apex: `/evo gambit` grants 3 minutes of invulnerability, then destroys armor in the player's inventory and locks armor use for 20 minutes.
 - Calamity Apex: `/evo heart` grants its combat effects for 60 seconds and displays a heart symbol for 3 minutes.
-- Hunt Tier IV: `/evo veil` hides the player for 30 seconds with a 60-second cooldown.
+- Hunt Tier IV: `/evo veil` hides the player for 10 seconds with a three-minute cooldown.
 - Prospector Tier IV: `/evo resonance` scans loaded chunks within a 50-block radius and creates player-only, ore-coloured glowing outlines for 60 seconds with a five-minute cooldown; it does not reveal coordinates or load chunks.
 - Calamity Tier IV: `/evo fracture` telegraphs an expanding ring before its damaging knockback shockwave.
 - Ender Tier IV: `/evo swap <player>` swaps positions with a nearby player; Void Step can rescue the player from the void, and fall damage is negated.
