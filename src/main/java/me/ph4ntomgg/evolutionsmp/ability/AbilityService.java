@@ -336,7 +336,7 @@ public final class AbilityService implements Listener {
                             direction = player.getLocation().getDirection().clone().setY(0);
                         }
                         if (direction.lengthSquared() < 0.01) direction = new Vector(1, 0, 0);
-                        living.setVelocity(direction.normalize().multiply(1.7).setY(0.65));
+                        living.setVelocity(direction.normalize().multiply(0.8).setY(1.05));
                     }
                 }
                 tick++;
