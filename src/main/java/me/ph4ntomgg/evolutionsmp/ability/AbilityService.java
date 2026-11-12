@@ -49,6 +49,8 @@ public final class AbilityService implements Listener {
     private static final long ARMOR_LOCK_MS = 1_200_000L;
     private static final long HEART_DURATION_MS = 180_000L;
     private static final long COOLDOWN_MS = 1_800_000L;
+    private static final long VEIL_DURATION_TICKS = 200L;
+    private static final long VEIL_COOLDOWN_MS = 180_000L;
 
     private final JavaPlugin plugin;
     private final ProgressService progress;
@@ -189,7 +191,7 @@ public final class AbilityService implements Listener {
             player.sendMessage(ChatColor.RED + "Veil is recharging for " + seconds + "s.");
             return false;
         }
-        veilCooldownUntil.put(id, now + 60_000L);
+        veilCooldownUntil.put(id, now + VEIL_COOLDOWN_MS);
         save();
         previousInvisible.put(id, player.isInvisible());
         previousSilent.put(id, player.isSilent());
@@ -204,7 +206,7 @@ public final class AbilityService implements Listener {
         player.setSilent(true);
         player.sendTitle(ChatColor.DARK_PURPLE + "VEIL", ChatColor.GRAY + "Your presence fades.", 5, 35, 10);
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 0.5f, 1.5f);
-        BukkitTask task = Bukkit.getScheduler().runTaskLater(plugin, () -> restoreVeil(player), 600L);
+        BukkitTask task = Bukkit.getScheduler().runTaskLater(plugin, () -> restoreVeil(player), VEIL_DURATION_TICKS);
         veilTasks.put(id, task);
         return true;
     }
