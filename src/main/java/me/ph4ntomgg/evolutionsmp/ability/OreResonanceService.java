@@ -118,7 +118,11 @@ public final class OreResonanceService implements Listener {
             if (session.scanTask != null) session.scanTask.cancel();
             session.scanTask = null;
             if (session.markers.isEmpty()) {
-                owner.sendMessage(ChatColor.GRAY + "No ores were detected in currently loaded chunks within 50 blocks.");
+                if (session.capacityLimited) {
+                    owner.sendMessage(ChatColor.YELLOW + "Ore Resonance could not finish scanning because the server-wide visual safety limit is busy. Try again shortly.");
+                } else {
+                    owner.sendMessage(ChatColor.GRAY + "No ores were detected in currently loaded chunks within 50 blocks.");
+                }
             } else {
                 owner.sendMessage(ChatColor.AQUA + "Ore Resonance highlighted " + session.markers.size()
                         + " ore blocks. No coordinates were revealed.");
