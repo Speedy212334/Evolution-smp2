@@ -4,8 +4,8 @@ Target: Paper 26.3, Java 25. Run on a disposable test server with a backup and a
 
 ## 1. Build and artifact integrity
 
-- Run `gradle clean test jar generateResourcePack verifyArtifacts`.
-- Confirm the unified plugin JAR and 26.3 resource-pack ZIP are both produced.
+- Run `gradle clean test jar evolutionFxJar generateResourcePack verifyArtifacts`.
+- Confirm `EvolutionSMP-5.0.16.jar`, `EvolutionFX-5.0.16.jar`, and the 26.3 resource-pack ZIP are all produced.
 - Confirm the resource-pack validator rejects any file under `assets/minecraft/models/`, `assets/minecraft/items/`, `assets/minecraft/textures/item/`, or `assets/minecraft/textures/block/`.
 - Install the pack on a clean client and verify the seven path sigils, three Evolution Orbs, Evolution Shard, Path Changer, and FX gem.
 - Verify vanilla gold ingot, compass, paper, echo shard, totem item, and all block textures/models remain vanilla. The Totem particle atlas is the only intended Minecraft-namespace override.
