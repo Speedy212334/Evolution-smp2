@@ -103,12 +103,22 @@ public final class AbilityService implements Listener {
         UUID id = player.getUniqueId();
         BukkitTask task = gambitTasks.remove(id);
         if (task != null && !task.isCancelled()) task.cancel();
-        if (gambitUntil.remove(id) == null) return;
+        Long gambitEnd = gambitUntil.remove(id);
+        if (gambitEnd == null) return;
         destroyAllArmor(player.getInventory());
-        armorLockUntil.put(id, System.currentTimeMillis() + ARMOR_LOCK_MS);
+        // The lock begins when Gambit expires, not when the player next logs in.
+        // Otherwise logging out during Gambit would postpone the penalty.
+        armorLockUntil.put(id, gambitEnd + ARMOR_LOCK_MS);
         save();
         player.sendTitle(ChatColor.RED + "GAMBIT ENDED", ChatColor.GRAY + "Armor shattered. Armor locked for 20 minutes.", 5, 70, 15);
-        player.sendMessage(ChatColor.RED + "All armor in your inventory has been destroyed. You cannot equip armor for 20 minutes.");
+        long remainingMs = Math.max(0L, gambitEnd + ARMOR_LOCK_MS - System.currentTimeMillis());
+        if (remainingMs > 0L) {
+            long remainingMinutes = Math.max(1L, (remainingMs + 59_999L) / 60_000L);
+            player.sendMessage(ChatColor.RED + "All armor in your inventory has been destroyed. Armor remains locked for "
+                    + remainingMinutes + " more minute(s).");
+        } else {
+            player.sendMessage(ChatColor.RED + "All armor in your inventory has been destroyed. The armor-lock period has already elapsed.");
+        }
     }
 
     public boolean activateHeart(Player player) {
