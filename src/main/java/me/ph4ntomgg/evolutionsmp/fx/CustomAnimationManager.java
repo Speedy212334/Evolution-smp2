@@ -130,7 +130,7 @@ public final class CustomAnimationManager {
                 int modelData = Math.max(0, cfg.getInt("custom-model-data", 0));
                 int particleCount = Math.max(0, Math.min(16, cfg.getInt("particle-count", 1)));
                 int particleInterval = Math.max(1, Math.min(100, cfg.getInt("particle-interval-ticks", 2)));
-                int soundInterval = Math.max(1, Math.min(1200, cfg.getInt("sound-interval-ticks", 40)));
+                int soundInterval = Math.max(10, Math.min(1200, cfg.getInt("sound-interval-ticks", 40)));
                 float volume = (float) clamp(cfg.getDouble("sound-volume", 0.35), 0.0, 2.0);
                 float pitch = (float) clamp(cfg.getDouble("sound-pitch", 1.0), 0.5, 2.0);
                 boolean glow = cfg.getBoolean("glowing", false);
