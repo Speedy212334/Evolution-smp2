@@ -118,11 +118,13 @@ public final class PathPassiveListener implements Listener {
 
     private void maintain(Player player, PotionEffectType type, int amplifier) {
         PotionEffect current = player.getPotionEffect(type);
-        boolean managed = managedEffects.getOrDefault(player.getUniqueId(), Set.of()).contains(type);
+        Map<PotionEffectType, Integer> managed = managedEffects.get(player.getUniqueId());
+        boolean alreadyManaged = managed != null && managed.containsKey(type);
         if (current == null || current.getAmplifier() < amplifier
-                || current.getAmplifier() == amplifier && managed && current.getDuration() < 60) {
+                || current.getAmplifier() == amplifier && alreadyManaged && current.getDuration() < 60) {
             player.addPotionEffect(new PotionEffect(type, 100, amplifier, true, false, false), true);
-            managedEffects.computeIfAbsent(player.getUniqueId(), ignored -> new HashSet<>()).add(type);
+            managedEffects.computeIfAbsent(player.getUniqueId(), ignored -> new HashMap<>())
+                    .put(type, amplifier);
         }
     }
 
