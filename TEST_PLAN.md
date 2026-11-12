@@ -61,7 +61,7 @@ Target: Paper 26.3, Java 25. Run on a disposable test server with a backup and a
 
 ### Enchantment and Alchemy
 - Curse Removal: Enchantment T4 only; confirm only the original held item is modified, item swaps/path changes abort, GUI dragging cannot move items, and only selected Binding/Vanishing curses are removed (including stored curses on books).
-- Potion fusion: Alchemy T4/Apex only; test two drinkable potions, different effects, duplicate effects with stronger amplifier, duplicate effects with longer duration, unsupported potion types, empty/invalid grids, rapid/double clicks, and inventory-full behavior. Confirm no ingredients or bottles are consumed and no duplicate output is possible.
+- Potion fusion: Alchemy T4/Apex only; test two drinkable potions, different effects, duplicate effects with stronger amplifier, duplicate effects with longer duration, unsupported potion types, empty/invalid grids, rapid/double clicks, hotbar-number/drop/offhand clicks, and inventory-full behavior. Confirm exactly one input potion is consumed from each slot and exactly one fused potion is granted; shift-click is disabled, the cursor must be empty, overflow is dropped once, and no click route can duplicate output. Confirm non-Alchemists cannot claim the result.
 
 ## 5. Cinematics, FX, and cleanup
 
