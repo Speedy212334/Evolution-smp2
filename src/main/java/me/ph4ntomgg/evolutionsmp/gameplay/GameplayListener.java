@@ -109,18 +109,34 @@ public final class GameplayListener implements Listener {
         if (!(event.getWhoClicked() instanceof Player player)
                 || !(event.getView().getTopInventory() instanceof BrewerInventory brewer)
                 || event.getClickedInventory() != event.getView().getTopInventory()) return;
+
         int slot = event.getRawSlot();
         if (slot != 3 && slot != 4) return; // ingredient and fuel slots only
-        ItemStack contribution = event.getCursor();
-        if ((contribution == null || contribution.getType().isAir())
-                && event.getClick() == ClickType.NUMBER_KEY && event.getHotbarButton() >= 0) {
-            contribution = player.getInventory().getItem(event.getHotbarButton());
-        }
+
+        // Only count an insertion/replacement. Merely taking an item out of the
+        // brewing stand must not grant the XP credit for a completed brew.
+        org.bukkit.event.inventory.InventoryAction action = event.getAction();
+        boolean cursorInsertion = action == org.bukkit.event.inventory.InventoryAction.PLACE_ALL
+                || action == org.bukkit.event.inventory.InventoryAction.PLACE_ONE
+                || action == org.bukkit.event.inventory.InventoryAction.PLACE_SOME
+                || action == org.bukkit.event.inventory.InventoryAction.SWAP_WITH_CURSOR;
+        boolean hotbarInsertion = event.getClick() == ClickType.NUMBER_KEY
+                && action == org.bukkit.event.inventory.InventoryAction.HOTBAR_SWAP
+                && event.getHotbarButton() >= 0;
+        if (!cursorInsertion && !hotbarInsertion) return;
+
+        ItemStack contribution = hotbarInsertion
+                ? player.getInventory().getItem(event.getHotbarButton()) : event.getCursor();
         if (contribution == null || contribution.getType().isAir()) return;
+
         org.bukkit.Location location = brewer.getLocation();
         if (location == null) return;
+        long now = System.currentTimeMillis();
+        // Expire abandoned stands whenever a new contribution is recorded so
+        // this cache cannot grow indefinitely if brewing never completes.
+        recentBrewers.entrySet().removeIf(entry -> now - entry.getValue().at() > 120_000L);
         recentBrewers.put(blockKey(location.getBlock()),
-                new RecentBrewer(player.getUniqueId(), System.currentTimeMillis()));
+                new RecentBrewer(player.getUniqueId(), now));
     }
 
     @EventHandler
