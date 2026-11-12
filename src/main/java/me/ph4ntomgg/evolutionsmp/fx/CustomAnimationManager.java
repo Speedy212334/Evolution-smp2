@@ -105,6 +105,15 @@ public final class CustomAnimationManager {
                 if (!particleText.isEmpty() && !particleText.equalsIgnoreCase("none")) {
                     try {
                         particle = Particle.valueOf(particleText);
+                        // The generic particle path below only supplies a numeric speed.
+                        // Data-bearing particle types (BLOCK, ITEM, TRAIL, VIBRATION, etc.)
+                        // need their own payload and would otherwise throw at runtime.
+                        if (particle != Particle.DUST && particle != Particle.DUST_COLOR_TRANSITION
+                                && particle.getDataType() != Void.class) {
+                            plugin.getLogger().warning("Animation '" + id + "' uses data-bearing particle '"
+                                    + particleText + "' without a supported payload; particles disabled.");
+                            particle = null;
+                        }
                     } catch (IllegalArgumentException ignored) {
                         plugin.getLogger().warning("Animation '" + id + "' has unknown particle '" + particleText + "'; particles disabled.");
                     }
