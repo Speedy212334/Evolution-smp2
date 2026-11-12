@@ -151,11 +151,18 @@ public final class AbilityService implements Listener {
         if (old != null) old.cancel();
         BukkitTask task = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             Long until = heartUntil.get(id);
-            if (until == null || until <= System.currentTimeMillis() || !player.isOnline()) {
+            if (until == null || until <= System.currentTimeMillis()) {
                 heartUntil.remove(id);
                 BukkitTask current = heartTasks.remove(id);
                 if (current != null) current.cancel();
                 save();
+                return;
+            }
+            if (!player.isOnline()) {
+                // Keep the absolute expiry time so the remaining visual duration
+                // can resume if the player rejoins before it expires.
+                BukkitTask current = heartTasks.remove(id);
+                if (current != null) current.cancel();
                 return;
             }
             player.getWorld().spawnParticle(Particle.HEART, player.getLocation().add(0, 2.25, 0), 1, 0.12, 0.08, 0.12, 0);
@@ -254,6 +261,7 @@ public final class AbilityService implements Listener {
             return false;
         }
         swapCooldown.put(player.getUniqueId(), now + 30_000L);
+        save();
         Location firstFx = first.clone().add(0, 1, 0);
         Location secondFx = second.clone().add(0, 1, 0);
         player.getWorld().spawnParticle(Particle.PORTAL, firstFx, 18, 0.2, 0.35, 0.2, 0.08);
@@ -280,6 +288,7 @@ public final class AbilityService implements Listener {
             return false;
         }
         fractureCooldown.put(player.getUniqueId(), now + 20_000L);
+        save();
         Location center = player.getLocation().clone();
         org.bukkit.World world = player.getWorld();
         player.sendMessage(ChatColor.DARK_RED + "Fracture is charging...");
