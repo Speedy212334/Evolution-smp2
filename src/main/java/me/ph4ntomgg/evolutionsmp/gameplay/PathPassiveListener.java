@@ -42,7 +42,7 @@ public final class PathPassiveListener implements Listener {
     private final ProgressService progress;
     private final BukkitTask refreshTask;
     private final NamespacedKey originalEfficiencyKey;
-    private final Map<UUID, Set<PotionEffectType>> managedEffects = new HashMap<>();
+    private final Map<UUID, Map<PotionEffectType, Integer>> managedEffects = new HashMap<>();
 
     public PathPassiveListener(JavaPlugin plugin, ProgressService progress) {
         this.plugin = plugin;
@@ -84,12 +84,17 @@ public final class PathPassiveListener implements Listener {
             }
         }
 
-        Set<PotionEffectType> managed = managedEffects.get(id);
+        Map<PotionEffectType, Integer> managed = managedEffects.get(id);
         if (managed != null) {
-            for (PotionEffectType type : new HashSet<>(managed)) {
-                if (!desired.contains(type)) player.removePotionEffect(type);
+            for (Map.Entry<PotionEffectType, Integer> entry : new HashMap<>(managed).entrySet()) {
+                if (!desired.contains(entry.getKey())) {
+                    PotionEffect current = player.getPotionEffect(entry.getKey());
+                    // Remove only the effect level maintained by this passive. A stronger
+                    // or long-duration potion effect supplied by gameplay must survive.
+                    if (isManagedEffect(current, entry.getValue())) player.removePotionEffect(entry.getKey());
+                    managed.remove(entry.getKey());
+                }
             }
-            managed.retainAll(desired);
             if (managed.isEmpty()) managedEffects.remove(id);
         }
 
@@ -168,9 +173,18 @@ public final class PathPassiveListener implements Listener {
         if (restoreEfficiencyItem(offhand)) player.getInventory().setItemInOffHand(offhand);
     }
 
+    private boolean isManagedEffect(PotionEffect current, int amplifier) {
+        return current != null && current.getAmplifier() == amplifier && current.getDuration() <= 120;
+    }
+
     private void clearManagedEffects(Player player) {
-        Set<PotionEffectType> managed = managedEffects.remove(player.getUniqueId());
-        if (managed != null) managed.forEach(player::removePotionEffect);
+        Map<PotionEffectType, Integer> managed = managedEffects.remove(player.getUniqueId());
+        if (managed != null) {
+            managed.forEach((type, amplifier) -> {
+                PotionEffect current = player.getPotionEffect(type);
+                if (isManagedEffect(current, amplifier)) player.removePotionEffect(type);
+            });
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
