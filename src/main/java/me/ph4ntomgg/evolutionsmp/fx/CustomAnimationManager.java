@@ -18,6 +18,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Transformation;
+import org.bukkit.util.Vector;
 import org.joml.AxisAngle4f;
 import org.joml.Vector3f;
 
@@ -39,7 +40,7 @@ import java.util.UUID;
  */
 public final class CustomAnimationManager {
     private static final Set<String> SHAPES = Set.of(
-            "spin", "orbit", "helix", "figure-eight", "rise", "slam", "pulse", "vortex"
+            "spin", "orbit", "helix", "figure-eight", "rise", "slam", "pulse", "vortex", "physics-burst"
     );
     private static final int MAX_COPIES = 16;
     private static final int MAX_GLOBAL_DISPLAYS = 256;
@@ -134,12 +135,17 @@ public final class CustomAnimationManager {
                 float volume = (float) clamp(cfg.getDouble("sound-volume", 0.35), 0.0, 2.0);
                 float pitch = (float) clamp(cfg.getDouble("sound-pitch", 1.0), 0.5, 2.0);
                 boolean glow = cfg.getBoolean("glowing", false);
+                double physicsGravity = clamp(cfg.getDouble("physics-gravity", 0.035), 0.0, 0.2);
+                double physicsDrag = clamp(cfg.getDouble("physics-drag", 0.985), 0.80, 1.0);
+                double physicsBounce = clamp(cfg.getDouble("physics-bounce", 0.42), 0.0, 0.9);
+                int physicsLifeTicks = Math.max(4, Math.min(200, cfg.getInt("physics-life-ticks", 48)));
 
                 loaded.put(id, new AnimationDefinition(
                         id, material, itemModel, modelData, rawShape, cycleTicks,
                         cfg.getBoolean("loop", false), copies, radius, height, bob,
                         scale, rotationSpeed, tilt, particle, particleCount,
-                        particleInterval, sound, soundInterval, volume, pitch, glow
+                        particleInterval, sound, soundInterval, volume, pitch, glow,
+                        physicsGravity, physicsDrag, physicsBounce, physicsLifeTicks
                 ));
             }
         }
@@ -195,6 +201,16 @@ public final class CustomAnimationManager {
             for (ItemDisplay display : displays) if (display.isValid()) display.remove();
             plugin.getLogger().warning("Could not spawn animation '" + id + "': " + exception.getMessage());
             return false;
+        }
+
+        Vector[] physicsVelocities = new Vector[displays.size()];
+        Location[] physicsPositions = new Location[displays.size()];
+        for (int i = 0; i < displays.size(); i++) {
+            double angle = (Math.PI * 2.0 * i / displays.size()) + 0.31;
+            double speed = 0.13 + (i % 3) * 0.035;
+            physicsVelocities[i] = new Vector(Math.cos(angle) * speed,
+                    0.18 + (i % 4) * 0.055, Math.sin(angle) * speed);
+            physicsPositions[i] = spawnAt.clone();
         }
 
         int runLimit = definition.loop
@@ -257,6 +273,7 @@ public final class CustomAnimationManager {
                             y += Math.sin(angle) * definition.bob;
                             dynamicScale *= 0.68 + 0.32 * (0.5 + 0.5 * Math.sin(angle));
                         }
+                        case "physics-burst" -> { /* integrated below using velocity, gravity, drag and block collision */ }
                         case "vortex" -> {
                             double expandingRadius = definition.radius * (0.12 + 0.88 * smooth(progress));
                             x = Math.cos(angle) * expandingRadius;
@@ -266,6 +283,34 @@ public final class CustomAnimationManager {
                         default -> { /* validated on load; safe visual fallback */ }
                     }
 
+                    if (definition.shape.equals("physics-burst")) {
+                        if (age >= definition.physicsLifeTicks) {
+                            display.remove();
+                            continue;
+                        }
+                        Vector velocity = physicsVelocities[i];
+                        velocity.setY(velocity.getY() - definition.physicsGravity);
+                        velocity.multiply(definition.physicsDrag);
+                        Location current = physicsPositions[i];
+                        Location next = current.clone().add(velocity);
+                        if (!next.getBlock().isPassable()) {
+                            velocity.setX(-velocity.getX() * definition.physicsBounce);
+                            velocity.setZ(-velocity.getZ() * definition.physicsBounce);
+                            velocity.setY(Math.abs(velocity.getY()) * definition.physicsBounce);
+                            next = current.clone().add(velocity);
+                            if (!next.getBlock().isPassable()) {
+                                velocity.setX(0);
+                                velocity.setZ(0);
+                                velocity.setY(Math.max(0.025, velocity.getY()));
+                                next = current.clone().add(velocity);
+                            }
+                        }
+                        physicsPositions[i] = next;
+                        x = next.getX() - base.getX();
+                        y = next.getY() - base.getY();
+                        z = next.getZ() - base.getZ();
+                        dynamicScale *= Math.max(0.12, 1.0 - (double) age / definition.physicsLifeTicks);
+                    }
                     Location at = base.clone().add(x, y, z);
                     display.setInterpolationDelay(0);
                     display.setInterpolationDuration(1);
@@ -376,7 +421,8 @@ public final class CustomAnimationManager {
             double height, double bob, double scale, double rotationSpeed, double tilt,
             Particle particle, int particleCount, int particleIntervalTicks,
             Sound sound, int soundIntervalTicks, float soundVolume, float soundPitch,
-            boolean glowing
+            boolean glowing, double physicsGravity, double physicsDrag,
+            double physicsBounce, int physicsLifeTicks
     ) {}
 
     private static final class AnimationSession {
