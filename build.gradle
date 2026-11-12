@@ -35,7 +35,7 @@ sourceSets {
             include 'me/ph4ntomgg/evolutionsmp/fx/EvolutionFXPlugin.java'
             include 'me/ph4ntomgg/evolutionsmp/fx/EvolutionFXCommand.java'
         }
-        resources.srcDir 'src/evolutionFx/resources'
+        resources.setSrcDirs(['src/evolutionFx/resources'])
     }
 }
 
