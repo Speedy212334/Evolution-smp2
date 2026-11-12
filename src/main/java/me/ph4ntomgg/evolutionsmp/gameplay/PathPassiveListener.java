@@ -17,6 +17,7 @@ import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -196,6 +197,22 @@ public final class PathPassiveListener implements Listener {
             ItemStack hotbar = player.getInventory().getItem(slot);
             if (restoreEfficiencyItem(hotbar)) player.getInventory().setItem(slot, hotbar);
         }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onInventoryDrag(InventoryDragEvent event) {
+        if (!(event.getWhoClicked() instanceof Player)) return;
+        boolean entersTopInventory = event.getRawSlots().stream()
+                .anyMatch(rawSlot -> rawSlot < event.getView().getTopInventory().getSize());
+        if (!entersTopInventory) return;
+        ItemStack cursor = event.getOldCursor();
+        if (isManagedEfficiencyItem(cursor)) event.setCancelled(true);
+    }
+
+    private boolean isManagedEfficiencyItem(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return false;
+        return item.getItemMeta().getPersistentDataContainer()
+                .has(originalEfficiencyKey, PersistentDataType.INTEGER);
     }
 
     @EventHandler
