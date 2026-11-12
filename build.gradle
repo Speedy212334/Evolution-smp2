@@ -41,6 +41,7 @@ sourceSets {
 configurations {
     evolutionFxCompileOnly.extendsFrom compileOnly
     testCompileOnly.extendsFrom compileOnly
+    testRuntimeOnly.extendsFrom compileOnly
 }
 
 java {
