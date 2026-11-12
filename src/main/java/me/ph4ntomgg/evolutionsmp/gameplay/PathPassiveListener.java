@@ -124,7 +124,7 @@ public final class PathPassiveListener implements Listener {
     private void applyProspectorEfficiency(Player player) {
         for (int slot = 0; slot < player.getInventory().getSize(); slot++) {
             ItemStack item = player.getInventory().getItem(slot);
-            if (item == null || item.getType().isAir() || !item.getType().name().endsWith("_PICKAXE")) continue;
+            if (item == null || item.getType().isAir() || !isEfficiencyTool(item.getType())) continue;
             ItemMeta meta = item.getItemMeta();
             if (meta == null) continue;
             var data = meta.getPersistentDataContainer();
@@ -137,6 +137,13 @@ public final class PathPassiveListener implements Listener {
             }
             item.setItemMeta(meta);
         }
+    }
+
+    private boolean isEfficiencyTool(Material material) {
+        String name = material.name();
+        return name.endsWith("_PICKAXE") || name.endsWith("_AXE")
+                || name.endsWith("_SHOVEL") || name.endsWith("_HOE")
+                || material == Material.SHEARS;
     }
 
     private boolean restoreEfficiencyItem(ItemStack item) {
