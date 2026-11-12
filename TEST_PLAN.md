@@ -51,7 +51,7 @@ Target: Paper 26.3, Java 25. Run on a disposable test server with a backup and a
 - Void Step and fall-damage prevention work at world-height/void boundaries.
 
 ### Calamity
-- Fracture: expanding telegraph ring appears before impact; test target escape, damage radius, knockback, PvP targets, mobs, cooldown, and self-exclusion. Confirm no terrain blocks are changed.
+- Fracture: expanding telegraph ring appears before impact; test target escape, damage radius, approximately 5–10 blocks of vertical and horizontal launch, PvP targets, mobs, cooldown, and self-exclusion. Confirm no terrain blocks are changed.
 - Heart: Strength IV, Speed III, and Resistance II last 60 seconds; heart symbol lasts three minutes; both Apex abilities share their cooldown.
 
 ### Trade
