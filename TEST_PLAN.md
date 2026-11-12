@@ -89,3 +89,22 @@ Automated Java 25 compilation, unit tests, resource-pack generation, and artifac
 - Custom animation config: valid simple particles and supported dust payloads render; unsupported data-bearing particle types (for example BLOCK, ITEM, TRAIL, or VIBRATION through the generic particle setting) are disabled with a clear warning instead of throwing at runtime.
 - Path Changer: using the item in either hand opens one menu only and consumes exactly one token after a path is selected.
 - Ore Resonance load: each session processes at most 20 horizontal columns per tick; test multiple simultaneous users and confirm the scan does not cause sustained MSPT spikes while respecting the marker caps.
+
+
+## Fracture regression checks
+- Activate `/evo fracture` as Calamity T4; verify the warning ring stays anchored at the cast location if the caster moves.
+- Verify the telegraph lasts eight ticks and detonates once, not repeatedly.
+- Verify targets inside the 6-block spherical radius take 8 damage and receive a strong upward/outward launch.
+- Verify targets outside the spherical radius and entities in another world are unaffected.
+- Verify the caster and armor stands are excluded.
+- Verify the 20-second cooldown persists across relogs and server restarts.
+- Verify the shockwave particles and sounds appear once and do not create block changes.
+
+## Split plugin packaging checks
+- `EvolutionSMP-1.0.0.jar` contains gameplay, progression, GUI, persistence, and path-awakening cinematic classes, but not the custom animation manager or `/evofx` command.
+- `EvolutionFX-1.0.0.jar` contains the standalone FX plugin entry point, `/evofx` commands, `CustomAnimationManager`, and `animations.yml`.
+- Both JARs and the shared 26.3 resource-pack ZIP are present in the workflow artifact.
+- Install only EvolutionSMP and verify all evolution gameplay remains available.
+- Install both JARs and verify `/evofx list`, `/evofx play`, `/evofx stop`, and `/evofx reload`.
+- Confirm FX model IDs resolve through the shared `evolutionsmp` resource-pack namespace.
+- Confirm the existing EvolutionSMP GUI and alert styling are unchanged.
