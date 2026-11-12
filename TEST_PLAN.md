@@ -42,8 +42,8 @@ Target: Paper 26.3, Java 25. Run on a disposable test server with a backup and a
 ### Prospector
 - Ore Resonance: Prospector T4 only; scans a spherical 50-block radius in loaded chunks, displays ore-coloured outlines through walls only to the activating player, lasts 60 seconds, reveals no coordinates, and never loads chunks.
 - Verify Diamond, Lapis, Redstone, Emerald, Gold, Iron, Copper, Coal, Quartz, and Ancient Debris colours.
-- Test the per-player and global marker safety caps, cleanup on timeout/quit/world change, five-minute cooldown, and Path Changer cooldown reset.
-- Efficiency X: original enchantment levels are restored on path/tier loss, item drop, inventory/container transfer, pickup by a non-Prospector, death with keep-inventory, quit, and plugin shutdown.
+- Test the per-player and global marker safety caps, cleanup on timeout/quit/death/world change, immediate removal when an ore is mined, five-minute cooldown, and Path Changer cooldown reset.
+- Efficiency X: original enchantment levels are restored on path/tier loss, item drop, shift-click/container transfer, drag-transfer attempts, pickup by a non-Prospector, death with keep-inventory, quit, and plugin shutdown.
 
 ### Ender
 - Void Swap: valid nearby target swaps immediately; test protection plugins cancelling either teleport and confirm rollback/no cooldown on failure.
