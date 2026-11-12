@@ -63,10 +63,8 @@ public final class PathMenuListener implements Listener {
             return;
         }
         PlayerProgressAssign.assign(plugin, session.target(), player, paths[index], progress, effects, session.consumeToken());
-        if (session.consumeToken()) {
-            abilities.resetPathCooldowns(session.target());
-            resonance.resetPathState(session.target());
-        }
+        abilities.resetPathCooldowns(session.target());
+        resonance.resetPathState(session.target());
         Player target = org.bukkit.Bukkit.getPlayer(session.target());
         if (target != null) passives.refreshPlayer(target);
         sessions.remove(player.getUniqueId());
