@@ -26,4 +26,36 @@ class PlayerProgressTest {
         assertEquals(EvolutionTier.APEX, changed.tier());
         assertTrue(changed.apex());
     }
+
+    @Test
+    void normalPathAssignmentResetsApexAndTier() {
+        PlayerProgress current = PlayerProgress.unassigned(UUID.randomUUID())
+                .withPath(EvolutionPath.TRADE)
+                .withTier(EvolutionTier.APEX, 0);
+        PlayerProgress reassigned = current.withPath(EvolutionPath.HUNT);
+        assertEquals(EvolutionTier.T1, reassigned.tier());
+        assertEquals(0, reassigned.experience());
+        assertFalse(reassigned.apex());
+    }
+
+    @Test
+    void rejectsInconsistentApexState() {
+        UUID id = UUID.randomUUID();
+        assertThrows(IllegalArgumentException.class,
+                () -> new PlayerProgress(id, EvolutionPath.HUNT, EvolutionTier.APEX, 0, false));
+        assertThrows(IllegalArgumentException.class,
+                () -> new PlayerProgress(id, EvolutionPath.HUNT, EvolutionTier.T4, 0, true));
+    }
+
+    @Test
+    void rejectsExperienceAtTierFour() {
+        assertThrows(IllegalArgumentException.class,
+                () -> new PlayerProgress(UUID.randomUUID(), EvolutionPath.HUNT, EvolutionTier.T4, 1, false));
+    }
+
+    @Test
+    void rejectsUnassignedProgressOutsideTierOne() {
+        assertThrows(IllegalArgumentException.class,
+                () -> new PlayerProgress(UUID.randomUUID(), null, EvolutionTier.T2, 0, false));
+    }
 }
