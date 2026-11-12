@@ -19,6 +19,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scoreboard.Scoreboard;
@@ -93,6 +94,7 @@ public final class OreResonanceService implements Listener {
         world.spawnParticle(Particle.END_ROD, origin.clone().add(0.5, 1.0, 0.5), 24, 0.45, 0.4, 0.45, 0.025);
 
         session.scanTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> scanLayer(session), 1L, 1L);
+        session.validationTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> validateMarkers(session), 20L, 20L);
         session.cleanupTask = Bukkit.getScheduler().runTaskLater(plugin, () -> finish(session), DURATION_TICKS);
         return true;
     }
@@ -152,16 +154,17 @@ public final class OreResonanceService implements Listener {
                 var block = session.world.getBlockAt(x, y, z);
                 OreStyle style = oreStyle(block.getType());
                 if (style == null) continue;
-                addMarker(session, block.getLocation(), block.getBlockData(), style);
+                addMarker(session, block, style);
             }
         }
     }
 
-    private void addMarker(Session session, Location location, org.bukkit.block.data.BlockData data, OreStyle style) {
+    private void addMarker(Session session, org.bukkit.block.Block block, OreStyle style) {
         Player owner = Bukkit.getPlayer(session.owner);
         if (owner == null || activeMarkerCount >= MAX_GLOBAL_MARKERS) return;
+        Location location = block.getLocation();
         BlockDisplay display = session.world.spawn(location, BlockDisplay.class, marker -> {
-            marker.setBlock(data);
+            marker.setBlock(block.getBlockData());
             marker.setPersistent(false);
             marker.setInvulnerable(true);
             marker.setSilent(true);
@@ -177,11 +180,36 @@ public final class OreResonanceService implements Listener {
         for (Player viewer : Bukkit.getOnlinePlayers()) {
             if (!viewer.equals(owner)) viewer.hideEntity(plugin, display);
         }
-        session.markers.add(new Marker(display, team));
+        session.markers.add(new Marker(display, team, location.clone(), block.getType()));
         activeMarkerCount++;
         session.world.spawnParticle(Particle.DUST, location.clone().add(0.5, 0.5, 0.5), 2,
                 0.18, 0.18, 0.18, 0.0,
                 new Particle.DustOptions(style.rgb, 0.8f));
+    }
+
+    private void validateMarkers(Session session) {
+        Player owner = Bukkit.getPlayer(session.owner);
+        if (owner == null || !owner.isOnline() || owner.getWorld() != session.world) {
+            finish(session);
+            return;
+        }
+        var iterator = session.markers.iterator();
+        while (iterator.hasNext()) {
+            Marker marker = iterator.next();
+            if (!marker.display.isValid()
+                    || !session.world.isChunkLoaded(marker.location.getBlockX() >> 4, marker.location.getBlockZ() >> 4)
+                    || session.world.getBlockAt(marker.location).getType() != marker.originalType) {
+                removeMarker(marker);
+                iterator.remove();
+            }
+        }
+    }
+
+    private void removeMarker(Marker marker) {
+        if (marker.display.isValid()) marker.display.remove();
+        marker.team.removeEntry(marker.display.getUniqueId().toString());
+        if (marker.team.getEntries().isEmpty()) marker.team.unregister();
+        activeMarkerCount = Math.max(0, activeMarkerCount - 1);
     }
 
     private Team teamFor(Scoreboard scoreboard, OreStyle style) {
@@ -214,12 +242,8 @@ public final class OreResonanceService implements Listener {
         if (sessions.remove(session.owner) == null) return;
         if (session.scanTask != null) session.scanTask.cancel();
         if (session.cleanupTask != null) session.cleanupTask.cancel();
-        for (Marker marker : session.markers) {
-            if (marker.display.isValid()) marker.display.remove();
-            activeMarkerCount = Math.max(0, activeMarkerCount - 1);
-            marker.team.removeEntry(marker.display.getUniqueId().toString());
-            if (marker.team.getEntries().isEmpty()) marker.team.unregister();
-        }
+        if (session.validationTask != null) session.validationTask.cancel();
+        for (Marker marker : session.markers) removeMarker(marker);
         session.markers.clear();
         Player owner = Bukkit.getPlayer(session.owner);
         if (owner != null && owner.isOnline()) {
@@ -245,6 +269,12 @@ public final class OreResonanceService implements Listener {
     }
 
     @EventHandler
+    public void onDeath(PlayerDeathEvent event) {
+        Session session = sessions.get(event.getEntity().getUniqueId());
+        if (session != null) finish(session);
+    }
+
+    @EventHandler
     public void onWorldChange(PlayerChangedWorldEvent event) {
         Session session = sessions.get(event.getPlayer().getUniqueId());
         if (session != null) finish(session);
@@ -255,7 +285,7 @@ public final class OreResonanceService implements Listener {
     }
 
     private record OreStyle(String team, ChatColor color, org.bukkit.Color rgb) { }
-    private record Marker(BlockDisplay display, Team team) { }
+    private record Marker(BlockDisplay display, Team team, Location location, Material originalType) { }
 
     private static final class Session {
         private final UUID owner;
@@ -268,6 +298,7 @@ public final class OreResonanceService implements Listener {
         private boolean capacityLimited;
         private BukkitTask scanTask;
         private BukkitTask cleanupTask;
+        private BukkitTask validationTask;
 
         private Session(UUID owner, Player player, World world, Location origin, Set<Long> loadedChunks) {
             this.owner = owner;
