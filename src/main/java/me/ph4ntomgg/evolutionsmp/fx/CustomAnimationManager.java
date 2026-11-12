@@ -248,7 +248,8 @@ public final class CustomAnimationManager {
         }
 
         int runLimit = definition.loop
-                ? (runSeconds == null ? -1 : Math.min(MAX_RUNTIME_TICKS, Math.max(1, runSeconds) * 20))
+                ? (runSeconds == null ? -1 : (int) Math.min(MAX_RUNTIME_TICKS,
+                        Math.max(1L, (long) runSeconds) * 20L))
                 : definition.cycleTicks;
         AnimationSession session = new AnimationSession(target.getUniqueId(), displays);
         BukkitRunnable task = new BukkitRunnable() {
@@ -518,9 +519,11 @@ public final class CustomAnimationManager {
 
     private boolean isPassableAndLoaded(World world, Location location) {
         int x = location.getBlockX();
+        int y = location.getBlockY();
         int z = location.getBlockZ();
+        if (y < world.getMinHeight() || y >= world.getMaxHeight()) return false;
         if (!world.isChunkLoaded(x >> 4, z >> 4)) return false;
-        return world.getBlockAt(x, location.getBlockY(), z).isPassable();
+        return world.getBlockAt(x, y, z).isPassable();
     }
 
     private static Color parseColor(String value, Color fallback) {
