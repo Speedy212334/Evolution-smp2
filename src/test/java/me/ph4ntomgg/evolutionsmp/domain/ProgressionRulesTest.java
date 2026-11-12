@@ -12,9 +12,9 @@ class ProgressionRulesTest {
 
     @Test void xpAdvancesAcrossMultipleTiersAndCarriesRemainder() {
         PlayerProgress p = PlayerProgress.unassigned(UUID.randomUUID()).withPath(EvolutionPath.HUNT);
-        PlayerProgress advanced = ProgressionRules.applyExperience(p, 4_500);
+        PlayerProgress advanced = ProgressionRules.applyExperience(p, 4_600);
         assertEquals(EvolutionTier.T3, advanced.tier());
-        assertEquals(0, advanced.experience());
+        assertEquals(100, advanced.experience());
     }
 
     @Test void excessXpIsDiscardedWhenPlayerReachesTierFour() {
