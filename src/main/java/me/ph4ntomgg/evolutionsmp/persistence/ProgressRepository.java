@@ -40,6 +40,7 @@ public final class ProgressRepository {
         long xp = Math.max(0L, data.getLong(root + ".xp", 0L));
         if (apex && path == null) apex = false;
         if (tier == EvolutionTier.APEX && !apex) tier = EvolutionTier.T4;
+        if (tier == EvolutionTier.T4 || tier == EvolutionTier.APEX) xp = 0L;
         return new PlayerProgress(id, path, tier, xp, apex);
     }
 
