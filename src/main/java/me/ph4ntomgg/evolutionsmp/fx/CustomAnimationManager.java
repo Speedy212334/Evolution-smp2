@@ -412,21 +412,21 @@ public final class CustomAnimationManager {
         double maxDelta = Math.max(Math.abs(velocity.getX()),
                 Math.max(Math.abs(velocity.getY()), Math.abs(velocity.getZ())));
         int steps = Math.max(1, Math.min(12, (int) Math.ceil(maxDelta / 0.22)));
-        double dx = velocity.getX() / steps;
-        double dy = velocity.getY() / steps;
-        double dz = velocity.getZ() / steps;
         Location current = origin.clone();
         boolean grounded = false;
 
         for (int step = 0; step < steps; step++) {
+            double dx = velocity.getX() / steps;
+            double dy = velocity.getY() / steps;
+            double dz = velocity.getZ() / steps;
             Location candidate = current.clone().add(dx, 0, 0);
             if (isPassableAndLoaded(world, candidate)) current.setX(candidate.getX());
             else velocity.setX(-velocity.getX() * bounce);
 
-            candidate = current.clone().add(0, dy, 0);
+            candidate = current.clone().add(0, velocity.getY() / steps, 0);
             if (isPassableAndLoaded(world, candidate)) current.setY(candidate.getY());
             else {
-                if (dy < 0 || velocity.getY() < 0) {
+                if (velocity.getY() < 0) {
                     grounded = true;
                     velocity.setY(Math.abs(velocity.getY()) > 0.055
                             ? Math.abs(velocity.getY()) * bounce : 0.0);
@@ -435,7 +435,7 @@ public final class CustomAnimationManager {
                 }
             }
 
-            candidate = current.clone().add(0, 0, dz);
+            candidate = current.clone().add(0, 0, velocity.getZ() / steps);
             if (isPassableAndLoaded(world, candidate)) current.setZ(candidate.getZ());
             else velocity.setZ(-velocity.getZ() * bounce);
         }
