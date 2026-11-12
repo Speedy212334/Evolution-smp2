@@ -3,6 +3,7 @@ package me.ph4ntomgg.evolutionsmp.ui;
 import me.ph4ntomgg.evolutionsmp.domain.EvolutionPath;
 import me.ph4ntomgg.evolutionsmp.ability.AbilityService;
 import me.ph4ntomgg.evolutionsmp.ability.OreResonanceService;
+import me.ph4ntomgg.evolutionsmp.gameplay.PathPassiveListener;
 import me.ph4ntomgg.evolutionsmp.service.ProgressService;
 import me.ph4ntomgg.evolutionsmp.fx.CinematicEffects;
 import me.ph4ntomgg.evolutionsmp.item.EvolutionItems;
@@ -24,9 +25,9 @@ public final class PathSelectionMenu {
     private final CinematicEffects effects;
     private final PathMenuListener listener;
 
-    public PathSelectionMenu(JavaPlugin plugin, ProgressService progress, CinematicEffects effects, AbilityService abilities, OreResonanceService resonance) {
+    public PathSelectionMenu(JavaPlugin plugin, ProgressService progress, CinematicEffects effects, AbilityService abilities, OreResonanceService resonance, PathPassiveListener passives) {
         this.plugin = plugin; this.progress = progress; this.effects = effects;
-        this.listener = new PathMenuListener(plugin, progress, effects, abilities, resonance);
+        this.listener = new PathMenuListener(plugin, progress, effects, abilities, resonance, passives);
         plugin.getServer().getPluginManager().registerEvents(listener, plugin);
     }
 
