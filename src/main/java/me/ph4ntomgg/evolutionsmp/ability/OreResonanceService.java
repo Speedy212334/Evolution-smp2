@@ -86,7 +86,7 @@ public final class OreResonanceService implements Listener {
             }
         }
 
-        Session session = new Session(id, player, world, origin, loadedChunks);
+        Session session = new Session(id, world, origin, loadedChunks);
         sessions.put(id, session);
         player.sendTitle(ChatColor.AQUA + "ORE RESONANCE", ChatColor.GRAY + "Nearby ores are being revealed.", 5, 35, 10);
         player.sendMessage(ChatColor.AQUA + "Ore Resonance activated. Highlights last 60 seconds.");
@@ -289,7 +289,6 @@ public final class OreResonanceService implements Listener {
 
     private static final class Session {
         private final UUID owner;
-        private final Player player;
         private final World world;
         private final Location origin;
         private final Set<Long> loadedChunks;
@@ -300,9 +299,8 @@ public final class OreResonanceService implements Listener {
         private BukkitTask cleanupTask;
         private BukkitTask validationTask;
 
-        private Session(UUID owner, Player player, World world, Location origin, Set<Long> loadedChunks) {
+        private Session(UUID owner, World world, Location origin, Set<Long> loadedChunks) {
             this.owner = owner;
-            this.player = player;
             this.world = world;
             this.origin = origin;
             this.loadedChunks = loadedChunks;
