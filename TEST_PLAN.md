@@ -80,3 +80,12 @@ Target: Paper 26.3, Java 25. Run on a disposable test server with a backup and a
 ## Known live-test boundary
 
 Automated Java 25 compilation, unit tests, resource-pack generation, and artifact validation run in GitHub Actions. PvP balance, client rendering, per-player visibility, chunk safety under real load, and compatibility with other server plugins require live Paper 26.3 testing.
+
+## 7. Regression checks added during code review
+
+- Brewing XP is credited only when a player actually inserts/replaces an ingredient or fuel item in the brewing stand. Taking items out, cancelled clicks, and unrelated clicks must not earn credit. Abandoned brewing-stand attribution entries expire.
+- Gambit logout timing: log out during the three-minute active phase, then rejoin both before and after its scheduled end. Armor destruction must occur on rejoin if it expired offline, and the 20-minute armor lock must be measured from the original Gambit end time rather than login time.
+- Void Step: simulate another plugin cancelling the rescue teleport. The cooldown must remain unused, and an unsafe or unloaded saved location must not be used.
+- Custom animation config: valid simple particles and supported dust payloads render; unsupported data-bearing particle types (for example BLOCK, ITEM, TRAIL, or VIBRATION through the generic particle setting) are disabled with a clear warning instead of throwing at runtime.
+- Path Changer: using the item in either hand opens one menu only and consumes exactly one token after a path is selected.
+- Ore Resonance load: each session processes at most 20 horizontal columns per tick; test multiple simultaneous users and confirm the scan does not cause sustained MSPT spikes while respecting the marker caps.
