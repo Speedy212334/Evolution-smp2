@@ -45,7 +45,11 @@ public final class EvolutionCommand implements CommandExecutor {
         if (args[0].equalsIgnoreCase("help")) {
             sender.sendMessage(ChatColor.GOLD + "EvolutionSMP 1.0.0 " + ChatColor.GRAY + "Commands:");
             sender.sendMessage(ChatColor.YELLOW + "/evo status");
+            sender.sendMessage(ChatColor.YELLOW + "/evo menu " + ChatColor.GRAY + "(open the main menu)");
             sender.sendMessage(ChatColor.YELLOW + "/evo ascend " + ChatColor.GRAY + "(T4: attempt Apex with 8 Evolution Shards)");
+            sender.sendMessage(ChatColor.YELLOW + "/enderchest " + ChatColor.GRAY + "(Ender T4: open personal Ender Chest)");
+            sender.sendMessage(ChatColor.GRAY + "Abilities use commands, crafting, menus or passive effects; this build has no custom keyboard keybinds.");
+            sender.sendMessage(ChatColor.GRAY + "Use /evo guide abilities for the full path-by-path ability guide.");
             sender.sendMessage(ChatColor.YELLOW + "/evo curse " + ChatColor.GRAY + "(Enchantment T4: remove held-item curses)");
             sender.sendMessage(ChatColor.YELLOW + "/evo veil " + ChatColor.GRAY + "(Hunt T4: temporary invisibility)");
             sender.sendMessage(ChatColor.YELLOW + "/evo resonance " + ChatColor.GRAY + "(Prospector T4: coloured ore highlights within 50 blocks)");
