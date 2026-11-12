@@ -3,6 +3,7 @@ package me.ph4ntomgg.evolutionsmp.ui;
 import me.ph4ntomgg.evolutionsmp.domain.EvolutionPath;
 import me.ph4ntomgg.evolutionsmp.ability.AbilityService;
 import me.ph4ntomgg.evolutionsmp.ability.OreResonanceService;
+import me.ph4ntomgg.evolutionsmp.gameplay.PathPassiveListener;
 import me.ph4ntomgg.evolutionsmp.service.ProgressService;
 import me.ph4ntomgg.evolutionsmp.fx.CinematicEffects;
 import me.ph4ntomgg.evolutionsmp.item.EvolutionItems;
@@ -27,10 +28,11 @@ public final class PathMenuListener implements Listener {
     private final CinematicEffects effects;
     private final AbilityService abilities;
     private final OreResonanceService resonance;
+    private final PathPassiveListener passives;
     private final Map<UUID, Session> sessions = new HashMap<>();
 
-    public PathMenuListener(JavaPlugin plugin, ProgressService progress, CinematicEffects effects, AbilityService abilities, OreResonanceService resonance) {
-        this.plugin = plugin; this.progress = progress; this.effects = effects; this.abilities = abilities; this.resonance = resonance;
+    public PathMenuListener(JavaPlugin plugin, ProgressService progress, CinematicEffects effects, AbilityService abilities, OreResonanceService resonance, PathPassiveListener passives) {
+        this.plugin = plugin; this.progress = progress; this.effects = effects; this.abilities = abilities; this.resonance = resonance; this.passives = passives;
     }
 
     public void track(Player target, Player viewer, boolean consumeToken) {
@@ -65,6 +67,8 @@ public final class PathMenuListener implements Listener {
             abilities.resetPathCooldowns(session.target());
             resonance.resetPathState(session.target());
         }
+        Player target = org.bukkit.Bukkit.getPlayer(session.target());
+        if (target != null) passives.refreshPlayer(target);
         sessions.remove(player.getUniqueId());
         player.closeInventory();
     }
