@@ -93,9 +93,9 @@ public final class CustomAnimationManager {
                 String modelText = cfg.getString("item-model", "").trim();
                 if (!modelText.isEmpty()) {
                     itemModel = NamespacedKey.fromString(modelText);
-                    if (itemModel == null || !itemModel.getNamespace().equals(plugin.getName().toLowerCase(Locale.ROOT))) {
+                    if (itemModel == null || !itemModel.getNamespace().equals("evolutionsmp")) {
                         plugin.getLogger().warning("Animation '" + id + "' must use an item-model key in the "
-                                + plugin.getName().toLowerCase(Locale.ROOT) + " namespace; model disabled.");
+                                + "evolutionsmp namespace; model disabled.");
                         itemModel = null;
                     }
                 }
