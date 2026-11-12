@@ -202,6 +202,7 @@ public final class AbilityService implements Listener {
             viewer.hidePlayer(plugin, player);
         }
         veilViewers.put(id, viewers);
+        player.closeInventory();
         player.setInvisible(true);
         player.setSilent(true);
         player.sendTitle(ChatColor.DARK_PURPLE + "VEIL", ChatColor.GRAY + "Your presence fades.", 5, 35, 10);
@@ -396,6 +397,11 @@ public final class AbilityService implements Listener {
             event.setCancelled(true);
             player.sendMessage(ChatColor.RED + "Armor is locked by Gambit for " + remainingMinutes(player) + " more minutes.");
         }
+    }
+
+    @EventHandler(priority = org.bukkit.event.EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onVeilInteract(PlayerInteractEvent event) {
+        if (veilTasks.containsKey(event.getPlayer().getUniqueId())) event.setCancelled(true);
     }
 
     @EventHandler(priority = org.bukkit.event.EventPriority.HIGHEST, ignoreCancelled = true)
