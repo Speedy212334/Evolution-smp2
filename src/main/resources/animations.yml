@@ -203,6 +203,16 @@ animations:
     physics-drag: 0.985
     physics-bounce: 0.42
     physics-life-ticks: 48
+    physics-initial-speed: 0.24
+    physics-upward-speed: 0.31
+    particle-color: 66CFFF
+    particle-color-end: FFFFFF
+    particle-size: 0.9
+    particle-spread: 0.045
+    particle-speed: 0.015
+    trail-enabled: true
+    trail-color: 66CFFF
+    trail-duration-ticks: 28
     sound: BLOCK_AMETHYST_BLOCK_RESONATE
     sound-interval-ticks: 48
     sound-volume: 0.35
@@ -229,6 +239,16 @@ animations:
     physics-drag: 0.972
     physics-bounce: 0.25
     physics-life-ticks: 40
+    physics-initial-speed: 0.32
+    physics-upward-speed: 0.25
+    particle-color: 75E9FF
+    particle-color-end: FFFFFF
+    particle-size: 0.65
+    particle-spread: 0.035
+    particle-speed: 0.025
+    trail-enabled: true
+    trail-color: 75E9FF
+    trail-duration-ticks: 18
     sound: none
 
   physics-rune-burst:
@@ -251,6 +271,16 @@ animations:
     physics-drag: 0.99
     physics-bounce: 0.32
     physics-life-ticks: 52
+    physics-initial-speed: 0.12
+    physics-upward-speed: 0.36
+    particle-color: C18AFF
+    particle-color-end: 63D9FF
+    particle-size: 1.15
+    particle-spread: 0.06
+    particle-speed: 0.01
+    trail-enabled: true
+    trail-color: C18AFF
+    trail-duration-ticks: 36
     sound: BLOCK_AMETHYST_BLOCK_CHIME
     sound-interval-ticks: 52
     sound-volume: 0.22
@@ -276,6 +306,16 @@ animations:
     physics-drag: 0.98
     physics-bounce: 0.18
     physics-life-ticks: 36
+    physics-initial-speed: 0.2
+    physics-upward-speed: 0.42
+    particle-color: FFB24A
+    particle-color-end: FF4E35
+    particle-size: 1.0
+    particle-spread: 0.055
+    particle-speed: 0.02
+    trail-enabled: true
+    trail-color: FFB24A
+    trail-duration-ticks: 16
     sound: BLOCK_FIRE_EXTINGUISH
     sound-interval-ticks: 36
     sound-volume: 0.25
