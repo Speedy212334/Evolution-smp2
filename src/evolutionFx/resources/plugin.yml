@@ -1,0 +1,14 @@
+name: EvolutionFX
+version: 1.0.0
+main: me.ph4ntomgg.evolutionsmp.fx.EvolutionFXPlugin
+api-version: '26.3'
+author: Ph4ntomgg
+description: Optional standalone custom visual effects add-on for EvolutionSMP.
+commands:
+  evofx:
+    description: EvolutionFX animation controls
+    usage: /evofx
+permissions:
+  evolutionfx.admin:
+    description: Allows administration of EvolutionFX animations
+    default: op
