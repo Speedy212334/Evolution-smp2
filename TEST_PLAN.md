@@ -35,14 +35,14 @@ Target: Paper 26.3, Java 25. Run on a disposable test server with a backup and a
 ## 4. Ability and passive checks
 
 ### Hunt
-- Veil: Hunt T4 only; 10-second duration, three-minute cooldown, no attacks/projectiles/block interaction/item drops, no chest/container interaction (including closing an inventory already open at activation), silent/invisible, hidden from current and newly joining viewers, and correctly restored after world changes, quit, or timeout.
+- Veil: Hunt T4 only; 10-second duration, three-minute cooldown, no attacks/projectiles/block interaction/item drops, no chest/container or inventory interactions (including attempts to open an inventory after activation), silent/invisible, hidden from current and newly joining viewers, and correctly restored after world changes, death, quit, or timeout.
 - Hunt T3+: player kill death messages/kill-credit are suppressed; lower Hunt tiers and other paths retain normal death messages.
 - Verify Hunt speed and fall mitigation at each intended tier. Higher-amplifier potion effects must not be downgraded by passives or removed when the player changes path/quits; unrelated long-duration effects must remain intact.
 
 ### Prospector
 - Ore Resonance: Prospector T4 only; scans a spherical 50-block radius in loaded chunks, displays ore-coloured outlines and accent particles only to the activating player, lasts 60 seconds, reveals no coordinates, and never loads chunks. Verify other online players and players joining mid-session cannot see either the markers or their particles.
 - Verify Diamond, Lapis, Redstone, Emerald, Gold, Iron, Copper, Coal, Quartz, and Ancient Debris colours.
-- Test the per-player and global marker safety caps, cleanup on timeout/quit/death/world change, immediate removal when an ore is mined, five-minute cooldown, and Path Changer cooldown reset.
+- Test the per-player and global marker safety caps, cleanup on timeout/quit/death/world change, immediate removal when an ore is mined, five-minute cooldown, and Path Changer cooldown reset. Confirm temporary scoreboard teams never alter or unregister teams owned by other plugins.
 - Efficiency X: original enchantment levels are restored on path/tier loss, item drop, shift-click/container transfer, drag-transfer attempts, pickup by a non-Prospector, death with keep-inventory, quit, and plugin shutdown.
 
 ### Ender
