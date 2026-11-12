@@ -139,13 +139,22 @@ public final class CustomAnimationManager {
                 double physicsDrag = clamp(cfg.getDouble("physics-drag", 0.985), 0.80, 1.0);
                 double physicsBounce = clamp(cfg.getDouble("physics-bounce", 0.42), 0.0, 0.9);
                 int physicsLifeTicks = Math.max(4, Math.min(200, cfg.getInt("physics-life-ticks", 48)));
+                double physicsInitialSpeed = clamp(cfg.getDouble("physics-initial-speed", 0.16), 0.0, 1.25);
+                double physicsUpwardSpeed = clamp(cfg.getDouble("physics-upward-speed", 0.22), 0.0, 1.25);
+                double particleSpread = clamp(cfg.getDouble("particle-spread", 0.025), 0.0, 1.0);
+                double particleSpeed = clamp(cfg.getDouble("particle-speed", 0.01), 0.0, 2.0);
+                float particleSize = (float) clamp(cfg.getDouble("particle-size", 0.8), 0.1, 4.0);
+                Color particleColor = parseColor(cfg.getString("particle-color", "B47DFF"), Color.fromRGB(180, 125, 255));
+                Color particleColorEnd = parseColor(cfg.getString("particle-color-end", "FFFFFF"), Color.WHITE);
 
                 loaded.put(id, new AnimationDefinition(
                         id, material, itemModel, modelData, rawShape, cycleTicks,
                         cfg.getBoolean("loop", false), copies, radius, height, bob,
                         scale, rotationSpeed, tilt, particle, particleCount,
                         particleInterval, sound, soundInterval, volume, pitch, glow,
-                        physicsGravity, physicsDrag, physicsBounce, physicsLifeTicks
+                        physicsGravity, physicsDrag, physicsBounce, physicsLifeTicks,
+                        physicsInitialSpeed, physicsUpwardSpeed, particleSpread, particleSpeed,
+                        particleSize, particleColor, particleColorEnd
                 ));
             }
         }
@@ -207,10 +216,12 @@ public final class CustomAnimationManager {
         Location[] physicsPositions = new Location[displays.size()];
         for (int i = 0; i < displays.size(); i++) {
             double angle = (Math.PI * 2.0 * i / displays.size()) + 0.31;
-            double speed = 0.13 + (i % 3) * 0.035;
-            physicsVelocities[i] = new Vector(Math.cos(angle) * speed,
-                    0.18 + (i % 4) * 0.055, Math.sin(angle) * speed);
-            physicsPositions[i] = spawnAt.clone();
+            double radialSpeed = definition.physicsInitialSpeed * (0.72 + (i % 4) * 0.12);
+            physicsVelocities[i] = new Vector(Math.cos(angle) * radialSpeed,
+                    definition.physicsUpwardSpeed + (i % 5) * 0.055,
+                    Math.sin(angle) * radialSpeed);
+            physicsPositions[i] = spawnAt.clone().add(
+                    Math.cos(angle) * 0.08, (i % 3) * 0.035, Math.sin(angle) * 0.08);
         }
 
         int runLimit = definition.loop
@@ -291,19 +302,11 @@ public final class CustomAnimationManager {
                         Vector velocity = physicsVelocities[i];
                         velocity.setY(velocity.getY() - definition.physicsGravity);
                         velocity.multiply(definition.physicsDrag);
-                        Location current = physicsPositions[i];
-                        Location next = current.clone().add(velocity);
-                        if (!next.getBlock().isPassable()) {
-                            velocity.setX(-velocity.getX() * definition.physicsBounce);
-                            velocity.setZ(-velocity.getZ() * definition.physicsBounce);
-                            velocity.setY(Math.abs(velocity.getY()) * definition.physicsBounce);
-                            next = current.clone().add(velocity);
-                            if (!next.getBlock().isPassable()) {
-                                velocity.setX(0);
-                                velocity.setZ(0);
-                                velocity.setY(Math.max(0.025, velocity.getY()));
-                                next = current.clone().add(velocity);
-                            }
+                        Location next = advancePhysics(world, physicsPositions[i], velocity,
+                                definition.physicsBounce);
+                        if (next == null) {
+                            display.remove();
+                            continue;
                         }
                         physicsPositions[i] = next;
                         x = next.getX() - base.getX();
@@ -388,14 +391,83 @@ public final class CustomAnimationManager {
     }
 
     private void spawnParticle(World world, Location at, AnimationDefinition definition, int count) {
+        double spread = definition.particleSpread;
         if (definition.particle == Particle.DUST) {
-            world.spawnParticle(Particle.DUST, at, count,
-                    0.025, 0.025, 0.025,
-                    new Particle.DustOptions(Color.fromRGB(180, 125, 255), 0.8f));
+            world.spawnParticle(Particle.DUST, at, count, spread, spread, spread,
+                    new Particle.DustOptions(definition.particleColor, definition.particleSize));
             return;
         }
-        world.spawnParticle(definition.particle, at, count,
-                0.025, 0.025, 0.025, 0.01);
+        if (definition.particle == Particle.DUST_COLOR_TRANSITION) {
+            world.spawnParticle(Particle.DUST_COLOR_TRANSITION, at, count, spread, spread, spread,
+                    new Particle.DustTransition(definition.particleColor, definition.particleColorEnd,
+                            definition.particleSize));
+            return;
+        }
+        world.spawnParticle(definition.particle, at, count, spread, spread, spread,
+                definition.particleSpeed);
+    }
+
+    private Location advancePhysics(World world, Location origin, Vector velocity, double bounce) {
+        if (origin == null || origin.getWorld() != world) return null;
+        double maxDelta = Math.max(Math.abs(velocity.getX()),
+                Math.max(Math.abs(velocity.getY()), Math.abs(velocity.getZ())));
+        int steps = Math.max(1, Math.min(12, (int) Math.ceil(maxDelta / 0.22)));
+        double dx = velocity.getX() / steps;
+        double dy = velocity.getY() / steps;
+        double dz = velocity.getZ() / steps;
+        Location current = origin.clone();
+        boolean grounded = false;
+
+        for (int step = 0; step < steps; step++) {
+            Location candidate = current.clone().add(dx, 0, 0);
+            if (isPassableAndLoaded(world, candidate)) current.setX(candidate.getX());
+            else velocity.setX(-velocity.getX() * bounce);
+
+            candidate = current.clone().add(0, dy, 0);
+            if (isPassableAndLoaded(world, candidate)) current.setY(candidate.getY());
+            else {
+                if (dy < 0 || velocity.getY() < 0) {
+                    grounded = true;
+                    velocity.setY(Math.abs(velocity.getY()) > 0.055
+                            ? Math.abs(velocity.getY()) * bounce : 0.0);
+                } else {
+                    velocity.setY(-velocity.getY() * bounce);
+                }
+            }
+
+            candidate = current.clone().add(0, 0, dz);
+            if (isPassableAndLoaded(world, candidate)) current.setZ(candidate.getZ());
+            else velocity.setZ(-velocity.getZ() * bounce);
+        }
+
+        if (grounded) {
+            velocity.setX(velocity.getX() * 0.72);
+            velocity.setZ(velocity.getZ() * 0.72);
+        }
+        if (velocity.lengthSquared() < 0.0009) {
+            velocity.setX(0);
+            velocity.setY(0);
+            velocity.setZ(0);
+        }
+        return current;
+    }
+
+    private boolean isPassableAndLoaded(World world, Location location) {
+        int x = location.getBlockX();
+        int z = location.getBlockZ();
+        if (!world.isChunkLoaded(x >> 4, z >> 4)) return false;
+        return world.getBlockAt(x, location.getBlockY(), z).isPassable();
+    }
+
+    private static Color parseColor(String value, Color fallback) {
+        if (value == null) return fallback;
+        String hex = value.trim().replace("#", "");
+        if (!hex.matches("[0-9a-fA-F]{6}")) return fallback;
+        try {
+            return Color.fromRGB(Integer.parseInt(hex, 16));
+        } catch (NumberFormatException ignored) {
+            return fallback;
+        }
     }
 
     private Transformation transformation(float rotation, float scale, double tilt) {
@@ -422,7 +494,9 @@ public final class CustomAnimationManager {
             Particle particle, int particleCount, int particleIntervalTicks,
             Sound sound, int soundIntervalTicks, float soundVolume, float soundPitch,
             boolean glowing, double physicsGravity, double physicsDrag,
-            double physicsBounce, int physicsLifeTicks
+            double physicsBounce, int physicsLifeTicks, double physicsInitialSpeed,
+            double physicsUpwardSpeed, double particleSpread, double particleSpeed,
+            float particleSize, Color particleColor, Color particleColorEnd
     ) {}
 
     private static final class AnimationSession {
