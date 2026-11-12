@@ -35,7 +35,10 @@ public final class EnderAbilityListener implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        if (isEnderTierFour(player)) lastSafe.put(player.getUniqueId(), player.getLocation().clone());
+        if (isEnderTierFour(player)) {
+            Location current = player.getLocation().clone();
+            if (isSafeLocation(current)) lastSafe.put(player.getUniqueId(), current);
+        }
     }
 
     @EventHandler
