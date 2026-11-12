@@ -35,7 +35,7 @@ Target: Paper 26.3, Java 25. Run on a disposable test server with a backup and a
 ## 4. Ability and passive checks
 
 ### Hunt
-- Veil: Hunt T4 only; 10-second duration, three-minute cooldown, no attacks/projectiles/block interaction/item drops, no chest interaction, silent/invisible, hidden from current and newly joining viewers, and correctly restored after world changes, quit, or timeout.
+- Veil: Hunt T4 only; 10-second duration, three-minute cooldown, no attacks/projectiles/block interaction/item drops, no chest/container interaction (including closing an inventory already open at activation), silent/invisible, hidden from current and newly joining viewers, and correctly restored after world changes, quit, or timeout.
 - Hunt T3+: player kill death messages/kill-credit are suppressed; lower Hunt tiers and other paths retain normal death messages.
 - Verify Hunt speed and fall mitigation at each intended tier.
 
