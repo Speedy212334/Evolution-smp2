@@ -20,7 +20,7 @@ public final class EvolutionFXCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!sender.hasPermission("evolution.admin")) {
+        if (!sender.hasPermission("evolutionfx.admin")) {
             sender.sendMessage(ChatColor.RED + "No permission.");
             return true;
         }
