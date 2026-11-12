@@ -46,10 +46,12 @@ tasks.register('compatibilityReport') {
 
 tasks.register('generateResourcePack', Exec) {
     def packOutput = layout.buildDirectory.file('pack/EvolutionSMP-ResourcePack-26.3.zip')
+    def detectedPython = System.getProperty('os.name').toLowerCase().contains('win') ? 'python' : 'python3'
+    def pythonExecutable = providers.gradleProperty('pythonExecutable').getOrElse(detectedPython)
     inputs.file('pack/generate_resource_pack.py')
     outputs.file(packOutput)
     doFirst { packOutput.get().asFile.parentFile.mkdirs() }
-    commandLine 'python3', 'pack/generate_resource_pack.py', '--version', '26.3',
+    commandLine pythonExecutable, 'pack/generate_resource_pack.py', '--version', '26.3',
             '--output', packOutput.get().asFile.absolutePath
 }
 
