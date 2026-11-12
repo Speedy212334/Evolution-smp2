@@ -20,6 +20,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -29,6 +30,7 @@ import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
@@ -409,6 +411,31 @@ public final class AbilityService implements Listener {
     }
 
     @EventHandler(priority = org.bukkit.event.EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onVeilInventoryOpen(InventoryOpenEvent event) {
+        if (event.getPlayer() instanceof Player player
+                && veilTasks.containsKey(player.getUniqueId())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = org.bukkit.event.EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onVeilInventoryClick(InventoryClickEvent event) {
+        if (event.getWhoClicked() instanceof Player player
+                && veilTasks.containsKey(player.getUniqueId())) event.setCancelled(true);
+    }
+
+    @EventHandler(priority = org.bukkit.event.EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onVeilInventoryDrag(InventoryDragEvent event) {
+        if (event.getWhoClicked() instanceof Player player
+                && veilTasks.containsKey(player.getUniqueId())) event.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onVeilDeath(PlayerDeathEvent event) {
+        if (veilTasks.containsKey(event.getEntity().getUniqueId())) restoreVeil(event.getEntity());
+    }
+
+    @EventHandler(priority = org.bukkit.event.EventPriority.HIGHEST, ignoreCancelled = true)
     public void onVeilInteract(PlayerInteractEvent event) {
         if (veilTasks.containsKey(event.getPlayer().getUniqueId())) event.setCancelled(true);
     }
@@ -516,6 +543,10 @@ public final class AbilityService implements Listener {
     @EventHandler
     public void onArmorHandSwap(PlayerSwapHandItemsEvent event) {
         Player player = event.getPlayer();
+        if (veilTasks.containsKey(player.getUniqueId())) {
+            event.setCancelled(true);
+            return;
+        }
         if (!armorLocked(player)) return;
         if (isArmor(event.getMainHandItem()) || isArmor(event.getOffHandItem())) {
             event.setCancelled(true);
