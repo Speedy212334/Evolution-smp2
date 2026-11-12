@@ -1,4 +1,4 @@
-# EvolutionSMP 1.0.0 QA and Live-Server Test Plan
+# EvolutionSMP 5.0.16 QA and Live-Server Test Plan
 
 Target: Paper 26.3, Java 25. Run on a disposable test server with a backup and at least two test accounts. Never run destructive Gambit/Death tests on the production world.
 
@@ -101,8 +101,8 @@ Automated Java 25 compilation, unit tests, resource-pack generation, and artifac
 - Verify the shockwave particles and sounds appear once and do not create block changes.
 
 ## Split plugin packaging checks
-- `EvolutionSMP-1.0.0.jar` contains gameplay, progression, GUI, persistence, and path-awakening cinematic classes, but not the custom animation manager or `/evofx` command.
-- `EvolutionFX-1.0.0.jar` contains the standalone FX plugin entry point, `/evofx` commands, `CustomAnimationManager`, and `animations.yml`.
+- `EvolutionSMP-5.0.16.jar` contains gameplay, progression, GUI, persistence, and path-awakening cinematic classes, but not the custom animation manager or `/evofx` command.
+- `EvolutionFX-5.0.16.jar` contains the standalone FX plugin entry point, `/evofx` commands, `CustomAnimationManager`, and `animations.yml`.
 - Both JARs and the shared 26.3 resource-pack ZIP are present in the workflow artifact.
 - Install only EvolutionSMP and verify all evolution gameplay remains available.
 - Install both JARs and verify `/evofx list`, `/evofx play`, `/evofx stop`, and `/evofx reload`.
