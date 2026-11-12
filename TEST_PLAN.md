@@ -105,6 +105,6 @@ Automated Java 25 compilation, unit tests, resource-pack generation, and artifac
 - `EvolutionFX-5.0.16.jar` contains the standalone FX plugin entry point, `/evofx` commands, `CustomAnimationManager`, and `animations.yml`.
 - Both JARs and the shared 26.3 resource-pack ZIP are present in the workflow artifact.
 - Install only EvolutionSMP and verify all evolution gameplay remains available.
-- Install both JARs and verify `/evofx list`, `/evofx play`, `/evofx stop`, and `/evofx reload`.
+- Install both JARs and verify `/evofx list`, `/evofx play`, `/evofx stop`, and `/evofx reload`; confirm `evolutionfx.admin` controls access.
 - Confirm FX model IDs resolve through the shared `evolutionsmp` resource-pack namespace.
 - Confirm the existing EvolutionSMP GUI and alert styling are unchanged.
