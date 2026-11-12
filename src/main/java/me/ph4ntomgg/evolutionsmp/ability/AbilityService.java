@@ -280,7 +280,7 @@ public final class AbilityService implements Listener {
             private int tick;
 
             @Override public void run() {
-                if (!player.isOnline() || player.getWorld() != world || tick > 8) {
+                if (!player.isOnline() || player.isDead() || player.getWorld() != world || tick > 8) {
                     cancel();
                     return;
                 }
@@ -297,11 +297,20 @@ public final class AbilityService implements Listener {
 
                 if (tick == 8) {
                     world.spawnParticle(Particle.EXPLOSION, center.clone().add(0, 0.25, 0), 2, 0.35, 0.12, 0.35, 0.0);
+                    world.spawnParticle(Particle.CLOUD, center.clone().add(0, 0.18, 0), 24, 0.55, 0.12, 0.55, 0.08);
+                    for (int i = 0; i < 28; i++) {
+                        double angle = Math.PI * 2.0 * i / 28.0;
+                        Location debris = center.clone().add(Math.cos(angle) * 4.8, 0.08, Math.sin(angle) * 4.8);
+                        world.spawnParticle(Particle.BLOCK, debris, 2, 0.12, 0.05, 0.12, 0.08,
+                                Material.DEEPSLATE.createBlockData());
+                    }
                     world.playSound(center, Sound.ENTITY_WARDEN_SONIC_BOOM, 0.9f, 0.8f);
                     for (org.bukkit.entity.Entity entity : world.getNearbyEntities(center, 6.0, 3.0, 6.0)) {
-                        if (!(entity instanceof LivingEntity living) || entity == player || !entity.isValid()) continue;
+                        if (!(entity instanceof LivingEntity living) || entity == player
+                                || entity instanceof org.bukkit.entity.ArmorStand || !entity.isValid()
+                                || entity.getLocation().distanceSquared(center) > 36.0) continue;
                         living.damage(8.0, player);
-                        Vector direction = living.getLocation().toVector().subtract(center.toVector());
+                        Vector direction = living.getLocation().toVector().subtract(center.toVector()).setY(0);
                         if (direction.lengthSquared() < 0.01) {
                             direction = player.getLocation().getDirection().clone().setY(0);
                         }
