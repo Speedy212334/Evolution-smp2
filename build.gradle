@@ -3,7 +3,7 @@ plugins {
 }
 
 group = 'me.ph4ntomgg'
-version = '1.0.0'
+version = '5.0.16'
 
 repositories {
     maven { url = 'https://repo.papermc.io/repository/maven-public/' }
