@@ -84,7 +84,7 @@ public final class EvolutionSMP extends JavaPlugin implements Listener {
             player.openInventory(player.getEnderChest());
             return true;
         });
-        getLogger().info("EvolutionSMP 1.0.0 enabled. Seven evolution paths registered.");
+        getLogger().info("EvolutionSMP 5.0.16 enabled. Seven evolution paths registered.");
     }
 
     @EventHandler
@@ -104,6 +104,6 @@ public final class EvolutionSMP extends JavaPlugin implements Listener {
         if (abilities != null) abilities.shutdown();
         if (resonance != null) resonance.shutdown();
         if (passives != null) passives.shutdown();
-        getLogger().info("EvolutionSMP 1.0.0 stopped; services flushed.");
+        getLogger().info("EvolutionSMP 5.0.16 stopped; services flushed.");
     }
 }
