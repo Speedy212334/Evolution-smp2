@@ -148,7 +148,7 @@ Animations can combine:
 - Coloured dust transitions and short Paper trail particles on physics bursts.
 - Bounded particle output per animation tick and capped display-entity counts.
 
-Install both plugin JARs in the server's `plugins` folder and restart. The EvolutionFX add-on provides `/evofx list`, then `/evofx play <id> <player> [seconds]`. Ring settings are optional in `plugins/EvolutionFX/animations.yml`; set `ring-enabled: true` on an animation to activate them. The seven signature presets are examples and can be tuned without changing Java code.
+Install both plugin JARs in the server's `plugins` folder and restart. The EvolutionFX add-on provides `/evofx list`, `/evofx play <id> <player> [seconds]`, `/evofx stop <player>`, and `/evofx reload`. FX administration uses the `evolutionfx.admin` permission (default: operators). Ring settings are optional in `plugins/EvolutionFX/animations.yml`; set `ring-enabled: true` on an animation to activate them. The seven signature presets are examples and can be tuned without changing Java code.
 
 ## Verification boundaries
 
