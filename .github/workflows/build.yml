@@ -28,14 +28,15 @@ jobs:
       - name: Print compatibility target
         run: gradle compatibilityReport
       - name: Compile and test
-        run: gradle clean test jar generateResourcePack verifyArtifacts
+        run: gradle clean test jar evolutionFxJar generateResourcePack verifyArtifacts
       - name: Print artifact hashes
-        run: sha256sum build/libs/EvolutionSMP-1.0.0.jar build/pack/EvolutionSMP-ResourcePack-26.3.zip
+        run: sha256sum build/libs/EvolutionSMP-1.0.0.jar build/libs/EvolutionFX-1.0.0.jar build/pack/EvolutionSMP-ResourcePack-26.3.zip
       - name: Upload plugin JAR and resource pack
         uses: actions/upload-artifact@v4
         with:
-          name: EvolutionSMP-1.0.0
+          name: EvolutionSMP-5.0.16-plugins-and-pack
           path: |
             build/libs/EvolutionSMP-1.0.0.jar
+            build/libs/EvolutionFX-1.0.0.jar
             build/pack/EvolutionSMP-ResourcePack-26.3.zip
           if-no-files-found: error
