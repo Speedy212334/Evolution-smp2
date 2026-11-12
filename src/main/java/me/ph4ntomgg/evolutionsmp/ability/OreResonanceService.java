@@ -129,12 +129,16 @@ public final class OreResonanceService implements Listener {
             return;
         }
 
-        int dy = session.nextDy++;
+        int dy = session.nextDy;
         int centerX = session.origin.getBlockX();
         int centerY = session.origin.getBlockY();
         int centerZ = session.origin.getBlockZ();
         int y = centerY + dy;
-        if (y < session.world.getMinHeight() || y >= session.world.getMaxHeight()) return;
+        if (y < session.world.getMinHeight() || y >= session.world.getMaxHeight()) {
+            session.nextDy++;
+            session.nextDx = -RADIUS;
+            return;
+        }
 
         Set<Long> loadedNow = new HashSet<>();
         for (long key : session.loadedChunks) {
@@ -142,13 +146,21 @@ public final class OreResonanceService implements Listener {
             int cz = (int) key;
             if (session.world.isChunkLoaded(cx, cz)) loadedNow.add(key);
         }
+
+        // Spread each horizontal layer over several ticks. A full 101x101 scan
+        // in one tick multiplied across players can create avoidable MSPT spikes.
+        int processedColumns = 0;
         int radiusSquared = RADIUS * RADIUS;
-        for (int dx = -RADIUS; dx <= RADIUS && session.markers.size() < MAX_MARKERS; dx++) {
+        while (session.nextDx <= RADIUS && processedColumns < 20
+                && session.markers.size() < MAX_MARKERS && activeMarkerCount < MAX_GLOBAL_MARKERS) {
+            int dx = session.nextDx++;
+            processedColumns++;
             int remaining = radiusSquared - dx * dx - dy * dy;
             if (remaining < 0) continue;
             int maxDz = (int) Math.sqrt(remaining);
             int x = centerX + dx;
-            for (int dz = -maxDz; dz <= maxDz && session.markers.size() < MAX_MARKERS; dz++) {
+            for (int dz = -maxDz; dz <= maxDz && session.markers.size() < MAX_MARKERS
+                    && activeMarkerCount < MAX_GLOBAL_MARKERS; dz++) {
                 int z = centerZ + dz;
                 if (!loadedNow.contains(chunkKey(x >> 4, z >> 4))) continue;
                 var block = session.world.getBlockAt(x, y, z);
@@ -156,6 +168,10 @@ public final class OreResonanceService implements Listener {
                 if (style == null) continue;
                 addMarker(session, block, style);
             }
+        }
+        if (session.nextDx > RADIUS) {
+            session.nextDy++;
+            session.nextDx = -RADIUS;
         }
     }
 
@@ -294,6 +310,7 @@ public final class OreResonanceService implements Listener {
         private final Set<Long> loadedChunks;
         private final List<Marker> markers = new ArrayList<>();
         private int nextDy = -RADIUS;
+        private int nextDx = -RADIUS;
         private boolean capacityLimited;
         private BukkitTask scanTask;
         private BukkitTask cleanupTask;
