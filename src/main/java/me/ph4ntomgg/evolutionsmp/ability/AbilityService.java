@@ -516,11 +516,15 @@ public final class AbilityService implements Listener {
                 long heart = state.getLong(root + "heart-until", 0);
                 long cooldown = state.getLong(root + "cooldown-until", 0);
                 long veilCooldown = state.getLong(root + "veil-cooldown-until", 0);
+                long fractureEnd = state.getLong(root + "fracture-cooldown-until", 0);
+                long swapEnd = state.getLong(root + "swap-cooldown-until", 0);
                 if (gambit > 0) gambitUntil.put(id, gambit);
                 if (armor > 0) armorLockUntil.put(id, armor);
                 if (heart > 0) heartUntil.put(id, heart);
                 if (cooldown > 0) cooldownUntil.put(id, cooldown);
                 if (veilCooldown > 0) veilCooldownUntil.put(id, veilCooldown);
+                if (fractureEnd > 0) fractureCooldown.put(id, fractureEnd);
+                if (swapEnd > 0) swapCooldown.put(id, swapEnd);
             } catch (IllegalArgumentException ignored) { }
         }
     }
@@ -530,6 +534,7 @@ public final class AbilityService implements Listener {
         java.util.Set<UUID> ids = new java.util.HashSet<>();
         ids.addAll(gambitUntil.keySet()); ids.addAll(armorLockUntil.keySet());
         ids.addAll(heartUntil.keySet()); ids.addAll(cooldownUntil.keySet()); ids.addAll(veilCooldownUntil.keySet());
+        ids.addAll(fractureCooldown.keySet()); ids.addAll(swapCooldown.keySet());
         for (UUID id : ids) {
             String root = "players." + id + ".";
             state.set(root + "gambit-until", gambitUntil.getOrDefault(id, 0L));
@@ -537,6 +542,8 @@ public final class AbilityService implements Listener {
             state.set(root + "heart-until", heartUntil.getOrDefault(id, 0L));
             state.set(root + "cooldown-until", cooldownUntil.getOrDefault(id, 0L));
             state.set(root + "veil-cooldown-until", veilCooldownUntil.getOrDefault(id, 0L));
+            state.set(root + "fracture-cooldown-until", fractureCooldown.getOrDefault(id, 0L));
+            state.set(root + "swap-cooldown-until", swapCooldown.getOrDefault(id, 0L));
         }
         try { state.save(file); }
         catch (IOException ex) { plugin.getLogger().severe("Could not save ability state: " + ex.getMessage()); }
