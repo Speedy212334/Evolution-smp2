@@ -438,22 +438,34 @@ public final class AbilityService implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
+        resumePlayer(event.getPlayer());
+    }
+
+    /** Rebuilds persisted timers for players already online during a plugin reload. */
+    public void resumeOnlinePlayers() {
+        for (Player player : Bukkit.getOnlinePlayers()) resumePlayer(player);
+    }
+
+    private void resumePlayer(Player player) {
         UUID id = player.getUniqueId();
         long now = System.currentTimeMillis();
         Long gambitEnd = gambitUntil.get(id);
         if (gambitEnd != null) {
-            if (gambitEnd > now) {
+            if (gambitEnd > now && !gambitTasks.containsKey(id)) {
                 BukkitTask task = Bukkit.getScheduler().runTaskLater(plugin,
                         () -> finishGambit(player), Math.max(1L, (gambitEnd - now) / 50L));
                 gambitTasks.put(id, task);
-            } else {
+            } else if (gambitEnd <= now) {
                 finishGambit(player);
             }
         }
         Long heartEnd = heartUntil.get(id);
-        if (heartEnd != null && heartEnd > now) startHeartSymbol(player);
-        else heartUntil.remove(id);
+        if (heartEnd != null && heartEnd > now) {
+            if (!heartTasks.containsKey(id)) startHeartSymbol(player);
+        } else if (heartEnd != null) {
+            heartUntil.remove(id);
+            save();
+        }
     }
 
     @EventHandler
