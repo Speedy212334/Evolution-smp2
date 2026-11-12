@@ -1,4 +1,4 @@
-# EvolutionSMP 1.0.0
+# EvolutionSMP 5.0.16
 
 A clean-slate evolution-based Minecraft SMP plugin for Paper 26.3 and Java 25.
 
@@ -122,8 +122,8 @@ This repository does not include the Gradle Wrapper, so use an installed Gradle 
 The Gradle task selects `python` on Windows and `python3` elsewhere. If needed, override it with `-PpythonExecutable=py` or `-PpythonExecutable=python3`.
 
 Outputs:
-- `build/libs/EvolutionSMP-1.0.0.jar` — required gameplay/core plugin
-- `build/libs/EvolutionFX-1.0.0.jar` — optional visual-effects add-on
+- `build/libs/EvolutionSMP-5.0.16.jar` — required gameplay/core plugin
+- `build/libs/EvolutionFX-5.0.16.jar` — optional visual-effects add-on
 - `build/pack/EvolutionSMP-ResourcePack-26.3.zip` — shared custom models and textures
 
 The GitHub Actions workflow runs on pushes to `main` and pull requests targeting `main`. It runs Java 25 compilation and unit tests, builds both plugin JARs, generates and validates the 26.3 resource pack, verifies all three deliverables, and uploads them together.
