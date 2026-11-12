@@ -92,6 +92,17 @@ public final class EnderAbilityListener implements Listener {
                 && location.clone().add(0, -1, 0).getBlock().getType().isSolid();
     }
 
+    /** Reset Ender-only cooldown and refresh the rescue anchor after a path change. */
+    public void resetPathCooldowns(UUID id) {
+        voidStepCooldown.remove(id);
+        Player player = org.bukkit.Bukkit.getPlayer(id);
+        if (player != null && isEnderTierFour(player)) {
+            lastSafe.put(id, player.getLocation().clone());
+        } else {
+            lastSafe.remove(id);
+        }
+    }
+
     private boolean isEnderTierFour(Player player) {
         PlayerProgress p = progress.get(player.getUniqueId());
         return p.path() == EvolutionPath.ENDER && p.tier().rank() >= 4;
