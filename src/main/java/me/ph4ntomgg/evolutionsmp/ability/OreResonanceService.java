@@ -202,7 +202,8 @@ public final class OreResonanceService implements Listener {
         }
         session.markers.add(new Marker(display, team, location.clone(), block.getType()));
         activeMarkerCount++;
-        session.world.spawnParticle(Particle.DUST, location.clone().add(0.5, 0.5, 0.5), 2,
+        // The marker and its accent particles are both private to the activating player.
+        owner.spawnParticle(Particle.DUST, location.clone().add(0.5, 0.5, 0.5), 2,
                 0.18, 0.18, 0.18, 0.0,
                 new Particle.DustOptions(style.rgb, 0.8f));
     }
