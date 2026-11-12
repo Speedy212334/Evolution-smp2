@@ -8,7 +8,7 @@ A clean-slate evolution-based Minecraft SMP plugin for Paper 26.3 and Java 25.
 - **Seven paths** — Hunt, Alchemy, Enchantment, Prospector, Ender, Trade, Calamity.
 - **Progression** — T1, T2, T3, T4, and separate Apex state.
 - **Persistence** — player path, tier, XP, Apex state, and temporary ability state are stored in the plugin data folder.
-- **Custom FX** — seven unique path sigils orbit, accelerate, and launch away during path reveal; configurable ItemDisplay animations include integrated physics bursts with gravity, drag, block collision, and bounce.
+- **Custom FX** — seven unique path sigils orbit, accelerate, and launch away during path reveal; configurable ItemDisplay animations include original spark, shard, rune, and flare sprites plus integrated physics bursts with gravity, drag, block collision, bounce, and bounded lifetimes.
 - **Resource pack** — generated and validated for Minecraft Java 26.3.
 
 ## Implemented gameplay
