@@ -42,12 +42,15 @@ public final class CustomAnimationManager {
             "spin", "orbit", "helix", "figure-eight", "rise", "slam", "pulse", "vortex"
     );
     private static final int MAX_COPIES = 16;
+    private static final int MAX_GLOBAL_DISPLAYS = 256;
+    private static final int MAX_PARTICLES_PER_ANIMATION_TICK = 48;
     private static final int MAX_RUNTIME_TICKS = 12_000;
 
     private final JavaPlugin plugin;
     private final File file;
     private final Map<String, AnimationDefinition> definitions = new HashMap<>();
     private final Map<UUID, List<AnimationSession>> active = new HashMap<>();
+    private int activeDisplayCount;
 
     public CustomAnimationManager(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -56,6 +59,7 @@ public final class CustomAnimationManager {
 
     /** Reads animations.yml. Existing customized files are never overwritten. */
     public int reload() {
+        stopAll();
         if (!plugin.getDataFolder().exists() && !plugin.getDataFolder().mkdirs()) {
             plugin.getLogger().warning("Could not create plugin data folder for animations.yml.");
         }
@@ -88,8 +92,10 @@ public final class CustomAnimationManager {
                 String modelText = cfg.getString("item-model", "").trim();
                 if (!modelText.isEmpty()) {
                     itemModel = NamespacedKey.fromString(modelText);
-                    if (itemModel == null) {
-                        plugin.getLogger().warning("Animation '" + id + "' has invalid item-model key '" + modelText + "'.");
+                    if (itemModel == null || !itemModel.getNamespace().equals(plugin.getName().toLowerCase(Locale.ROOT))) {
+                        plugin.getLogger().warning("Animation '" + id + "' must use an item-model key in the "
+                                + plugin.getName().toLowerCase(Locale.ROOT) + " namespace; model disabled.");
+                        itemModel = null;
                     }
                 }
 
@@ -158,33 +164,42 @@ public final class CustomAnimationManager {
         AnimationDefinition definition = definitions.get(id);
         if (definition == null) return false;
 
+        int existingDisplays = active.getOrDefault(target.getUniqueId(), List.of()).stream()
+                .mapToInt(session -> session.displays.size()).sum();
+        if (activeDisplayCount - existingDisplays + definition.copies > MAX_GLOBAL_DISPLAYS) return false;
         stop(target);
         World world = target.getWorld();
         ItemStack item = createItem(definition);
         List<ItemDisplay> displays = new ArrayList<>();
         Location spawnAt = target.getLocation().clone().add(0, definition.height, 0);
 
-        for (int i = 0; i < definition.copies; i++) {
-            ItemDisplay display = world.spawn(spawnAt, ItemDisplay.class, entity -> {
-                entity.setItemStack(item.clone());
-                entity.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.FIXED);
-                entity.setBillboard(Display.Billboard.FIXED);
-                entity.setPersistent(false);
-                entity.setGravity(false);
-                entity.setInvulnerable(true);
-                entity.setSilent(true);
-                entity.setGlowing(definition.glowing);
-                entity.setInterpolationDelay(0);
-                entity.setInterpolationDuration(1);
-                entity.setTeleportDuration(1);
-                entity.setTransformation(transformation(0, (float) definition.scale, definition.tilt));
-            });
-            displays.add(display);
+        try {
+            for (int i = 0; i < definition.copies; i++) {
+                ItemDisplay display = world.spawn(spawnAt, ItemDisplay.class, entity -> {
+                    entity.setItemStack(item.clone());
+                    entity.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.FIXED);
+                    entity.setBillboard(Display.Billboard.FIXED);
+                    entity.setPersistent(false);
+                    entity.setGravity(false);
+                    entity.setInvulnerable(true);
+                    entity.setSilent(true);
+                    entity.setGlowing(definition.glowing);
+                    entity.setInterpolationDelay(0);
+                    entity.setInterpolationDuration(1);
+                    entity.setTeleportDuration(1);
+                    entity.setTransformation(transformation(0, (float) definition.scale, definition.tilt));
+                });
+                displays.add(display);
+            }
+        } catch (RuntimeException exception) {
+            for (ItemDisplay display : displays) if (display.isValid()) display.remove();
+            plugin.getLogger().warning("Could not spawn animation '" + id + "': " + exception.getMessage());
+            return false;
         }
 
-        int runLimit = runSeconds == null
-                ? (definition.loop ? -1 : definition.cycleTicks)
-                : Math.min(MAX_RUNTIME_TICKS, Math.max(1, runSeconds) * 20);
+        int runLimit = definition.loop
+                ? (runSeconds == null ? -1 : Math.min(MAX_RUNTIME_TICKS, Math.max(1, runSeconds) * 20))
+                : definition.cycleTicks;
         AnimationSession session = new AnimationSession(target.getUniqueId(), displays);
         BukkitRunnable task = new BukkitRunnable() {
             private int age;
@@ -199,6 +214,7 @@ public final class CustomAnimationManager {
                 }
 
                 Location base = target.getLocation().clone();
+                int particlesRemaining = MAX_PARTICLES_PER_ANIMATION_TICK;
                 for (int i = 0; i < displays.size(); i++) {
                     ItemDisplay display = displays.get(i);
                     if (!display.isValid()) continue;
@@ -258,8 +274,10 @@ public final class CustomAnimationManager {
                     display.setTransformation(transformation((float) angle, (float) dynamicScale, definition.tilt));
 
                     if (definition.particle != null && definition.particleCount > 0
-                            && age % definition.particleIntervalTicks == 0) {
-                        spawnParticle(world, at, definition);
+                            && age % definition.particleIntervalTicks == 0 && particlesRemaining > 0) {
+                        int count = Math.min(definition.particleCount, particlesRemaining);
+                        spawnParticle(world, at, definition, count);
+                        particlesRemaining -= count;
                     }
                 }
 
@@ -271,7 +289,14 @@ public final class CustomAnimationManager {
         };
         session.task = task;
         active.computeIfAbsent(target.getUniqueId(), ignored -> new ArrayList<>()).add(session);
-        task.runTaskTimer(plugin, 0L, 1L);
+        activeDisplayCount += displays.size();
+        try {
+            task.runTaskTimer(plugin, 0L, 1L);
+        } catch (RuntimeException exception) {
+            finish(session);
+            plugin.getLogger().warning("Could not schedule animation '" + id + "': " + exception.getMessage());
+            return false;
+        }
         return true;
     }
 
@@ -290,6 +315,9 @@ public final class CustomAnimationManager {
     }
 
     private void finish(AnimationSession session) {
+        if (session.finished) return;
+        session.finished = true;
+        activeDisplayCount = Math.max(0, activeDisplayCount - session.displays.size());
         if (session.task != null) {
             try { session.task.cancel(); } catch (IllegalStateException ignored) { /* not scheduled yet */ }
         }
@@ -314,14 +342,14 @@ public final class CustomAnimationManager {
         return item;
     }
 
-    private void spawnParticle(World world, Location at, AnimationDefinition definition) {
+    private void spawnParticle(World world, Location at, AnimationDefinition definition, int count) {
         if (definition.particle == Particle.DUST) {
-            world.spawnParticle(Particle.DUST, at, definition.particleCount,
+            world.spawnParticle(Particle.DUST, at, count,
                     0.025, 0.025, 0.025,
                     new Particle.DustOptions(Color.fromRGB(180, 125, 255), 0.8f));
             return;
         }
-        world.spawnParticle(definition.particle, at, definition.particleCount,
+        world.spawnParticle(definition.particle, at, count,
                 0.025, 0.025, 0.025, 0.01);
     }
 
@@ -355,6 +383,7 @@ public final class CustomAnimationManager {
         private final UUID playerId;
         private final List<ItemDisplay> displays;
         private BukkitRunnable task;
+        private boolean finished;
 
         private AnimationSession(UUID playerId, List<ItemDisplay> displays) {
             this.playerId = playerId;
