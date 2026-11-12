@@ -9,7 +9,8 @@
 # To use your own model, add its item definition and model/texture to the resource pack,
 # then place that item-model ID here. This is client-rendered with vanilla ItemDisplay entities.
 #
-# Shapes: spin, orbit, helix, figure-eight, rise, slam, pulse, vortex
+# Shapes: spin, orbit, helix, figure-eight, rise, slam, pulse, vortex, physics-burst
+# Particle colours use six-digit RGB hex. DUST_COLOR_TRANSITION supports both particle-color values.
 # Particle names must be Bukkit/Paper Particle enum names. Keep particle-count modest.
 # Looping animations continue until stopped unless [seconds] is supplied to /evofx play.
 
