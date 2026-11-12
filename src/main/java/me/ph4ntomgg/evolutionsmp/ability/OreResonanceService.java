@@ -244,13 +244,13 @@ public final class OreResonanceService implements Listener {
         if (styleKey.length() > 5) styleKey = styleKey.substring(0, 5);
         String teamName = "e" + styleKey + ownerKey;
         Team team = scoreboard.getTeam(teamName);
-        if (team != null) {
+        while (team != null) {
             // A collision is extraordinarily unlikely, but never mutate a foreign team.
             String randomSuffix = UUID.randomUUID().toString().replace("-", "").substring(0, 4);
             teamName = "e" + styleKey.substring(0, Math.min(4, styleKey.length())) + randomSuffix;
             team = scoreboard.getTeam(teamName);
         }
-        if (team == null) team = scoreboard.registerNewTeam(teamName);
+        team = scoreboard.registerNewTeam(teamName);
         team.setColor(style.color);
         session.teams.put(style.team, team);
         return team;
