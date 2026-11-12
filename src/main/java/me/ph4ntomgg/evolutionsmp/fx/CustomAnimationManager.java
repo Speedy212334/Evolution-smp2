@@ -149,6 +149,14 @@ public final class CustomAnimationManager {
                 boolean trailEnabled = cfg.getBoolean("trail-enabled", false);
                 Color trailColor = parseColor(cfg.getString("trail-color", "75E9FF"), Color.fromRGB(117, 233, 255));
                 int trailDuration = Math.max(2, Math.min(100, cfg.getInt("trail-duration-ticks", 24)));
+                boolean ringEnabled = cfg.getBoolean("ring-enabled", false);
+                int ringPoints = Math.max(12, Math.min(48, cfg.getInt("ring-points", 32)));
+                int ringLayers = Math.max(1, Math.min(3, cfg.getInt("ring-layers", 2)));
+                int ringInterval = Math.max(1, Math.min(20, cfg.getInt("ring-interval-ticks", 2)));
+                double ringRadius = clamp(cfg.getDouble("ring-radius", 2.0), 0.25, 8.0);
+                double ringHeight = clamp(cfg.getDouble("ring-height", 0.06), -1.0, 2.0);
+                float ringSize = (float) clamp(cfg.getDouble("ring-size", 1.1), 0.1, 4.0);
+                Color ringColor = parseColor(cfg.getString("ring-color", "75E9FF"), Color.fromRGB(117, 233, 255));
 
                 loaded.put(id, new AnimationDefinition(
                         id, material, itemModel, modelData, rawShape, cycleTicks,
@@ -158,7 +166,9 @@ public final class CustomAnimationManager {
                         physicsGravity, physicsDrag, physicsBounce, physicsLifeTicks,
                         physicsInitialSpeed, physicsUpwardSpeed, particleSpread, particleSpeed,
                         particleSize, particleColor, particleColorEnd,
-                        trailEnabled, trailColor, trailDuration
+                        trailEnabled, trailColor, trailDuration,
+                        ringEnabled, ringPoints, ringLayers, ringInterval,
+                        ringRadius, ringHeight, ringSize, ringColor
                 ));
             }
         }
@@ -341,6 +351,25 @@ public final class CustomAnimationManager {
                     }
                 }
 
+                if (definition.ringEnabled && age % definition.ringIntervalTicks == 0
+                        && particlesRemaining >= definition.ringPoints) {
+                    double ringProgress = smooth((age % definition.cycleTicks) / (double) definition.cycleTicks);
+                    for (int layer = 0; layer < definition.ringLayers; layer++) {
+                        if (particlesRemaining < definition.ringPoints) break;
+                        double layerScale = 0.58 + layer * 0.42;
+                        double radius = definition.ringRadius * layerScale * (0.18 + 0.82 * ringProgress);
+                        double rotation = age * (definition.rotationSpeed * (layer % 2 == 0 ? 1.0 : -0.72)) + layer * 0.22;
+                        Location ringCenter = base.clone().add(0.0, definition.ringHeight + layer * 0.025, 0.0);
+                        Particle.DustOptions dust = new Particle.DustOptions(definition.ringColor, Math.max(0.1f, definition.ringSize - layer * 0.12f));
+                        for (int pointIndex = 0; pointIndex < definition.ringPoints && particlesRemaining > 0; pointIndex++) {
+                            double ringAngle = rotation + Math.PI * 2.0 * pointIndex / definition.ringPoints;
+                            Location point = ringCenter.clone().add(Math.cos(ringAngle) * radius, 0.0, Math.sin(ringAngle) * radius);
+                            world.spawnParticle(Particle.DUST, point, 1, 0.0, 0.0, 0.0, 0.0, dust);
+                            particlesRemaining--;
+                        }
+                    }
+                }
+
                 if (definition.sound != null && age % definition.soundIntervalTicks == 0) {
                     world.playSound(base, definition.sound, definition.soundVolume, definition.soundPitch);
                 }
@@ -509,7 +538,9 @@ public final class CustomAnimationManager {
             double physicsBounce, int physicsLifeTicks, double physicsInitialSpeed,
             double physicsUpwardSpeed, double particleSpread, double particleSpeed,
             float particleSize, Color particleColor, Color particleColorEnd,
-            boolean trailEnabled, Color trailColor, int trailDurationTicks
+            boolean trailEnabled, Color trailColor, int trailDurationTicks,
+            boolean ringEnabled, int ringPoints, int ringLayers, int ringIntervalTicks,
+            double ringRadius, double ringHeight, float ringSize, Color ringColor
     ) {}
 
     private static final class AnimationSession {
