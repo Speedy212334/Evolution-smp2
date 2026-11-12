@@ -61,9 +61,17 @@ A clean-slate evolution-based Minecraft SMP plugin for Paper 26.3 and Java 25.
 
 Requirements: Java 25, Gradle 9.1+, Python 3.
 
-```bash
-gradle clean test jar generateResourcePack
+**Windows PowerShell**
+```powershell
+.\gradlew.bat clean test jar generateResourcePack verifyArtifacts
 ```
+
+**Linux/macOS**
+```bash
+./gradlew clean test jar generateResourcePack verifyArtifacts
+```
+
+The Gradle task selects `python` on Windows and `python3` elsewhere. If needed, override it with `-PpythonExecutable=py` or `-PpythonExecutable=python3`.
 
 Outputs:
 - `build/libs/EvolutionSMP-1.0.0.jar`
@@ -73,8 +81,8 @@ The GitHub Actions workflow builds and uploads both artifacts on pushes to `main
 
 ## Resource pack
 
-```bash
-python3 pack/generate_resource_pack.py --version 26.3 --output build/pack/EvolutionSMP-ResourcePack-26.3.zip
+```powershell
+python pack/generate_resource_pack.py --version 26.3 --output build/pack/EvolutionSMP-ResourcePack-26.3.zip
 ```
 
 The generator checks distinct T2/T3/T4 orb silhouettes, Evolution Shard separation, the animated Totem particle atlas, seven path sigils, Path Changer, FX gem model references, PNG integrity, pack metadata, and that vanilla item/block assets are not overridden.
