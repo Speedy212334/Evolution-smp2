@@ -229,7 +229,6 @@ public final class OreResonanceService implements Listener {
     private void removeMarker(Marker marker) {
         if (marker.display.isValid()) marker.display.remove();
         marker.team.removeEntry(marker.display.getUniqueId().toString());
-        if (marker.team.getEntries().isEmpty()) marker.team.unregister();
         activeMarkerCount = Math.max(0, activeMarkerCount - 1);
     }
 
@@ -282,6 +281,10 @@ public final class OreResonanceService implements Listener {
         if (session.validationTask != null) session.validationTask.cancel();
         for (Marker marker : session.markers) removeMarker(marker);
         session.markers.clear();
+        for (Team team : session.teams.values()) {
+            if (team.getEntries().isEmpty()) team.unregister();
+        }
+        session.teams.clear();
         Player owner = Bukkit.getPlayer(session.owner);
         if (owner != null && owner.isOnline()) {
             owner.sendMessage(ChatColor.GRAY + "Ore Resonance has faded.");
