@@ -17,6 +17,20 @@ class ProgressionRulesTest {
         assertEquals(0, advanced.experience());
     }
 
+    @Test void excessXpIsDiscardedWhenPlayerReachesTierFour() {
+        PlayerProgress p = PlayerProgress.unassigned(UUID.randomUUID()).withPath(EvolutionPath.ENDER)
+                .withTier(EvolutionTier.T3, 50);
+        PlayerProgress advanced = ProgressionRules.applyExperience(p, 100_000);
+        assertEquals(EvolutionTier.T4, advanced.tier());
+        assertEquals(0, advanced.experience());
+    }
+
+    @Test void thresholdsMustBeStrictlyIncreasing() {
+        PlayerProgress p = PlayerProgress.unassigned(UUID.randomUUID()).withPath(EvolutionPath.HUNT);
+        assertThrows(IllegalArgumentException.class,
+                () -> ProgressionRules.applyExperience(p, 10, 100, 50, 200));
+    }
+
     @Test void negativeXpIsRejectedEvenForUnassignedPlayers() {
         PlayerProgress p = PlayerProgress.unassigned(UUID.randomUUID());
         assertThrows(IllegalArgumentException.class, () -> ProgressionRules.applyExperience(p, -1));
