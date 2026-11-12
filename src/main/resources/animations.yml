@@ -184,7 +184,7 @@ animations:
 
   physics-shard-burst:
     material: PAPER
-    item-model: evolutionsmp:fx_gem
+    item-model: evolutionsmp:fx_shard
     shape: physics-burst
     cycle-ticks: 48
     loop: false
@@ -206,3 +206,76 @@ animations:
     sound-interval-ticks: 48
     sound-volume: 0.35
     sound-pitch: 1.25
+
+
+  physics-spark-burst:
+    material: PAPER
+    item-model: evolutionsmp:fx_spark
+    shape: physics-burst
+    cycle-ticks: 40
+    loop: false
+    copies: 16
+    radius: 0.0
+    height: 1.45
+    bob: 0.0
+    scale: 0.22
+    rotation-speed: 0.3
+    tilt: 0.3
+    particle: END_ROD
+    particle-count: 1
+    particle-interval-ticks: 4
+    physics-gravity: 0.022
+    physics-drag: 0.972
+    physics-bounce: 0.25
+    physics-life-ticks: 40
+    sound: none
+
+  physics-rune-burst:
+    material: PAPER
+    item-model: evolutionsmp:fx_rune
+    shape: physics-burst
+    cycle-ticks: 52
+    loop: false
+    copies: 8
+    radius: 0.0
+    height: 1.5
+    bob: 0.0
+    scale: 0.28
+    rotation-speed: 0.18
+    tilt: 0.18
+    particle: ENCHANT
+    particle-count: 1
+    particle-interval-ticks: 5
+    physics-gravity: 0.018
+    physics-drag: 0.99
+    physics-bounce: 0.32
+    physics-life-ticks: 52
+    sound: BLOCK_AMETHYST_BLOCK_CHIME
+    sound-interval-ticks: 52
+    sound-volume: 0.22
+    sound-pitch: 1.6
+
+  physics-flare-burst:
+    material: PAPER
+    item-model: evolutionsmp:fx_flare
+    shape: physics-burst
+    cycle-ticks: 36
+    loop: false
+    copies: 10
+    radius: 0.0
+    height: 1.3
+    bob: 0.0
+    scale: 0.3
+    rotation-speed: 0.27
+    tilt: 0.28
+    particle: FLAME
+    particle-count: 1
+    particle-interval-ticks: 4
+    physics-gravity: 0.04
+    physics-drag: 0.98
+    physics-bounce: 0.18
+    physics-life-ticks: 36
+    sound: BLOCK_FIRE_EXTINGUISH
+    sound-interval-ticks: 36
+    sound-volume: 0.25
+    sound-pitch: 1.3
