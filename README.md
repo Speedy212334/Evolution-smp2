@@ -4,11 +4,12 @@ A clean-slate evolution-based Minecraft SMP plugin for Paper 26.3 and Java 25.
 
 ## Current architecture
 
-- **One unified plugin JAR** — gameplay, GUI, persistence, and cinematic FX share one plugin lifecycle.
+- **Two plugin JARs** — `EvolutionSMP` owns progression, gameplay, persistence, and the original GUI; optional `EvolutionFX` owns configurable ItemDisplay animations and `/evofx` controls.
+- **Optional FX add-on** — EvolutionSMP remains playable without EvolutionFX; install both for the complete visual experience.
 - **Seven paths** — Hunt, Alchemy, Enchantment, Prospector, Ender, Trade, Calamity.
 - **Progression** — T1, T2, T3, T4, and separate Apex state.
 - **Persistence** — player path, tier, XP, Apex state, and temporary ability state are stored in the plugin data folder.
-- **Custom FX** — seven unique path sigils orbit, accelerate, and launch away during path reveal; configurable ItemDisplay animations include original spark, shard, rune, and flare sprites plus integrated physics bursts with gravity, drag, sub-stepped axis collision, wall/floor bounce, ground friction, bounded lifetimes, and per-preset RGB particle palettes.
+- **Custom FX** — the core retains the path-awakening cinematic; the optional EvolutionFX JAR supplies configurable ItemDisplay animations, original spark/shard/rune/flare sprites, collision-aware physics bursts, layered sigils, and per-preset particle palettes.
 - **Resource pack** — generated and validated for Minecraft Java 26.3.
 
 ## Implemented gameplay
@@ -105,7 +106,7 @@ A clean-slate evolution-based Minecraft SMP plugin for Paper 26.3 and Java 25.
 | `/evofx play <id> <player> [seconds]` | Play a custom animation |
 | `/evofx stop <player>` | Stop a player's custom animations |
 | `/evofx reload` | Reload `animations.yml` |
-| `/evofx reveal <player>` | Replay the path reveal |
+| `/evo reveal <player>` | Replay the path reveal |
 
 ## Build locally
 
@@ -113,7 +114,7 @@ Requirements: Java 25, Gradle 9.1+, Python 3.
 
 **Windows PowerShell, Linux, and macOS**
 ```bash
-gradle clean test jar generateResourcePack verifyArtifacts
+gradle clean test jar evolutionFxJar generateResourcePack verifyArtifacts
 ```
 
 This repository does not include the Gradle Wrapper, so use an installed Gradle 9.1 or newer.
@@ -121,10 +122,11 @@ This repository does not include the Gradle Wrapper, so use an installed Gradle 
 The Gradle task selects `python` on Windows and `python3` elsewhere. If needed, override it with `-PpythonExecutable=py` or `-PpythonExecutable=python3`.
 
 Outputs:
-- `build/libs/EvolutionSMP-1.0.0.jar`
-- `build/pack/EvolutionSMP-ResourcePack-26.3.zip`
+- `build/libs/EvolutionSMP-1.0.0.jar` — required gameplay/core plugin
+- `build/libs/EvolutionFX-1.0.0.jar` — optional visual-effects add-on
+- `build/pack/EvolutionSMP-ResourcePack-26.3.zip` — shared custom models and textures
 
-The GitHub Actions workflow runs on pushes to `main` and pull requests targeting `main`. It runs Java 25 compilation and unit tests, generates and validates the 26.3 resource pack, verifies both artifacts, and uploads the plugin JAR and resource-pack ZIP.
+The GitHub Actions workflow runs on pushes to `main` and pull requests targeting `main`. It runs Java 25 compilation and unit tests, builds both plugin JARs, generates and validates the 26.3 resource pack, verifies all three deliverables, and uploads them together.
 
 ## Resource pack
 
@@ -146,10 +148,10 @@ Animations can combine:
 - Coloured dust transitions and short Paper trail particles on physics bursts.
 - Bounded particle output per animation tick and capped display-entity counts.
 
-To preview an effect, use `/evofx list`, then `/evofx play <id> <player> [seconds]`. Ring settings are optional in `plugins/EvolutionSMP/animations.yml`; set `ring-enabled: true` on an animation to activate them. The seven signature presets are examples and can be tuned without changing Java code.
+Install both plugin JARs in the server's `plugins` folder and restart. The EvolutionFX add-on provides `/evofx list`, then `/evofx play <id> <player> [seconds]`. Ring settings are optional in `plugins/EvolutionFX/animations.yml`; set `ring-enabled: true` on an animation to activate them. The seven signature presets are examples and can be tuned without changing Java code.
 
 ## Verification boundaries
 
-CI compilation, unit tests, and resource-pack validation are automated. A live Paper 26.3 server smoke test has not yet been performed. Automatic resource-pack delivery is intentionally disabled until a real public HTTPS ZIP URL and matching SHA-1 are configured.
+CI compilation, unit tests, and resource-pack validation are automated. A live Paper 26.3 server smoke test has not yet been performed. Automatic resource-pack delivery remains disabled until a real public HTTPS ZIP URL and matching SHA-1 are configured. Both plugin JARs and the resource pack must be installed/downloaded separately for now.
 
 Earlier EvolutionSMP repositories remain historical references and are not modified by this rebuild.
