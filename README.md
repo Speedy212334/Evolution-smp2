@@ -26,7 +26,7 @@ A clean-slate evolution-based Minecraft SMP plugin for Paper 26.3 and Java 25.
 - Ender Tier IV: `/evo swap <player>` swaps positions with a nearby player; Void Step can rescue the player from the void, and fall damage is negated.
 - Enchantment Tier IV: `/evo curse` opens a held-item curse-removal GUI.
 - Alchemy Tier IV and Apex: combine two drinkable potions in any crafting grid to fuse their effects into one potion. Distinct effects are retained; duplicate effects keep the stronger amplifier, or the longer duration when amplifiers match. Fusion is one-at-a-time and does not consume bottles or other ingredients.
-- Passive path perks include Hunt speed/fall mitigation, Alchemy brewing and potion mastery, Prospector bonus ore yields/Auto Smelt and Efficiency X on pickaxes at Tier IV and Apex, Enchantment lapis refunds, Trade discounts/trade-use preservation, and Calamity damage mitigation/Strength.
+- Passive path perks include Hunt speed/fall mitigation, Alchemy brewing and potion mastery, Prospector bonus ore yields/Auto Smelt and Efficiency X on mining tools at Tier IV and Apex, Enchantment lapis refunds, Trade discounts/trade-use preservation, and Calamity damage mitigation/Strength.
 - Both Apex abilities currently share a 30-minute cooldown.
 - The Evolution Path Changer can be issued by an admin with `/evo pathchanger <player>`; right-click it to select a new path.
 
@@ -61,15 +61,12 @@ A clean-slate evolution-based Minecraft SMP plugin for Paper 26.3 and Java 25.
 
 Requirements: Java 25, Gradle 9.1+, Python 3.
 
-**Windows PowerShell**
-```powershell
-.\gradlew.bat clean test jar generateResourcePack verifyArtifacts
+**Windows PowerShell, Linux, and macOS**
+```bash
+gradle clean test jar generateResourcePack verifyArtifacts
 ```
 
-**Linux/macOS**
-```bash
-./gradlew clean test jar generateResourcePack verifyArtifacts
-```
+This repository does not include the Gradle Wrapper, so use an installed Gradle 9.1 or newer.
 
 The Gradle task selects `python` on Windows and `python3` elsewhere. If needed, override it with `-PpythonExecutable=py` or `-PpythonExecutable=python3`.
 
