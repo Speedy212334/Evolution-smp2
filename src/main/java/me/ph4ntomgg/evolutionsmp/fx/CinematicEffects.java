@@ -12,7 +12,6 @@ import org.bukkit.entity.Display;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.Material;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -42,6 +41,7 @@ public final class CinematicEffects {
     private static final int GEM_COUNT = 5;
     private static final int ORBIT_END_TICK = 72;
     private static final int TOTAL_TICKS = 112;
+    private static final int MAX_GLOBAL_REVEAL_DISPLAYS = 384;
     private static final double TWO_PI = Math.PI * 2.0;
     private static final double GOLDEN_ANGLE = Math.PI * (3.0 - Math.sqrt(5.0));
 
@@ -60,6 +60,11 @@ public final class CinematicEffects {
 
         UUID id = player.getUniqueId();
         stop(id);
+        int activeDisplayCount = activeDisplays.values().stream().mapToInt(List::size).sum();
+        if (activeDisplayCount + PATH_COUNT + GEM_COUNT > MAX_GLOBAL_REVEAL_DISPLAYS) {
+            player.sendMessage(ChatColor.YELLOW + "The cinematic display limit is busy. Try the path reveal again shortly.");
+            return;
+        }
 
         World world = player.getWorld();
         EvolutionPath[] paths = EvolutionPath.values();
@@ -80,9 +85,8 @@ public final class CinematicEffects {
                 allDisplays.add(display);
             }
             for (int i = 0; i < GEM_COUNT; i++) {
-                // The resource pack turns this vanilla carrier into the FX Gold Gem.
-                ItemDisplay display = spawnDisplay(world, spawn,
-                        new ItemStack(Material.GOLD_INGOT), 0.38f, false);
+                // Use the plugin-owned FX item model; vanilla gold ingot assets remain untouched.
+                ItemDisplay display = spawnDisplay(world, spawn, items.fxGem(), 0.38f, false);
                 gemDisplays.add(display);
                 allDisplays.add(display);
             }

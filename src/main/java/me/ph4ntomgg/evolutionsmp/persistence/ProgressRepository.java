@@ -12,6 +12,7 @@ public final class ProgressRepository {
     private final JavaPlugin plugin;
     private final File file;
     private YamlConfiguration data;
+    private boolean dirty;
 
     public ProgressRepository(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -30,6 +31,7 @@ public final class ProgressRepository {
         String root = "players." + id;
         String pathName = data.getString(root + ".path");
         EvolutionPath path = pathName == null ? null : EvolutionPath.fromId(pathName).orElse(null);
+        if (path == null) return PlayerProgress.unassigned(id);
         EvolutionTier tier;
         try { tier = EvolutionTier.valueOf(data.getString(root + ".tier", "T1")); }
         catch (IllegalArgumentException ex) { tier = EvolutionTier.T1; }
@@ -38,6 +40,7 @@ public final class ProgressRepository {
         long xp = Math.max(0L, data.getLong(root + ".xp", 0L));
         if (apex && path == null) apex = false;
         if (tier == EvolutionTier.APEX && !apex) tier = EvolutionTier.T4;
+        if (tier == EvolutionTier.T4 || tier == EvolutionTier.APEX) xp = 0L;
         return new PlayerProgress(id, path, tier, xp, apex);
     }
 
@@ -47,7 +50,17 @@ public final class ProgressRepository {
         data.set(root + ".tier", progress.tier().name());
         data.set(root + ".xp", progress.experience());
         data.set(root + ".apex", progress.apex());
-        try { data.save(file); }
-        catch (IOException ex) { plugin.getLogger().severe("Could not save player data: " + ex.getMessage()); }
+        dirty = true;
+    }
+
+    /** Flushes the in-memory YAML snapshot once, rather than writing on every XP event. */
+    public synchronized void flush() {
+        if (!dirty) return;
+        try {
+            data.save(file);
+            dirty = false;
+        } catch (IOException ex) {
+            plugin.getLogger().severe("Could not save player data: " + ex.getMessage());
+        }
     }
 }

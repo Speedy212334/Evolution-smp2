@@ -2,6 +2,7 @@ package me.ph4ntomgg.evolutionsmp.command;
 
 import me.ph4ntomgg.evolutionsmp.domain.*;
 import me.ph4ntomgg.evolutionsmp.ability.AbilityService;
+import me.ph4ntomgg.evolutionsmp.ability.OreResonanceService;
 import me.ph4ntomgg.evolutionsmp.fx.CinematicEffects;
 import me.ph4ntomgg.evolutionsmp.service.ProgressService;
 import me.ph4ntomgg.evolutionsmp.ui.PathSelectionMenu;
@@ -22,6 +23,7 @@ import org.bukkit.Material;
 public final class EvolutionCommand implements CommandExecutor {
     private final ProgressService progress;
     private final AbilityService abilities;
+    private final OreResonanceService resonance;
     private final RecipeMenu recipes;
     private final EvolutionItems items;
     private final EvolutionMainMenu mainMenu;
@@ -29,8 +31,8 @@ public final class EvolutionCommand implements CommandExecutor {
     private final PathSelectionMenu menu;
     private final CinematicEffects effects;
 
-    public EvolutionCommand(ProgressService progress, PathSelectionMenu menu, CinematicEffects effects, AbilityService abilities, RecipeMenu recipes, EvolutionItems items, EvolutionMainMenu mainMenu, CurseRemovalMenu curseMenu) {
-        this.progress = progress; this.menu = menu; this.effects = effects; this.abilities = abilities; this.recipes = recipes; this.items = items; this.mainMenu = mainMenu; this.curseMenu = curseMenu;
+    public EvolutionCommand(ProgressService progress, PathSelectionMenu menu, CinematicEffects effects, AbilityService abilities, OreResonanceService resonance, RecipeMenu recipes, EvolutionItems items, EvolutionMainMenu mainMenu, CurseRemovalMenu curseMenu) {
+        this.progress = progress; this.menu = menu; this.effects = effects; this.abilities = abilities; this.resonance = resonance; this.recipes = recipes; this.items = items; this.mainMenu = mainMenu; this.curseMenu = curseMenu;
     }
 
     @Override
@@ -43,9 +45,14 @@ public final class EvolutionCommand implements CommandExecutor {
         if (args[0].equalsIgnoreCase("help")) {
             sender.sendMessage(ChatColor.GOLD + "EvolutionSMP 1.0.0 " + ChatColor.GRAY + "Commands:");
             sender.sendMessage(ChatColor.YELLOW + "/evo status");
-            sender.sendMessage(ChatColor.YELLOW + "/evo apex " + ChatColor.GRAY + "(T4: attempt Apex with 8 Echo Shards)");
+            sender.sendMessage(ChatColor.YELLOW + "/evo menu " + ChatColor.GRAY + "(open the main menu)");
+            sender.sendMessage(ChatColor.YELLOW + "/evo ascend " + ChatColor.GRAY + "(T4: attempt Apex with 8 Evolution Shards)");
+            sender.sendMessage(ChatColor.YELLOW + "/enderchest " + ChatColor.GRAY + "(Ender T4: open personal Ender Chest)");
+            sender.sendMessage(ChatColor.GRAY + "Abilities use commands, crafting, menus or passive effects; this build has no custom keyboard keybinds.");
+            sender.sendMessage(ChatColor.GRAY + "Use /evo guide abilities for the full path-by-path ability guide.");
             sender.sendMessage(ChatColor.YELLOW + "/evo curse " + ChatColor.GRAY + "(Enchantment T4: remove held-item curses)");
             sender.sendMessage(ChatColor.YELLOW + "/evo veil " + ChatColor.GRAY + "(Hunt T4: temporary invisibility)");
+            sender.sendMessage(ChatColor.YELLOW + "/evo resonance " + ChatColor.GRAY + "(Prospector T4: coloured ore highlights within 50 blocks)");
             sender.sendMessage(ChatColor.YELLOW + "/evo fracture " + ChatColor.GRAY + "(Calamity T4: shockwave)");
             sender.sendMessage(ChatColor.YELLOW + "/evo swap <player> " + ChatColor.GRAY + "(Ender T4: swap positions)");
             sender.sendMessage(ChatColor.YELLOW + "/evo recipes");
@@ -79,6 +86,10 @@ public final class EvolutionCommand implements CommandExecutor {
                 if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
                 recipes.open(player);
             }
+            case "resonance" -> {
+                if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
+                resonance.activate(player);
+            }
             case "veil" -> {
                 if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
                 abilities.activateVeil(player);
@@ -98,17 +109,17 @@ public final class EvolutionCommand implements CommandExecutor {
                 if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
                 curseMenu.open(player);
             }
-            case "apex" -> {
+            case "apex", "ascend" -> {
                 if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
                 PlayerProgress current = progress.get(player.getUniqueId());
                 if (!current.assigned() || current.tier() != EvolutionTier.T4) { player.sendMessage(ChatColor.RED + "Apex requires an assigned path and T4."); return true; }
                 int found = 0;
-                for (org.bukkit.inventory.ItemStack item : player.getInventory().getStorageContents()) if (items.isPlainEchoShard(item)) found += item.getAmount();
-                if (found < 8) { player.sendMessage(ChatColor.RED + "You need 8 Echo Shards."); return true; }
+                for (org.bukkit.inventory.ItemStack item : player.getInventory().getStorageContents()) if (items.isEvolutionShard(item)) found += item.getAmount();
+                if (found < 8) { player.sendMessage(ChatColor.RED + "You need 8 Evolution Shards."); return true; }
                 int remaining = 8;
                 for (int i = 0; i < player.getInventory().getStorageContents().length && remaining > 0; i++) {
                     org.bukkit.inventory.ItemStack item = player.getInventory().getItem(i);
-                    if (!items.isPlainEchoShard(item)) continue;
+                    if (!items.isEvolutionShard(item)) continue;
                     int take = Math.min(remaining, item.getAmount());
                     item.setAmount(item.getAmount() - take);
                     remaining -= take;
@@ -119,7 +130,7 @@ public final class EvolutionCommand implements CommandExecutor {
                     Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + player.getName() + " has reached peak of evolution");
                     player.sendTitle(ChatColor.GOLD + "APEX", ChatColor.LIGHT_PURPLE + "You have reached the peak.", 10, 80, 20);
                 } else {
-                    player.sendMessage(ChatColor.RED + "The Apex attempt failed. The 8 Echo Shards were consumed.");
+                    player.sendMessage(ChatColor.RED + "The Apex attempt failed. The 8 Evolution Shards were consumed.");
                 }
             }
             case "gambit" -> {
@@ -143,21 +154,32 @@ public final class EvolutionCommand implements CommandExecutor {
                 if (args.length < 2) { sender.sendMessage(ChatColor.RED + "Usage: /evo start <player>"); return true; }
                 Player target = Bukkit.getPlayerExact(args[1]);
                 if (target == null) { sender.sendMessage(ChatColor.RED + "That player is not online."); return true; }
-                if (!(sender instanceof Player viewer)) { sender.sendMessage("Run this command in-game so you can use the selection menu."); return true; }
-                menu.open(target, viewer);
+                // The target chooses their own path; the admin only initiates the flow.
+                menu.open(target, target);
+                sender.sendMessage("Opened the path-selection menu for " + target.getName() + ".");
             }
             case "exp" -> {
                 if (!sender.hasPermission("evolution.admin")) { sender.sendMessage(ChatColor.RED + "No permission."); return true; }
                 if (args.length != 3) { sender.sendMessage(ChatColor.RED + "Usage: /evo exp <player> <amount>"); return true; }
                 Player target = Bukkit.getPlayerExact(args[1]);
                 if (target == null) { sender.sendMessage(ChatColor.RED + "That player is not online."); return true; }
+                PlayerProgress current = progress.get(target.getUniqueId());
+                if (!current.assigned()) { sender.sendMessage(ChatColor.RED + "Assign a path before awarding evolution XP."); return true; }
+                if (current.tier() == EvolutionTier.T4 || current.apex()) {
+                    sender.sendMessage(ChatColor.YELLOW + "T4 and Apex players do not accumulate additional evolution XP.");
+                    return true;
+                }
                 try {
                     long amount = Long.parseLong(args[2]);
                     if (amount < 1) throw new NumberFormatException();
                     PlayerProgress updated = progress.award(target.getUniqueId(), amount);
                     sender.sendMessage(ChatColor.GREEN + "Awarded " + amount + " XP. " + updated.tier());
                     target.sendMessage(ChatColor.GREEN + "You received " + amount + " evolution XP.");
-                } catch (NumberFormatException ex) { sender.sendMessage(ChatColor.RED + "Amount must be a positive whole number."); }
+                } catch (NumberFormatException ex) {
+                    sender.sendMessage(ChatColor.RED + "Amount must be a positive whole number.");
+                } catch (ArithmeticException ex) {
+                    sender.sendMessage(ChatColor.RED + "That XP amount is too large.");
+                }
             }
             case "tier" -> {
                 if (!sender.hasPermission("evolution.admin")) { sender.sendMessage(ChatColor.RED + "No permission."); return true; }

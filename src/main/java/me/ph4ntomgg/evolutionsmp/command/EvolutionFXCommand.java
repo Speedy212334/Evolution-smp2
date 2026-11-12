@@ -53,7 +53,7 @@ public final class EvolutionFXCommand implements CommandExecutor {
                     catch (NumberFormatException ex) { sender.sendMessage(ChatColor.RED + "Seconds must be a whole number."); return true; }
                     if (seconds < 1 || seconds > 600) { sender.sendMessage(ChatColor.RED + "Duration must be between 1 and 600 seconds."); return true; }
                 }
-                if (!animations.play(target, args[1], seconds)) sender.sendMessage(ChatColor.RED + "Unknown animation. Use /evofx list.");
+                if (!animations.play(target, args[1], seconds)) sender.sendMessage(ChatColor.RED + "Unknown animation or FX display capacity reached. Use /evofx list and try again later.");
                 else sender.sendMessage(ChatColor.GREEN + "Playing " + args[1] + " on " + target.getName() + ".");
             }
             case "reveal" -> {

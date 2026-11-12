@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Generate deterministic 26.3 EvolutionSMP orb textures and a resource-pack ZIP."""
-import json, math, os, struct, zlib, zipfile, argparse
+import json, math, os, struct, zlib, zipfile, argparse, shutil
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -99,6 +99,29 @@ def orb_texture(model_id):
         draw_polygon(p,[(16,3),(16,16),(10,8)],(255,230,126)); draw_polygon(p,[(16,3),(22,8),(16,16)],(218,145,22))
         draw_polygon(p,[(10,8),(16,16),(8,17)],(255,190,40)); draw_polygon(p,[(16,16),(24,17),(16,28)],(101,54,6))
         draw_line(p,16,3,16,28,(255,245,174))
+    return p
+
+
+def fx_particle_texture(kind):
+    """Original 32px pixel-art sprites for EvolutionFX; no third-party texture reuse."""
+    p=blank_canvas()
+    white=(255,255,245); cyan=(105,225,255); blue=(35,105,220)
+    gold=(255,205,75); orange=(255,105,45); violet=(190,115,255)
+    if kind=="spark":
+        draw_polygon(p,[(16,1),(19,12),(29,16),(19,19),(16,31),(13,19),(3,16),(13,12)],cyan,white,1)
+        draw_line(p,16,5,16,27,white,1)
+    elif kind=="shard":
+        draw_polygon(p,[(17,1),(25,10),(20,17),(22,25),(12,31),(10,20),(5,13)],blue,cyan,1)
+        draw_polygon(p,[(17,3),(18,16),(10,20),(7,13)],white)
+        draw_line(p,18,16,14,27,cyan,1)
+    elif kind=="rune":
+        draw_circle(p,16,16,13,violet,True)
+        draw_circle(p,16,16,10,(22,12,42),True)
+        draw_polygon(p,[(16,5),(22,15),(16,27),(10,15)],violet,white,1)
+        draw_line(p,10,15,22,15,white,1)
+    else: # flare
+        draw_polygon(p,[(16,1),(20,11),(29,7),(23,17),(30,24),(19,22),(14,31),(12,20),(3,23),(9,15),(4,8),(14,11)],orange,gold,1)
+        draw_circle(p,16,16,4,white,True)
     return p
 
 def totem_texture():
@@ -210,148 +233,151 @@ def path_icon_texture(kind, primary, accent):
     return pixels
 
 def main():
-    ap=argparse.ArgumentParser(); ap.add_argument('--output', default=None); ap.add_argument('--version', choices=['1.21.11','26.3'], default='26.3'); args=ap.parse_args()
-    root=ROOT/'build'; assets=root/'assets/minecraft'; textures=assets/'textures/item'; models=assets/'models/item'
-    # Unique, original pixel-art orb textures.
+    ap=argparse.ArgumentParser()
+    ap.add_argument('--output', default='build/pack/EvolutionSMP-ResourcePack-26.3.zip')
+    ap.add_argument('--version', choices=['26.3'], default='26.3')
+    args=ap.parse_args()
+
+    root=ROOT/'build'
+    assets_root=root/'assets'
+    if assets_root.exists():
+        shutil.rmtree(assets_root)
+    namespace='evolutionsmp'
+    assets=root/'assets'/namespace
+    textures=assets/'textures/item'
+    models=assets/'models/item'
+    item_defs=assets/'items'
     models.mkdir(parents=True,exist_ok=True)
-    # Model IDs must match EvolutionItemManager.modelFor exactly:
-    # Tier II=7801 on echo_shard, Tier III=7802 on amethyst_shard,
-    # Tier IV=7803 on nether_star, and Echo Shard=7804 on echo_shard.
-    specs={7801:'tier-ii prism',7802:'tier-iii star',7803:'tier-iv crown',7804:'echo shard'}
-    for model,shape in specs.items(): png_rgba(textures/f'evolution_orb_{model}.png',orb_texture(model))
-    def write_base_model(material):
-        base={'parent':'minecraft:item/generated','textures':{'layer0':f'minecraft:item/{material}'}}
-        (models/f'{material}.json').write_text(json.dumps(base,indent=2)+'\n',encoding='utf-8')
-    write_base_model('echo_shard')
-    write_base_model('amethyst_shard')
-    write_base_model('nether_star')
-    png_rgba(textures/'evolution_path_changer.png',orb_texture(7805))
-    compass_base={'parent':'minecraft:item/generated','textures':{'layer0':'minecraft:item/compass'}}
-    (models/'compass.json').write_text(json.dumps(compass_base,indent=2)+'\n',encoding='utf-8')
-    (models/'evolution_path_changer.json').write_text(json.dumps({'parent':'minecraft:item/generated','textures':{'layer0':'minecraft:item/evolution_path_changer'}},indent=2)+'\n',encoding='utf-8')
-    for model in specs:
-        (models/f'evolution_orb_{model}.json').write_text(json.dumps({'parent':'minecraft:item/generated','textures':{'layer0':f'minecraft:item/evolution_orb_{model}'}},indent=2)+'\n',encoding='utf-8')
-    # Seven distinct path sigils share PAPER as a safe display carrier; vanilla item models remain untouched.
-    path_specs={
-        7901:('hunt',(205,35,55),(255,205,215)),
-        7902:('alchemy',(35,175,105),(180,255,200)),
-        7903:('enchantment',(125,65,220),(225,195,255)),
-        7904:('prospector',(205,135,35),(255,230,135)),
-        7905:('ender',(35,145,215),(175,235,255)),
-        7906:('trade',(30,165,125),(175,255,220)),
-        7907:('calamity',(65,20,80),(190,55,115)),
-    }
-    paper_base={'parent':'minecraft:item/generated','textures':{'layer0':'minecraft:item/paper'}}
-    for model_id,(name,primary,accent) in path_specs.items():
-        png_rgba(textures/f'evolution_path_{name}.png',path_icon_texture(name,primary,accent))
-        model_name=f'evolution_path_{name}'
-        (models/f'{model_name}.json').write_text(json.dumps({'parent':'minecraft:item/generated','textures':{'layer0':f'minecraft:item/{model_name}'}},indent=2)+'\n',encoding='utf-8')
-    (models/'paper.json').write_text(json.dumps(paper_base,indent=2)+'\n',encoding='utf-8')
-    # Custom-model-data 7890 is reserved for the FX-only 3D orbit gem.
-    # The vanilla gold ingot is only changed when the display item carries this model ID.
-    png_rgba(textures/'evolution_fx_gem.png',orb_texture(7890))
-    gold_base={'parent':'minecraft:item/generated','textures':{'layer0':'minecraft:item/gold_ingot'}}
-    (models/'gold_ingot.json').write_text(json.dumps(gold_base,indent=2)+'\n',encoding='utf-8')
-    (models/'evolution_fx_gem.json').write_text(json.dumps({'parent':'minecraft:item/generated','textures':{'layer0':'minecraft:item/evolution_fx_gem'}},indent=2)+'\n',encoding='utf-8')
-
-    # Dedicated green/gold Totem item and particle textures; neither reuses Echo Shard pixels.
-    png_rgba(textures/'totem_of_undying.png',totem_texture())
-    (models/'totem_of_undying.json').write_text(json.dumps({'parent':'minecraft:item/generated','textures':{'layer0':'minecraft:item/totem_of_undying'}},indent=2),encoding='utf-8')
-    particle_dir=root/'assets/minecraft/textures/particle'; particle_dir.mkdir(parents=True,exist_ok=True)
-    png_rgba(particle_dir/'totem_of_undying.png',totem_particle_texture(),16,128)
-    (particle_dir/'totem_of_undying.png.mcmeta').write_text(json.dumps({'animation':{'frametime':2,'interpolate':False,'frames':list(range(8))}},indent=2)+'\n',encoding='utf-8')
-
-    # Minecraft 26.3 item definitions select custom models from the structured custom_model_data floats list.
-    item_defs=root/'assets/minecraft/items'
     item_defs.mkdir(parents=True,exist_ok=True)
-    (item_defs/'totem_of_undying.json').write_text(json.dumps({'model':{'type':'minecraft:model','model':'minecraft:item/totem_of_undying'}},indent=2),encoding='utf-8')
-    def model_ref(name):
-        return {'type':'minecraft:model','model':f'minecraft:item/{name}'}
-    def write_select_model(item_name, model_ids, fallback_name):
-        definition={'model':{
-            'type':'minecraft:range_dispatch',
-            'property':'minecraft:custom_model_data',
-            'index':0,
-            'entries':[{'threshold':model_id,'model':model_ref(model_name)} for model_id,model_name in sorted(model_ids.items())],
-            'fallback':model_ref(fallback_name)
-        }}
-        (item_defs/f'{item_name}.json').write_text(json.dumps(definition,indent=2)+'\n',encoding='utf-8')
-    write_select_model('echo_shard',{7801:'evolution_orb_7801',7804:'evolution_orb_7804'},'echo_shard')
-    write_select_model('amethyst_shard',{7802:'evolution_orb_7802'},'amethyst_shard')
-    write_select_model('nether_star',{7803:'evolution_orb_7803'},'nether_star')
-    write_select_model('compass',{7805:'evolution_path_changer'},'compass')
-    write_select_model('paper',{7901:'evolution_path_hunt',7902:'evolution_path_alchemy',7903:'evolution_path_enchantment',7904:'evolution_path_prospector',7905:'evolution_path_ender',7906:'evolution_path_trade',7907:'evolution_path_calamity'},'paper')
-    write_select_model('gold_ingot',{7890:'evolution_fx_gem'},'gold_ingot')
 
-    # These custom icons are also exposed as direct item models. Core and FX bind the
-    # items to these identifiers explicitly, avoiding fragile CMD-only dispatch on newer clients.
-    direct_item_models = ['evolution_path_changer', 'evolution_fx_gem', *[f'evolution_path_{name}' for _, (name, _, _) in path_specs.items()]]
-    for item_model_name in direct_item_models:
-        (item_defs/f'{item_model_name}.json').write_text(
-            json.dumps({'model': model_ref(item_model_name)}, indent=2) + '\n', encoding='utf-8')
+    # Every custom item lives in the plugin namespace. Vanilla item models,
+    # definitions, and textures are never replaced by this pack.
+    model_textures={
+        'evolution_orb_7801': orb_texture(7801),
+        'evolution_orb_7802': orb_texture(7802),
+        'evolution_orb_7803': orb_texture(7803),
+        'evolution_orb_7804': orb_texture(7804),
+        'evolution_path_changer': orb_texture(7805),
+        'evolution_fx_gem': orb_texture(7890),
+        'fx_particle_spark': fx_particle_texture("spark"),
+        'fx_particle_shard': fx_particle_texture("shard"),
+        'fx_particle_rune': fx_particle_texture("rune"),
+        'fx_particle_flare': fx_particle_texture("flare"),
+    }
+    for name,pixels in model_textures.items():
+        png_rgba(textures/f'{name}.png',pixels)
 
-    # Minecraft Java 26.3 uses resource-pack format 97.1.
-    pack_format=[75,0] if args.version=='1.21.11' else [97,1]
-    (root/'pack.mcmeta').write_text(json.dumps({'pack':{'min_format':pack_format,'max_format':pack_format,'description':f'§5EvolutionSMP §8• §fRiftbound Relics ({args.version})'}},indent=2)+'\n',encoding='utf-8')
-    (root/'README.txt').write_text('EvolutionSMP Resource Pack 1.0.0\nMinecraft Java 26.3\nIncludes Tier II-IV orbs, Echo Shards, Path Changer, seven path sigils, and FX gem.\nThe Core plugin can deliver this pack automatically from a public HTTPS URL.\n',encoding='utf-8')
-    output=args.output or ('dist/EvolutionSMP-ResourcePack-1.21.11.zip' if args.version=='1.21.11' else 'dist/EvolutionSMP-ResourcePack-26.3.zip')
-    out=Path(output); out.parent.mkdir(parents=True,exist_ok=True)
+    path_specs={
+        'hunt':((205,35,55),(255,205,215)),
+        'alchemy':((35,175,105),(180,255,200)),
+        'enchantment':((125,65,220),(225,195,255)),
+        'prospector':((205,135,35),(255,230,135)),
+        'ender':((35,145,215),(175,235,255)),
+        'trade':((30,165,125),(175,255,220)),
+        'calamity':((65,20,80),(190,55,115)),
+    }
+    for name,(primary,accent) in path_specs.items():
+        png_rgba(textures/f'evolution_path_{name}.png',path_icon_texture(name,primary,accent))
+
+    def write_model(name, texture_name):
+        model={
+            'parent':'minecraft:item/generated',
+            'textures':{'layer0':f'{namespace}:item/{texture_name}'}
+        }
+        (models/f'{name}.json').write_text(json.dumps(model,indent=2)+'\n',encoding='utf-8')
+
+    for name in model_textures:
+        write_model(name,name)
+    for name in path_specs:
+        model_name=f'evolution_path_{name}'
+        write_model(model_name,model_name)
+
+    # Paper 26.3 custom item model component IDs, independent of vanilla carriers.
+    item_models={
+        'orb_t2':'evolution_orb_7801',
+        'orb_t3':'evolution_orb_7802',
+        'orb_t4':'evolution_orb_7803',
+        'evolution_shard':'evolution_orb_7804',
+        'path_changer':'evolution_path_changer',
+        'fx_gem':'evolution_fx_gem',
+        'fx_spark':'fx_particle_spark',
+        'fx_shard':'fx_particle_shard',
+        'fx_rune':'fx_particle_rune',
+        'fx_flare':'fx_particle_flare',
+    }
+    for name in path_specs:
+        item_models[f'path_{name}']=f'evolution_path_{name}'
+
+    for item_id,model_name in item_models.items():
+        definition={'model':{'type':'minecraft:model','model':f'{namespace}:item/{model_name}'}}
+        (item_defs/f'{item_id}.json').write_text(json.dumps(definition,indent=2)+'\n',encoding='utf-8')
+
+    # A custom animated Totem particle is an effects-only override; no vanilla
+    # Totem item texture, model, or item definition is touched.
+    particle_dir=root/'assets/minecraft/textures/particle'
+    particle_dir.mkdir(parents=True,exist_ok=True)
+    png_rgba(particle_dir/'totem_of_undying.png',totem_particle_texture(),16,128)
+    (particle_dir/'totem_of_undying.png.mcmeta').write_text(
+        json.dumps({'animation':{'frametime':2,'interpolate':False,'frames':list(range(8))}},indent=2)+'\n',
+        encoding='utf-8'
+    )
+
+    pack_format=[97,1]
+    (root/'pack.mcmeta').write_text(json.dumps({
+        'pack':{'min_format':pack_format,'max_format':pack_format,
+                'description':'§5EvolutionSMP §8• §fRiftbound Relics (26.3)'}
+    },indent=2)+'\n',encoding='utf-8')
+    (root/'README.txt').write_text(
+        'EvolutionSMP Resource Pack 1.0.0\nMinecraft Java 26.3\n'
+        'Custom namespaced Evolution orbs, shards, path sigils, Path Changer, and FX gem.\n'
+        'Only the Totem particle atlas is overridden in the minecraft namespace; vanilla item/block assets remain untouched.\n',
+        encoding='utf-8'
+    )
+
+    out=Path(args.output)
+    out.parent.mkdir(parents=True,exist_ok=True)
     with zipfile.ZipFile(out,'w',zipfile.ZIP_DEFLATED,compresslevel=9) as z:
-        for f in sorted(root.rglob('*')):
-            if f.is_file(): z.write(f,f.relative_to(root).as_posix())
+        pack_files=[root/'pack.mcmeta',root/'README.txt'] + sorted(assets_root.rglob('*'))
+        for f in pack_files:
+            if f.is_file() and f.resolve()!=out.resolve(): z.write(f,f.relative_to(root).as_posix())
+
     with zipfile.ZipFile(out) as z:
         names=set(z.namelist())
         assert 'pack.mcmeta' in names
-        pack_meta=json.loads(z.read('pack.mcmeta').decode('utf-8'))['pack']
-        expected_format=[75,0] if args.version=='1.21.11' else [97,1]
-        assert pack_meta.get('min_format')==expected_format and pack_meta.get('max_format')==expected_format, f'Pack format mismatch for {args.version}'
-        for base in ['echo_shard','amethyst_shard','nether_star','compass','paper','gold_ingot','totem_of_undying']:
-            assert f'assets/minecraft/models/item/{base}.json' in names
-            assert f'assets/minecraft/items/{base}.json' in names, f'Missing 26.3 item definition for {base}'
-        assert 'assets/minecraft/textures/item/evolution_path_changer.png' in names
-        assert 'assets/minecraft/textures/item/totem_of_undying.png' in names
+        meta=json.loads(z.read('pack.mcmeta').decode('utf-8'))['pack']
+        assert meta.get('min_format')==pack_format and meta.get('max_format')==pack_format
+        forbidden_prefixes=(
+            'assets/minecraft/models/',
+            'assets/minecraft/items/',
+            'assets/minecraft/textures/item/',
+            'assets/minecraft/textures/block/',
+        )
+        forbidden=[name for name in names if name.startswith(forbidden_prefixes)]
+        assert not forbidden, f'Pack must not replace vanilla item/block assets: {forbidden[:5]}'
         assert 'assets/minecraft/textures/particle/totem_of_undying.png' in names
-        orb_pixels=[z.read(f'assets/minecraft/textures/item/evolution_orb_{i}.png') for i in (7801,7802,7803,7804)]
-        assert len(set(orb_pixels))==4 and len(set(orb_pixels[:3]))==3, 'Tier II/III/IV orb shapes must all be distinct'
-        assert z.read('assets/minecraft/textures/item/totem_of_undying.png') != orb_pixels[3]
-        assert z.read('assets/minecraft/textures/particle/totem_of_undying.png') != orb_pixels[3]
-        particle_png=z.read('assets/minecraft/textures/particle/totem_of_undying.png')
-        assert struct.unpack('>II',particle_png[16:24])==(16,128), 'Totem particle must remain an 8-frame vertical sprite sheet'
         assert 'assets/minecraft/textures/particle/totem_of_undying.png.mcmeta' in names
-        path_ids={'hunt':7901,'alchemy':7902,'enchantment':7903,'prospector':7904,'ender':7905,'trade':7906,'calamity':7907}
-        paper_def=json.loads(z.read('assets/minecraft/items/paper.json').decode('utf-8'))['model']
-        paper_entries={int(entry['threshold']):entry['model']['model'] for entry in paper_def.get('entries',[])}
-        for path_name,model_id in path_ids.items():
-            item_model_name=f'evolution_path_{path_name}'
-            assert f'assets/minecraft/textures/item/{item_model_name}.png' in names
-            assert f'assets/minecraft/models/item/{item_model_name}.json' in names
-            assert paper_entries.get(model_id)==f'minecraft:item/{item_model_name}', f'Wrong CMD item-model mapping for {path_name}'
-            direct=json.loads(z.read(f'assets/minecraft/items/{item_model_name}.json').decode('utf-8'))['model']
-            assert direct=={'type':'minecraft:model','model':f'minecraft:item/{item_model_name}'}, f'Wrong direct item-model binding for {path_name}'
-        changer_def=json.loads(z.read('assets/minecraft/items/evolution_path_changer.json').decode('utf-8'))['model']
-        assert changer_def=={'type':'minecraft:model','model':'minecraft:item/evolution_path_changer'}, 'Wrong direct Path Changer item-model binding'
-        assert 'assets/minecraft/textures/item/evolution_path_changer.png' in names
-        parsed={}
-        for model_path in [n for n in z.namelist() if n.endswith('.json') or n.endswith('.mcmeta')]:
-            parsed[model_path]=json.loads(z.read(model_path).decode('utf-8'))
-        for model_path, model in parsed.items():
-            for texture in model.get('textures', {}).values():
-                if texture.startswith('minecraft:item/evolution_'):
-                    texture_path=f'assets/minecraft/textures/{texture.split(":",1)[1]}.png'
-                    assert texture_path in names, f'Missing custom texture {texture_path} from {model_path}'
-            if '/items/' in model_path:
-                root_model=model.get('model',{})
-                for entry in root_model.get('entries',[]):
-                    target=entry.get('model',{}).get('model','')
-                    if target:
-                        namespace, resource=target.split(':',1)
-                        assert f'assets/{namespace}/models/{resource}.json' in names, f'Missing model target {target} from {model_path}'
-                fallback=root_model.get('fallback',{}).get('model','')
-                if fallback:
-                    namespace, resource=fallback.split(':',1)
-                    assert f'assets/{namespace}/models/{resource}.json' in names, f'Missing fallback model {fallback} from {model_path}'
-        for name in z.namelist():
-            if name.endswith('.png'): assert z.read(name).startswith(b'\x89PNG\r\n\x1a\n')
-    print(f'Created {out} ({out.stat().st_size} bytes, {len(specs)} orb variants).')
+        assert 'assets/evolutionsmp/items/orb_t2.json' in names
+        assert 'assets/evolutionsmp/items/evolution_shard.json' in names
+        assert len([name for name in names if name.startswith('assets/evolutionsmp/items/') and name.endswith('.json')])==len(item_models)
+        for model_path in [name for name in names if name.endswith('.json') or name.endswith('.mcmeta')]:
+            parsed=json.loads(z.read(model_path).decode('utf-8'))
+            for texture in parsed.get('textures',{}).values():
+                if texture.startswith(namespace+':item/'):
+                    texture_path=f'assets/{namespace}/textures/{texture.split(":",1)[1]}.png'
+                    assert texture_path in names, f'Missing texture {texture_path}'
+            if model_path.startswith(f'assets/{namespace}/items/'):
+                target=parsed.get('model',{}).get('model','')
+                assert target.startswith(namespace+':item/')
+                target_path=f'assets/{namespace}/models/{target.split(":",1)[1]}.json'
+                assert target_path in names, f'Missing model target {target}'
+        for name in names:
+            if name.endswith('.png'):
+                assert z.read(name).startswith(b'\x89PNG\r\n\x1a\n'), f'Invalid PNG: {name}'
+        # Verify all seven distinct path sigils are packaged.
+        for name in path_specs:
+            assert f'assets/{namespace}/textures/item/evolution_path_{name}.png' in names
+            assert f'assets/{namespace}/items/path_{name}.json' in names
+    print(f'Created {out} ({out.stat().st_size} bytes, {len(item_models)} custom item models).')
 
-if __name__ == '__main__': main()
+if __name__ == '__main__':
+    main()

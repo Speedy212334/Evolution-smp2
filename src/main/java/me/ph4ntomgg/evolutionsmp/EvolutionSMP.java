@@ -4,7 +4,9 @@ import me.ph4ntomgg.evolutionsmp.command.EvolutionCommand;
 import me.ph4ntomgg.evolutionsmp.command.EvolutionFXCommand;
 import me.ph4ntomgg.evolutionsmp.fx.CustomAnimationManager;
 import me.ph4ntomgg.evolutionsmp.ability.AbilityService;
+import me.ph4ntomgg.evolutionsmp.ability.OreResonanceService;
 import me.ph4ntomgg.evolutionsmp.domain.PlayerProgress;
+import me.ph4ntomgg.evolutionsmp.domain.ProgressionRules;
 import me.ph4ntomgg.evolutionsmp.fx.CinematicEffects;
 import me.ph4ntomgg.evolutionsmp.gameplay.GameplayListener;
 import me.ph4ntomgg.evolutionsmp.gameplay.AlchemyFusionListener;
@@ -25,35 +27,46 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitTask;
 
 public final class EvolutionSMP extends JavaPlugin implements Listener {
     private ProgressService progress;
     private CinematicEffects effects;
     private AbilityService abilities;
+    private OreResonanceService resonance;
     private CustomAnimationManager animations;
     private PathPassiveListener passives;
+    private BukkitTask progressFlushTask;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
-        progress = new ProgressService(new ProgressRepository(this));
+        progress = new ProgressService(new ProgressRepository(this),
+                getConfig().getLong("progression.thresholds.t2", ProgressionRules.DEFAULT_T2_XP),
+                getConfig().getLong("progression.thresholds.t3", ProgressionRules.DEFAULT_T3_XP),
+                getConfig().getLong("progression.thresholds.t4", ProgressionRules.DEFAULT_T4_XP));
+        progressFlushTask = getServer().getScheduler().runTaskTimer(this, progress::flush, 100L, 100L);
         effects = new CinematicEffects(this);
         animations = new CustomAnimationManager(this);
         animations.reload();
         abilities = new AbilityService(this, progress);
+        resonance = new OreResonanceService(this, progress);
+        passives = new PathPassiveListener(this, progress);
+        getServer().getPluginManager().registerEvents(passives, this);
         EvolutionItems items = new EvolutionItems(this);
         items.registerRecipes();
         RecipeMenu recipes = new RecipeMenu(items);
         EvolutionMainMenu mainMenu = new EvolutionMainMenu(progress, items);
         CurseRemovalMenu curseMenu = new CurseRemovalMenu(progress);
-        PathSelectionMenu menu = new PathSelectionMenu(this, progress, effects);
+        EnderAbilityListener enderAbilities = new EnderAbilityListener(this, progress);
+        PathSelectionMenu menu = new PathSelectionMenu(this, progress, effects, abilities, resonance, passives, enderAbilities);
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getPluginManager().registerEvents(new GameplayListener(this, progress), this);
         getServer().getPluginManager().registerEvents(new AlchemyFusionListener(this, progress), this);
-        getServer().getPluginManager().registerEvents(new EnderAbilityListener(this, progress), this);
-        passives = new PathPassiveListener(this, progress);
-        getServer().getPluginManager().registerEvents(passives, this);
+        getServer().getPluginManager().registerEvents(enderAbilities, this);
         getServer().getPluginManager().registerEvents(abilities, this);
+        abilities.resumeOnlinePlayers();
+        getServer().getPluginManager().registerEvents(resonance, this);
         getServer().getPluginManager().registerEvents(new RecipeMenuListener(), this);
         getServer().getPluginManager().registerEvents(new PathChangerListener(items, menu), this);
         getServer().getPluginManager().registerEvents(new EvolutionMainMenuListener(progress, menu, recipes, effects), this);
@@ -64,7 +77,7 @@ public final class EvolutionSMP extends JavaPlugin implements Listener {
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
-        getCommand("evo").setExecutor(new EvolutionCommand(progress, menu, effects, abilities, recipes, items, mainMenu, curseMenu));
+        getCommand("evo").setExecutor(new EvolutionCommand(progress, menu, effects, abilities, resonance, recipes, items, mainMenu, curseMenu));
         getCommand("evofx").setExecutor(new EvolutionFXCommand(animations, effects, progress));
         getCommand("enderchest").setExecutor((sender, command, label, args) -> {
             if (!(sender instanceof org.bukkit.entity.Player player)) { sender.sendMessage("Players only."); return true; }
@@ -82,6 +95,7 @@ public final class EvolutionSMP extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
+        new EvolutionItems(this).migrateInventory(event.getPlayer());
         PlayerProgress state = progress.get(event.getPlayer().getUniqueId());
         if (state.path() == null) {
             event.getPlayer().sendMessage(ChatColor.GRAY + "Your evolution has not begun. An administrator will assign your path.");
@@ -90,9 +104,11 @@ public final class EvolutionSMP extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
+        if (progressFlushTask != null) progressFlushTask.cancel();
         if (progress != null) progress.flush();
         if (effects != null) effects.shutdown();
         if (abilities != null) abilities.shutdown();
+        if (resonance != null) resonance.shutdown();
         if (animations != null) animations.stopAll();
         if (passives != null) passives.shutdown();
         getLogger().info("EvolutionSMP 1.0.0 stopped; services flushed.");
