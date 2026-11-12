@@ -353,17 +353,31 @@ public final class CustomAnimationManager {
 
                 if (definition.ringEnabled && age % definition.ringIntervalTicks == 0
                         && particlesRemaining >= definition.ringPoints) {
-                    double ringProgress = smooth((age % definition.cycleTicks) / (double) definition.cycleTicks);
+                    // Three travelling sigil waves per cycle create a staged charge/release
+                    // instead of a single ring that merely grows once and stays there.
+                    double cyclePhase = (age % definition.cycleTicks) / (double) definition.cycleTicks;
+                    double wavePhase = (cyclePhase * 3.0) % 1.0;
+                    double waveEnvelope = Math.sin(Math.PI * wavePhase);
+                    double ringProgress = smooth(wavePhase);
                     for (int layer = 0; layer < definition.ringLayers; layer++) {
                         if (particlesRemaining < definition.ringPoints) break;
-                        double layerScale = 0.58 + layer * 0.42;
-                        double radius = definition.ringRadius * layerScale * (0.18 + 0.82 * ringProgress);
-                        double rotation = age * (definition.rotationSpeed * (layer % 2 == 0 ? 1.0 : -0.72)) + layer * 0.22;
-                        Location ringCenter = base.clone().add(0.0, definition.ringHeight + layer * 0.025, 0.0);
-                        Particle.DustOptions dust = new Particle.DustOptions(definition.ringColor, Math.max(0.1f, definition.ringSize - layer * 0.12f));
+                        double layerScale = 0.54 + layer * 0.46;
+                        double direction = layer % 2 == 0 ? 1.0 : -0.78;
+                        double radius = definition.ringRadius * layerScale * (0.22 + 0.78 * ringProgress);
+                        double rotation = age * definition.rotationSpeed * direction + layer * 0.31;
+                        double lift = definition.ringHeight + layer * 0.035
+                                + Math.sin(age * 0.11 + layer * Math.PI) * 0.025;
+                        Location ringCenter = base.clone().add(0.0, lift, 0.0);
+                        float pulseSize = (float) (definition.ringSize * (0.72 + 0.28 * waveEnvelope));
+                        Particle.DustOptions dust = new Particle.DustOptions(definition.ringColor,
+                                Math.max(0.1f, pulseSize - layer * 0.10f));
                         for (int pointIndex = 0; pointIndex < definition.ringPoints && particlesRemaining > 0; pointIndex++) {
                             double ringAngle = rotation + Math.PI * 2.0 * pointIndex / definition.ringPoints;
-                            Location point = ringCenter.clone().add(Math.cos(ringAngle) * radius, 0.0, Math.sin(ringAngle) * radius);
+                            double angularAccent = pointIndex % 4 == 0 ? 1.035 : 1.0;
+                            Location point = ringCenter.clone().add(
+                                    Math.cos(ringAngle) * radius * angularAccent,
+                                    Math.sin(ringAngle * 3.0 + age * 0.08) * 0.018,
+                                    Math.sin(ringAngle) * radius * angularAccent);
                             world.spawnParticle(Particle.DUST, point, 1, 0.0, 0.0, 0.0, 0.0, dust);
                             particlesRemaining--;
                         }
