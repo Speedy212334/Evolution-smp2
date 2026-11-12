@@ -58,11 +58,12 @@ public final class EvolutionSMP extends JavaPlugin implements Listener {
         RecipeMenu recipes = new RecipeMenu(items);
         EvolutionMainMenu mainMenu = new EvolutionMainMenu(progress, items);
         CurseRemovalMenu curseMenu = new CurseRemovalMenu(progress);
-        PathSelectionMenu menu = new PathSelectionMenu(this, progress, effects, abilities, resonance, passives);
+        EnderAbilityListener enderAbilities = new EnderAbilityListener(this, progress);
+        PathSelectionMenu menu = new PathSelectionMenu(this, progress, effects, abilities, resonance, passives, enderAbilities);
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getPluginManager().registerEvents(new GameplayListener(this, progress), this);
         getServer().getPluginManager().registerEvents(new AlchemyFusionListener(this, progress), this);
-        getServer().getPluginManager().registerEvents(new EnderAbilityListener(this, progress), this);
+        getServer().getPluginManager().registerEvents(enderAbilities, this);
         getServer().getPluginManager().registerEvents(abilities, this);
         abilities.resumeOnlinePlayers();
         getServer().getPluginManager().registerEvents(resonance, this);
