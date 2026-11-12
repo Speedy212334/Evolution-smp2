@@ -6,6 +6,8 @@ import me.ph4ntomgg.evolutionsmp.service.ProgressService;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -23,10 +25,11 @@ import java.util.UUID;
 public final class EnderAbilityListener implements Listener {
     private final ProgressService progress;
     private final Map<UUID, Location> lastSafe = new HashMap<>();
-    private final Map<UUID, Long> voidStepCooldown = new HashMap<>();
+    private final NamespacedKey voidStepCooldownKey;
 
     public EnderAbilityListener(JavaPlugin plugin, ProgressService progress) {
         this.progress = progress;
+        this.voidStepCooldownKey = new NamespacedKey(plugin, "void_step_cooldown_until");
     }
 
     @EventHandler
@@ -61,13 +64,16 @@ public final class EnderAbilityListener implements Listener {
         UUID id = player.getUniqueId();
         Location to = event.getTo();
         if (to.getY() <= player.getWorld().getMinHeight() + 4) {
-            if (voidStepCooldown.getOrDefault(id, 0L) > System.currentTimeMillis()) return;
+            long cooldownUntil = player.getPersistentDataContainer()
+                    .getOrDefault(voidStepCooldownKey, PersistentDataType.LONG, 0L);
+            if (cooldownUntil > System.currentTimeMillis()) return;
             Location safe = lastSafe.get(id);
             if (safe != null && safe.getWorld() == player.getWorld() && isSafeLocation(safe)) {
                 // A protection plugin may cancel the rescue teleport. Only consume
                 // the cooldown after the player actually reaches the safe location.
                 if (player.teleport(safe)) {
-                    voidStepCooldown.put(id, System.currentTimeMillis() + 60_000L);
+                    player.getPersistentDataContainer().set(voidStepCooldownKey, PersistentDataType.LONG,
+                            System.currentTimeMillis() + 60_000L);
                     player.sendMessage(ChatColor.LIGHT_PURPLE + "Void Step activated. You were pulled back to safety.");
                     player.getWorld().playSound(safe, org.bukkit.Sound.ENTITY_ENDERMAN_TELEPORT, 0.8f, 1.4f);
                 }
@@ -94,8 +100,8 @@ public final class EnderAbilityListener implements Listener {
 
     /** Reset Ender-only cooldown and refresh the rescue anchor after a path change. */
     public void resetPathCooldowns(UUID id) {
-        voidStepCooldown.remove(id);
         Player player = org.bukkit.Bukkit.getPlayer(id);
+        if (player != null) player.getPersistentDataContainer().remove(voidStepCooldownKey);
         if (player != null && isEnderTierFour(player)) {
             lastSafe.put(id, player.getLocation().clone());
         } else {
