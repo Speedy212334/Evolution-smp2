@@ -19,6 +19,22 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
+sourceSets {
+    evolutionFx {
+        java {
+            srcDir 'src/main/java'
+            include 'me/ph4ntomgg/evolutionsmp/fx/CustomAnimationManager.java'
+            include 'me/ph4ntomgg/evolutionsmp/fx/EvolutionFXPlugin.java'
+            include 'me/ph4ntomgg/evolutionsmp/fx/EvolutionFXCommand.java'
+        }
+        resources.srcDir 'src/evolutionFx/resources'
+    }
+}
+
+configurations {
+    evolutionFxCompileOnly.extendsFrom compileOnly
+}
+
 java {
     toolchain.languageVersion = JavaLanguageVersion.of(25)
 }
@@ -34,6 +50,12 @@ tasks.test {
 
 jar {
     archiveBaseName = 'EvolutionSMP'
+}
+
+tasks.register('evolutionFxJar', Jar) {
+    dependsOn tasks.named('evolutionFxClasses')
+    archiveBaseName = 'EvolutionFX'
+    from sourceSets.evolutionFx.output
 }
 
 tasks.register('compatibilityReport') {
@@ -59,20 +81,28 @@ tasks.register('generateResourcePack', Exec) {
 
 
 tasks.register('verifyArtifacts') {
-    dependsOn 'jar', 'generateResourcePack'
+    dependsOn 'jar', 'evolutionFxJar', 'generateResourcePack'
     doLast {
         def jarFile = tasks.named('jar').get().archiveFile.get().asFile
         def packFile = layout.buildDirectory.file('pack/EvolutionSMP-ResourcePack-26.3.zip').get().asFile
-        if (!jarFile.exists() || jarFile.length() == 0) throw new GradleException('Unified plugin JAR is missing or empty')
+        if (!jarFile.exists() || jarFile.length() == 0) throw new GradleException('EvolutionSMP plugin JAR is missing or empty')
+        def fxJarFile = tasks.named('evolutionFxJar').get().archiveFile.get().asFile
+        if (!fxJarFile.exists() || fxJarFile.length() == 0) throw new GradleException('EvolutionFX plugin JAR is missing or empty')
         if (!packFile.exists() || packFile.length() == 0) throw new GradleException('Resource pack ZIP is missing or empty')
         def jarEntries = zipTree(jarFile).files.collect { it.name } as Set
-        ['plugin.yml', 'config.yml', 'animations.yml'].each { required ->
+        ['plugin.yml', 'config.yml'].each { required ->
             if (!jarEntries.contains(required)) throw new GradleException('Plugin JAR is missing ' + required)
+        }
+        new java.util.zip.ZipFile(fxJarFile).withCloseable { zip ->
+            ['plugin.yml', 'animations.yml'].each { required ->
+                if (zip.getEntry(required) == null) throw new GradleException('EvolutionFX JAR is missing ' + required)
+            }
         }
         new java.util.zip.ZipFile(packFile).withCloseable { zip ->
             if (zip.getEntry('pack.mcmeta') == null) throw new GradleException('Resource pack has no pack.mcmeta')
         }
         println "Verified " + jarFile.name + " (" + jarFile.length() + " bytes)"
+        println "Verified " + fxJarFile.name + " (" + fxJarFile.length() + " bytes)"
         println "Verified " + packFile.name + " (" + packFile.length() + " bytes)"
     }
 }
