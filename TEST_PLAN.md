@@ -37,7 +37,7 @@ Target: Paper 26.3, Java 25. Run on a disposable test server with a backup and a
 ### Hunt
 - Veil: Hunt T4 only; 10-second duration, three-minute cooldown, no attacks/projectiles/block interaction/item drops, no chest/container interaction (including closing an inventory already open at activation), silent/invisible, hidden from current and newly joining viewers, and correctly restored after world changes, quit, or timeout.
 - Hunt T3+: player kill death messages/kill-credit are suppressed; lower Hunt tiers and other paths retain normal death messages.
-- Verify Hunt speed and fall mitigation at each intended tier.
+- Verify Hunt speed and fall mitigation at each intended tier. Higher-amplifier potion effects must not be downgraded by passives or removed when the player changes path/quits; unrelated long-duration effects must remain intact.
 
 ### Prospector
 - Ore Resonance: Prospector T4 only; scans a spherical 50-block radius in loaded chunks, displays ore-coloured outlines and accent particles only to the activating player, lasts 60 seconds, reveals no coordinates, and never loads chunks. Verify other online players and players joining mid-session cannot see either the markers or their particles.
