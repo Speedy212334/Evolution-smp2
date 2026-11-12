@@ -181,3 +181,28 @@ animations:
     sound-interval-ticks: 60
     sound-volume: 0.18
     sound-pitch: 1.1
+
+  physics-shard-burst:
+    material: PAPER
+    item-model: evolutionsmp:fx_gem
+    shape: physics-burst
+    cycle-ticks: 48
+    loop: false
+    copies: 12
+    radius: 0.0
+    height: 1.35
+    bob: 0.0
+    scale: 0.32
+    rotation-speed: 0.22
+    tilt: 0.2
+    particle: ELECTRIC_SPARK
+    particle-count: 1
+    particle-interval-ticks: 3
+    physics-gravity: 0.035
+    physics-drag: 0.985
+    physics-bounce: 0.42
+    physics-life-ticks: 48
+    sound: BLOCK_AMETHYST_BLOCK_RESONATE
+    sound-interval-ticks: 48
+    sound-volume: 0.35
+    sound-pitch: 1.25
