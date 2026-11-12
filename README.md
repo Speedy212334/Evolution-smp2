@@ -87,6 +87,20 @@ python pack/generate_resource_pack.py --version 26.3 --output build/pack/Evoluti
 
 The generator checks distinct T2/T3/T4 orb silhouettes, Evolution Shard separation, the animated Totem particle atlas, seven path sigils, Path Changer, FX gem model references, PNG integrity, pack metadata, and that vanilla item/block assets are not overridden.
 
+
+## Detailed custom animations
+
+The animation library includes seven path-specific signatures: Hunt Awakening, Alchemy Catalyst, Enchantment Ascension, Prospector Resonance, Ender Rift, Trade Prosperity, and Calamity Cataclysm. Each uses its own path model, movement pattern, sound profile, and colour palette.
+
+Animations can combine:
+- Orbiting, helix, figure-eight, rise, pulse, vortex, and collision-aware physics bursts.
+- Layered ground sigils with counter-rotating rings that expand over the animation cycle.
+- Configurable ring point count, layers, radius, elevation, colour, size, and update interval.
+- Coloured dust transitions and short Paper trail particles on physics bursts.
+- Bounded particle output per animation tick and capped display-entity counts.
+
+To preview an effect, use `/evofx list`, then `/evofx play <id> <player> [seconds]`. Ring settings are optional in `plugins/EvolutionSMP/animations.yml`; set `ring-enabled: true` on an animation to activate them. The seven signature presets are examples and can be tuned without changing Java code.
+
 ## Verification boundaries
 
 CI compilation, unit tests, and resource-pack validation are automated. A live Paper 26.3 server smoke test has not yet been performed. Automatic resource-pack delivery is intentionally disabled until a real public HTTPS ZIP URL and matching SHA-1 are configured.
