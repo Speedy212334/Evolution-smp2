@@ -146,6 +146,9 @@ public final class CustomAnimationManager {
                 float particleSize = (float) clamp(cfg.getDouble("particle-size", 0.8), 0.1, 4.0);
                 Color particleColor = parseColor(cfg.getString("particle-color", "B47DFF"), Color.fromRGB(180, 125, 255));
                 Color particleColorEnd = parseColor(cfg.getString("particle-color-end", "FFFFFF"), Color.WHITE);
+                boolean trailEnabled = cfg.getBoolean("trail-enabled", false);
+                Color trailColor = parseColor(cfg.getString("trail-color", "75E9FF"), Color.fromRGB(117, 233, 255));
+                int trailDuration = Math.max(2, Math.min(100, cfg.getInt("trail-duration-ticks", 24)));
 
                 loaded.put(id, new AnimationDefinition(
                         id, material, itemModel, modelData, rawShape, cycleTicks,
@@ -154,7 +157,8 @@ public final class CustomAnimationManager {
                         particleInterval, sound, soundInterval, volume, pitch, glow,
                         physicsGravity, physicsDrag, physicsBounce, physicsLifeTicks,
                         physicsInitialSpeed, physicsUpwardSpeed, particleSpread, particleSpeed,
-                        particleSize, particleColor, particleColorEnd
+                        particleSize, particleColor, particleColorEnd,
+                        trailEnabled, trailColor, trailDuration
                 ));
             }
         }
@@ -327,6 +331,14 @@ public final class CustomAnimationManager {
                         spawnParticle(world, at, definition, count);
                         particlesRemaining -= count;
                     }
+                    if (definition.trailEnabled && definition.shape.equals("physics-burst")
+                            && age % definition.particleIntervalTicks == 0 && particlesRemaining > 0) {
+                        Location destination = base.clone().add(0.0, 1.0, 0.0);
+                        world.spawnParticle(Particle.TRAIL, at, 1, 0.0, 0.0, 0.0,
+                                new Particle.Trail(destination, definition.trailColor,
+                                        definition.trailDurationTicks));
+                        particlesRemaining--;
+                    }
                 }
 
                 if (definition.sound != null && age % definition.soundIntervalTicks == 0) {
@@ -496,7 +508,8 @@ public final class CustomAnimationManager {
             boolean glowing, double physicsGravity, double physicsDrag,
             double physicsBounce, int physicsLifeTicks, double physicsInitialSpeed,
             double physicsUpwardSpeed, double particleSpread, double particleSpeed,
-            float particleSize, Color particleColor, Color particleColorEnd
+            float particleSize, Color particleColor, Color particleColorEnd,
+            boolean trailEnabled, Color trailColor, int trailDurationTicks
     ) {}
 
     private static final class AnimationSession {
