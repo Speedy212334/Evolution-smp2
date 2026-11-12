@@ -124,7 +124,7 @@ Outputs:
 - `build/libs/EvolutionSMP-1.0.0.jar`
 - `build/pack/EvolutionSMP-ResourcePack-26.3.zip`
 
-The GitHub Actions workflow builds and uploads both artifacts on pushes to `main`.
+The GitHub Actions workflow runs on pushes to `main` and pull requests targeting `main`. It runs Java 25 compilation and unit tests, generates and validates the 26.3 resource pack, verifies both artifacts, and uploads the plugin JAR and resource-pack ZIP.
 
 ## Resource pack
 
