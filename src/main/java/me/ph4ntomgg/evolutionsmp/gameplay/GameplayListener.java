@@ -262,7 +262,10 @@ public final class GameplayListener implements Listener {
             for (PotionEffect effect : expected) {
                 PotionEffect active = player.getPotionEffect(effect.getType());
                 if (active == null) continue;
-                int duration = Math.min(24_000, (int) Math.ceil(active.getDuration() * multiplier));
+                int multipliedDuration = (int) Math.min(24_000L,
+                        (long) Math.ceil(active.getDuration() * multiplier));
+                // A long pre-existing effect must never be shortened by the cap.
+                int duration = Math.max(active.getDuration(), multipliedDuration);
                 player.addPotionEffect(new PotionEffect(active.getType(), duration, active.getAmplifier(),
                         active.isAmbient(), active.hasParticles(), active.hasIcon()), true);
             }
