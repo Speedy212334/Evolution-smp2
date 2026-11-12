@@ -195,7 +195,7 @@ public final class OreResonanceService implements Listener {
             marker.setViewRange(1.0f);
         });
 
-        Team team = teamFor(owner.getScoreboard(), style);
+        Team team = teamFor(session, owner.getScoreboard(), style);
         team.addEntry(display.getUniqueId().toString());
         for (Player viewer : Bukkit.getOnlinePlayers()) {
             if (!viewer.equals(owner)) viewer.hideEntity(plugin, display);
@@ -233,10 +233,26 @@ public final class OreResonanceService implements Listener {
         activeMarkerCount = Math.max(0, activeMarkerCount - 1);
     }
 
-    private Team teamFor(Scoreboard scoreboard, OreStyle style) {
-        Team team = scoreboard.getTeam(style.team);
-        if (team == null) team = scoreboard.registerNewTeam(style.team);
+    private Team teamFor(Session session, Scoreboard scoreboard, OreStyle style) {
+        Team existing = session.teams.get(style.team);
+        if (existing != null) return existing;
+
+        // Never borrow or recolour a scoreboard team owned by another plugin.
+        // Team names are limited to 16 characters, so use a compact owner/style key.
+        String ownerKey = session.owner.toString().replace("-", "").substring(0, 10);
+        String styleKey = Integer.toUnsignedString(style.team.hashCode(), 36);
+        if (styleKey.length() > 5) styleKey = styleKey.substring(0, 5);
+        String teamName = "e" + styleKey + ownerKey;
+        Team team = scoreboard.getTeam(teamName);
+        if (team != null) {
+            // A collision is extraordinarily unlikely, but never mutate a foreign team.
+            String randomSuffix = UUID.randomUUID().toString().replace("-", "").substring(0, 4);
+            teamName = "e" + styleKey.substring(0, Math.min(4, styleKey.length())) + randomSuffix;
+            team = scoreboard.getTeam(teamName);
+        }
+        if (team == null) team = scoreboard.registerNewTeam(teamName);
         team.setColor(style.color);
+        session.teams.put(style.team, team);
         return team;
     }
 
@@ -314,6 +330,7 @@ public final class OreResonanceService implements Listener {
         private final Location origin;
         private final Set<Long> loadedChunks;
         private final List<Marker> markers = new ArrayList<>();
+        private final Map<String, Team> teams = new HashMap<>();
         private int nextDy = -RADIUS;
         private int nextDx = -RADIUS;
         private boolean capacityLimited;
