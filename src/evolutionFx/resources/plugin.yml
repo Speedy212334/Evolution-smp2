@@ -9,6 +9,6 @@ commands:
     description: EvolutionFX animation controls
     usage: /evofx
 permissions:
-  evolution.admin:
+  evolutionfx.admin:
     description: Allows administration of EvolutionFX animations
     default: op
