@@ -1,8 +1,6 @@
 package me.ph4ntomgg.evolutionsmp;
 
 import me.ph4ntomgg.evolutionsmp.command.EvolutionCommand;
-import me.ph4ntomgg.evolutionsmp.command.EvolutionFXCommand;
-import me.ph4ntomgg.evolutionsmp.fx.CustomAnimationManager;
 import me.ph4ntomgg.evolutionsmp.ability.AbilityService;
 import me.ph4ntomgg.evolutionsmp.ability.OreResonanceService;
 import me.ph4ntomgg.evolutionsmp.domain.PlayerProgress;
@@ -34,7 +32,6 @@ public final class EvolutionSMP extends JavaPlugin implements Listener {
     private CinematicEffects effects;
     private AbilityService abilities;
     private OreResonanceService resonance;
-    private CustomAnimationManager animations;
     private PathPassiveListener passives;
     private BukkitTask progressFlushTask;
 
@@ -47,8 +44,6 @@ public final class EvolutionSMP extends JavaPlugin implements Listener {
                 getConfig().getLong("progression.thresholds.t4", ProgressionRules.DEFAULT_T4_XP));
         progressFlushTask = getServer().getScheduler().runTaskTimer(this, progress::flush, 100L, 100L);
         effects = new CinematicEffects(this);
-        animations = new CustomAnimationManager(this);
-        animations.reload();
         abilities = new AbilityService(this, progress);
         resonance = new OreResonanceService(this, progress);
         passives = new PathPassiveListener(this, progress);
@@ -72,13 +67,12 @@ public final class EvolutionSMP extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new EvolutionMainMenuListener(progress, menu, recipes, effects), this);
         getServer().getPluginManager().registerEvents(curseMenu, this);
 
-        if (getCommand("evo") == null || getCommand("evofx") == null || getCommand("enderchest") == null) {
+        if (getCommand("evo") == null || getCommand("enderchest") == null) {
             getLogger().severe("Command descriptors are missing; disabling plugin.");
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
         getCommand("evo").setExecutor(new EvolutionCommand(progress, menu, effects, abilities, resonance, recipes, items, mainMenu, curseMenu));
-        getCommand("evofx").setExecutor(new EvolutionFXCommand(animations, effects, progress));
         getCommand("enderchest").setExecutor((sender, command, label, args) -> {
             if (!(sender instanceof org.bukkit.entity.Player player)) { sender.sendMessage("Players only."); return true; }
             var state = progress.get(player.getUniqueId());
@@ -90,7 +84,7 @@ public final class EvolutionSMP extends JavaPlugin implements Listener {
             player.openInventory(player.getEnderChest());
             return true;
         });
-        getLogger().info("EvolutionSMP 1.0.0 enabled. Seven paths registered; unified FX lifecycle active.");
+        getLogger().info("EvolutionSMP 1.0.0 enabled. Seven evolution paths registered.");
     }
 
     @EventHandler
@@ -109,7 +103,6 @@ public final class EvolutionSMP extends JavaPlugin implements Listener {
         if (effects != null) effects.shutdown();
         if (abilities != null) abilities.shutdown();
         if (resonance != null) resonance.shutdown();
-        if (animations != null) animations.stopAll();
         if (passives != null) passives.shutdown();
         getLogger().info("EvolutionSMP 1.0.0 stopped; services flushed.");
     }
