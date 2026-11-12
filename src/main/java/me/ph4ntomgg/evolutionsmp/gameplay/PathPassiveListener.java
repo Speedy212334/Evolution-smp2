@@ -66,6 +66,10 @@ public final class PathPassiveListener implements Listener {
         for (Player player : org.bukkit.Bukkit.getOnlinePlayers()) refresh(player);
     }
 
+    public void refreshPlayer(Player player) {
+        if (player != null && player.isOnline()) refresh(player);
+    }
+
     private void refresh(Player player) {
         UUID id = player.getUniqueId();
         PlayerProgress p = progress.get(id);
