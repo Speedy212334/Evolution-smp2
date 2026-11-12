@@ -45,7 +45,9 @@ public final class PathSelectionMenu {
             item.setItemMeta(meta);
             inv.setItem(new int[]{10,11,12,13,14,15,16}[i], item);
         }
-        listener.track(target, viewer, consumeToken);
+        // Opening a replacement inventory fires InventoryCloseEvent for the old
+        // menu. Track the new session afterwards so that close cleanup cannot erase it.
         viewer.openInventory(inv);
+        listener.track(target, viewer, consumeToken);
     }
 }
