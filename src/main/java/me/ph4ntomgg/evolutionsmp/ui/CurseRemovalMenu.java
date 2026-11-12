@@ -43,14 +43,16 @@ public final class CurseRemovalMenu implements Listener {
             player.sendMessage(ChatColor.RED + "Hold the item you want to cleanse in your main hand.");
             return;
         }
-        selections.put(player.getUniqueId(), EnumSet.noneOf(Curse.class));
-        targetItems.put(player.getUniqueId(), held.clone());
         Inventory inv = Bukkit.createInventory(null, 27, TITLE);
         inv.setItem(13, held.clone());
         inv.setItem(11, toggle(Curse.BINDING, false));
         inv.setItem(15, toggle(Curse.VANISHING, false));
         inv.setItem(22, button(Material.LIME_CONCRETE, ChatColor.GREEN + "Confirm Removal", "Apply selected curse removals to the held item."));
+        // InventoryCloseEvent for a replaced menu clears its old session, so
+        // install the new selection state only after the new menu is open.
         player.openInventory(inv);
+        selections.put(player.getUniqueId(), EnumSet.noneOf(Curse.class));
+        targetItems.put(player.getUniqueId(), held.clone());
     }
 
     @EventHandler
