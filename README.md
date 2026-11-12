@@ -36,7 +36,7 @@ A clean-slate evolution-based Minecraft SMP plugin for Paper 26.3 and Java 25.
 
 ### Hunt
 - **Passive — Hunter's Pace:** Speed I from T1 and Speed II from T3. From T2, fall damage is reduced by 55%. From T3, your player-kill death message is hidden.
-- **Active — Veil (T4):** `/evo veil`. You become hidden from other players for 10 seconds. While active, you cannot attack, launch projectiles, break/place blocks, interact with entities, or drop items. Cooldown: 3 minutes.
+- **Active — Veil (T4):** `/evo veil`. You become hidden from other players for 10 seconds. While active, you cannot attack, launch projectiles, use items, interact with blocks or containers, interact with entities, break/place blocks, or drop items. Any open inventory is closed when Veil begins. Cooldown: 3 minutes.
 
 ### Alchemy
 - **Passive — Brewing Mastery:** Brewing time is reduced by 25% at T1, 45% at T2, 65% at T3, and to 1 tick at T4/Apex. Brewing fuel power is boosted.
