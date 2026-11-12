@@ -150,13 +150,9 @@ public final class EvolutionCommand implements CommandExecutor {
                 if (args.length < 2) { sender.sendMessage(ChatColor.RED + "Usage: /evo start <player>"); return true; }
                 Player target = Bukkit.getPlayerExact(args[1]);
                 if (target == null) { sender.sendMessage(ChatColor.RED + "That player is not online."); return true; }
-                if (sender instanceof Player viewer) {
-                    menu.open(target, viewer);
-                } else {
-                    // Console admins can initiate the flow; the online target receives the menu.
-                    menu.open(target, target);
-                    sender.sendMessage("Opened the path-selection menu for " + target.getName() + ".");
-                }
+                // The target chooses their own path; the admin only initiates the flow.
+                menu.open(target, target);
+                sender.sendMessage("Opened the path-selection menu for " + target.getName() + ".");
             }
             case "exp" -> {
                 if (!sender.hasPermission("evolution.admin")) { sender.sendMessage(ChatColor.RED + "No permission."); return true; }
