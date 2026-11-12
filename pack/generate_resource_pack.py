@@ -101,6 +101,29 @@ def orb_texture(model_id):
         draw_line(p,16,3,16,28,(255,245,174))
     return p
 
+
+def fx_particle_texture(kind):
+    """Original 32px pixel-art sprites for EvolutionFX; no third-party texture reuse."""
+    p=blank_canvas()
+    white=(255,255,245); cyan=(105,225,255); blue=(35,105,220)
+    gold=(255,205,75); orange=(255,105,45); violet=(190,115,255)
+    if kind=="spark":
+        draw_polygon(p,[(16,1),(19,12),(29,16),(19,19),(16,31),(13,19),(3,16),(13,12)],cyan,white,1)
+        draw_line(p,16,5,16,27,white,1)
+    elif kind=="shard":
+        draw_polygon(p,[(17,1),(25,10),(20,17),(22,25),(12,31),(10,20),(5,13)],blue,cyan,1)
+        draw_polygon(p,[(17,3),(18,16),(10,20),(7,13)],white)
+        draw_line(p,18,16,14,27,cyan,1)
+    elif kind=="rune":
+        draw_circle(p,16,16,13,violet,True)
+        draw_circle(p,16,16,10,(22,12,42),True)
+        draw_polygon(p,[(16,5),(22,15),(16,27),(10,15)],violet,white,1)
+        draw_line(p,10,15,22,15,white,1)
+    else: # flare
+        draw_polygon(p,[(16,1),(20,11),(29,7),(23,17),(30,24),(19,22),(14,31),(12,20),(3,23),(9,15),(4,8),(14,11)],orange,gold,1)
+        draw_circle(p,16,16,4,white,True)
+    return p
+
 def totem_texture():
     """A green-and-gold humanoid Totem texture, structurally unrelated to crystals."""
     p=blank_canvas(); gold=(215,163,44); light=(255,229,122); green=(49,139,91); mint=(156,230,154); dark=(43,31,17); deep=(15,66,55)
@@ -236,6 +259,10 @@ def main():
         'evolution_orb_7804': orb_texture(7804),
         'evolution_path_changer': orb_texture(7805),
         'evolution_fx_gem': orb_texture(7890),
+        'fx_particle_spark': fx_particle_texture("spark"),
+        'fx_particle_shard': fx_particle_texture("shard"),
+        'fx_particle_rune': fx_particle_texture("rune"),
+        'fx_particle_flare': fx_particle_texture("flare"),
     }
     for name,pixels in model_textures.items():
         png_rgba(textures/f'{name}.png',pixels)
@@ -273,6 +300,10 @@ def main():
         'evolution_shard':'evolution_orb_7804',
         'path_changer':'evolution_path_changer',
         'fx_gem':'evolution_fx_gem',
+        'fx_spark':'fx_particle_spark',
+        'fx_shard':'fx_particle_shard',
+        'fx_rune':'fx_particle_rune',
+        'fx_flare':'fx_particle_flare',
     }
     for name in path_specs:
         item_models[f'path_{name}']=f'evolution_path_{name}'
