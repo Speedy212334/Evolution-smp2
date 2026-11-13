@@ -382,8 +382,8 @@ def main():
                 'description':'§5EvolutionSMP §8• §fRiftbound Relics (26.3)'}
     },indent=2)+'\n',encoding='utf-8')
     (root/'README.txt').write_text(
-        'EvolutionSMP Resource Pack 1.0.0\nMinecraft Java 26.3\n'
-        'Custom namespaced Evolution orbs, shards, path sigils, Path Changer, and FX gem.\n'
+        'EvolutionSMP Resource Pack 5.0.16\nMinecraft Java 26.3\n'
+        'Custom Evolution orbs, shards, seven path sigils, Path Changer, and six reference-inspired FX sprites.\n'
         'Only the Totem particle atlas is overridden in the minecraft namespace; vanilla item/block assets remain untouched.\n',
         encoding='utf-8'
     )
