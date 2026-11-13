@@ -1,6 +1,7 @@
 package me.ph4ntomgg.evolutionsmp.ability;
 
 import me.ph4ntomgg.evolutionsmp.domain.EvolutionPath;
+import me.ph4ntomgg.evolutionsmp.fx.EvolutionVisualEvent;
 import me.ph4ntomgg.evolutionsmp.domain.PlayerProgress;
 import me.ph4ntomgg.evolutionsmp.service.ProgressService;
 import org.bukkit.Bukkit;
@@ -98,6 +99,7 @@ public final class AbilityService implements Listener {
         player.sendMessage(ChatColor.DARK_PURPLE + "IDLE DEATH GAMBIT " + ChatColor.GRAY + "— invulnerability for 3 minutes.");
         player.sendTitle(ChatColor.DARK_PURPLE + "IDLE DEATH GAMBIT", ChatColor.LIGHT_PURPLE + "Three minutes. No damage.", 5, 50, 10);
         player.getWorld().playSound(player.getLocation(), Sound.BLOCK_RESPAWN_ANCHOR_CHARGE, 0.8f, 0.7f);
+        emitVisual(player, "bliss-gem-shatter", 3);
         BukkitTask task = Bukkit.getScheduler().runTaskLater(plugin, () -> finishGambit(player), 3_600L);
         gambitTasks.put(id, task);
         return true;
@@ -145,6 +147,7 @@ public final class AbilityService implements Listener {
         player.sendTitle(ChatColor.RED + "MINOTAUR'S HEART", ChatColor.DARK_RED + "The heart of calamity awakens.", 5, 55, 10);
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_WARDEN_HEARTBEAT, 0.8f, 0.8f);
         startHeartSymbol(player);
+        emitVisual(player, "pebbles-radiant-seal", 3);
         save();
         return true;
     }
@@ -209,6 +212,7 @@ public final class AbilityService implements Listener {
         player.setSilent(true);
         player.sendTitle(ChatColor.DARK_PURPLE + "VEIL", ChatColor.GRAY + "Your presence fades.", 5, 35, 10);
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 0.5f, 1.5f);
+        emitVisual(player, "pebbles-void-collapse", 2);
         BukkitTask task = Bukkit.getScheduler().runTaskLater(plugin, () -> restoreVeil(player), VEIL_DURATION_TICKS);
         veilTasks.put(id, task);
         return true;
@@ -270,10 +274,16 @@ public final class AbilityService implements Listener {
         Location firstFx = first.clone().add(0, 1, 0);
         Location secondFx = second.clone().add(0, 1, 0);
         player.getWorld().spawnParticle(Particle.PORTAL, firstFx, 18, 0.2, 0.35, 0.2, 0.08);
+        emitVisual(player, "ender-rift", 2);
         target.getWorld().spawnParticle(Particle.PORTAL, secondFx, 18, 0.2, 0.35, 0.2, 0.08);
+        emitVisual(target, "ender-rift", 2);
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 0.9f, 0.7f);
         target.sendMessage(ChatColor.DARK_PURPLE + "An Ender has swapped your position.");
         return true;
+    }
+
+    private void emitVisual(Player player, String animationId, int durationSeconds) {
+        Bukkit.getPluginManager().callEvent(new EvolutionVisualEvent(player, animationId, durationSeconds));
     }
 
     private boolean safeSwapLocation(Location location) {
@@ -298,6 +308,7 @@ public final class AbilityService implements Listener {
         org.bukkit.World world = player.getWorld();
         player.sendMessage(ChatColor.DARK_RED + "Fracture is charging...");
         world.playSound(center, Sound.BLOCK_RESPAWN_ANCHOR_CHARGE, 0.8f, 0.65f);
+        emitVisual(player, "pebbles-crimson-rift", 2);
 
         // The telegraph is anchored to the activation point: moving after casting
         // cannot drag the hitbox or let the caster steer the detonation.
@@ -328,6 +339,7 @@ public final class AbilityService implements Listener {
                 if (tick == 8) {
                     Location impact = center.clone().add(0, 0.25, 0);
                     world.spawnParticle(Particle.EXPLOSION, impact, 1, 0.2, 0.08, 0.2, 0.0);
+                    emitVisual(player, "pebbles-impact-bloom", 2);
                     world.spawnParticle(Particle.CLOUD, impact, 36, 0.8, 0.16, 0.8, 0.11);
                     world.spawnParticle(Particle.SOUL_FIRE_FLAME, impact, 28, 0.65, 0.12, 0.65, 0.035);
                     for (int i = 0; i < 36; i++) {
