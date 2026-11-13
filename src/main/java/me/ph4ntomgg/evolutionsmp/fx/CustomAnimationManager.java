@@ -69,6 +69,19 @@ public final class CustomAnimationManager {
         }
 
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
+        // Merge newly shipped presets into existing server configs without
+        // replacing administrator-edited values from earlier plugin versions.
+        try (java.io.InputStream defaultsStream = plugin.getResource("animations.yml")) {
+            if (defaultsStream != null) {
+                YamlConfiguration defaults = YamlConfiguration.loadConfiguration(
+                        new java.io.InputStreamReader(defaultsStream, java.nio.charset.StandardCharsets.UTF_8));
+                yaml.setDefaults(defaults);
+                yaml.options().copyDefaults(true);
+                yaml.save(file);
+            }
+        } catch (java.io.IOException exception) {
+            plugin.getLogger().warning("Could not merge default animation presets: " + exception.getMessage());
+        }
         ConfigurationSection section = yaml.getConfigurationSection("animations");
         Map<String, AnimationDefinition> loaded = new HashMap<>();
         if (section != null) {
