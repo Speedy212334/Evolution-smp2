@@ -2,6 +2,7 @@ package me.ph4ntomgg.evolutionsmp.fx;
 
 import me.ph4ntomgg.evolutionsmp.fx.CustomAnimationManager;
 import me.ph4ntomgg.evolutionsmp.fx.EvolutionFXCommand;
+import me.ph4ntomgg.evolutionsmp.fx.EvolutionFXListener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /** Optional standalone visual-effects plugin for EvolutionSMP servers. */
@@ -12,6 +13,7 @@ public final class EvolutionFXPlugin extends JavaPlugin {
     public void onEnable() {
         animations = new CustomAnimationManager(this);
         int loaded = animations.reload();
+        getServer().getPluginManager().registerEvents(new EvolutionFXListener(animations), this);
         if (getCommand("evofx") == null) {
             getLogger().severe("Missing /evofx command descriptor; disabling EvolutionFX.");
             getServer().getPluginManager().disablePlugin(this);
