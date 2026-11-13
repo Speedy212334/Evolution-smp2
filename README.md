@@ -155,3 +155,21 @@ Install both plugin JARs in the server's `plugins` folder and restart. The Evolu
 CI compilation, unit tests, and resource-pack validation are automated. A live Paper 26.3 server smoke test has not yet been performed. Automatic resource-pack delivery remains disabled until a real public HTTPS ZIP URL and matching SHA-1 are configured. Both plugin JARs and the resource pack must be installed/downloaded separately for now.
 
 Earlier EvolutionSMP repositories remain historical references and are not modified by this rebuild.
+
+
+## Reference-inspired visual presets
+
+The optional EvolutionFX add-on includes original, project-owned visual equivalents inspired by the two supplied gameplay videos. These are not copied third-party texture files.
+
+- `bliss-gem-shatter` — gold/ivory crystal burst, falling shard fragments, and a three-layer expanding seal.
+- `pebbles-crimson-rift` — crimson vertical vortex with a broad ground sigil.
+- `pebbles-impact-bloom` — short white-to-crimson hit bloom with physics-driven fragments.
+- `pebbles-void-collapse` — violet portal implosion and expanding ring.
+
+Administrators can preview them with:
+- `/evofx play bliss-gem-shatter <player> 3`
+- `/evofx play pebbles-crimson-rift <player> 5`
+- `/evofx play pebbles-impact-bloom <player> 2`
+- `/evofx play pebbles-void-collapse <player> 4`
+
+The presets use the existing EvolutionFX resource-pack item models and bounded particle/display budgets. They are previewable presets, not yet automatically bound to every gameplay ability. The existing main GUI layout is intentionally unchanged.
