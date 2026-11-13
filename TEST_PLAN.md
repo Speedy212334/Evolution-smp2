@@ -68,6 +68,8 @@ Target: Paper 26.3, Java 25. Run on a disposable test server with a backup and a
 - Path reveal: seven distinct sigils orbit; six launch away; chosen sigil remains; five FX gems use the namespaced FX model; ground rings and particles match path colours.
 - Interrupt reveal by quit, death, world change, starting another reveal, and plugin shutdown. Confirm every ItemDisplay is removed.
 - Custom animations: test every animation ID, maximum copies, repeated play, stop, reload, offline player, and maximum runtime. Confirm no orphan Display entities.
+- Visual-event bridge: with both JARs installed, trigger Hunt Veil, Ender Void Swap, Prospector Ore Resonance, Calamity Fracture, Trade/Calamity Apex, and confirm the correct matching preset starts only after the ability succeeds. Repeat with EvolutionFX absent and confirm core gameplay remains unaffected.
+- Reference-inspired textures: inspect the Bliss crystal, crimson rift, impact bloom, violet collapse, radiant seal, and cyan spire item models at normal GUI and ItemDisplay scale. Confirm all six item definitions resolve to distinct namespaced textures and no vanilla item/block model is overridden.
 
 ## 6. Performance and regression
 
