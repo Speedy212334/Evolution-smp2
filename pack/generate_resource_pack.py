@@ -432,7 +432,7 @@ def main():
         animations_file = ROOT/'src/evolutionFx/resources/animations.yml'
         if animations_file.exists():
             animation_text = animations_file.read_text(encoding='utf-8')
-            referenced_models = set(re.findall(r'item-model:\\s*evolutionsmp:([a-z0-9_]+)', animation_text))
+            referenced_models = set(re.findall(r'item-model:\s*evolutionsmp:([a-z0-9_]+)', animation_text))
             for item_id in referenced_models:
                 assert f'assets/{namespace}/items/{item_id}.json' in names, f'Missing FX item definition: {item_id}'
         # Dedicated video-reference sprites must remain separate assets.
