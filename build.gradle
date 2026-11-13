@@ -24,6 +24,7 @@ sourceSets {
             exclude 'me/ph4ntomgg/evolutionsmp/fx/CustomAnimationManager.java'
             exclude 'me/ph4ntomgg/evolutionsmp/fx/EvolutionFXPlugin.java'
             exclude 'me/ph4ntomgg/evolutionsmp/fx/EvolutionFXCommand.java'
+            exclude 'me/ph4ntomgg/evolutionsmp/fx/EvolutionFXListener.java'
             exclude 'me/ph4ntomgg/evolutionsmp/command/EvolutionFXCommand.java'
         }
     }
