@@ -101,8 +101,13 @@ tasks.register('verifyArtifacts') {
         if (!fxJarFile.exists() || fxJarFile.length() == 0) throw new GradleException('EvolutionFX plugin JAR is missing or empty')
         if (!packFile.exists() || packFile.length() == 0) throw new GradleException('Resource pack ZIP is missing or empty')
         def jarEntries = zipTree(jarFile).files.collect { it.name } as Set
-        ['plugin.yml', 'config.yml', 'me/ph4ntomgg/evolutionsmp/fx/EvolutionVisualEvent.class'].each { required ->
+        ['plugin.yml', 'config.yml'].each { required ->
             if (!jarEntries.contains(required)) throw new GradleException('Plugin JAR is missing ' + required)
+        }
+        new java.util.zip.ZipFile(jarFile).withCloseable { zip ->
+            if (zip.getEntry('me/ph4ntomgg/evolutionsmp/fx/EvolutionVisualEvent.class') == null) {
+                throw new GradleException('EvolutionSMP JAR is missing the visual event API')
+            }
         }
         new java.util.zip.ZipFile(fxJarFile).withCloseable { zip ->
             ['plugin.yml', 'animations.yml', 'me/ph4ntomgg/evolutionsmp/fx/EvolutionFXListener.class'].each { required ->
