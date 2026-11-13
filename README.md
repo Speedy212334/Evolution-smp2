@@ -14,7 +14,7 @@ A clean-slate evolution-based Minecraft SMP plugin for Paper 26.3 and Java 25.
 
 ## Implemented gameplay
 
-- No automatic first-join path assignment. Administrators use `/evo start <player>`.
+- No automatic first-join path assignment. Administrators use `/evo start`.
 - Path-specific XP sources for all seven paths.
 - T2–T4 death drops a distinct Evolution Orb and regresses the player to T1. Apex players do not drop orbs and do not regress through this rule.
 - T2, T3, and T4 have separate shaped recipes. T4 does not require a previous tier orb.
@@ -89,7 +89,7 @@ A clean-slate evolution-based Minecraft SMP plugin for Paper 26.3 and Java 25.
 | `/evo status` | View path, tier, and XP |
 | `/evo recipes` | Browse crafting recipes |
 | `/evo guide [topic]` | Curated in-game guide |
-| `/evo start <player>` | Admin path assignment/reassignment |
+| `/evo start` | Admin path assignment/reassignment |
 | `/evo exp <player> <amount>` | Admin XP award |
 | `/evo tier <player> <tier>` | Admin tier adjustment |
 | `/evo ascend` | T4 Apex attempt with 8 Evolution Shards |
