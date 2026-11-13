@@ -43,7 +43,7 @@ public final class EvolutionCommand implements CommandExecutor {
             return true;
         }
         if (args[0].equalsIgnoreCase("help")) {
-            sender.sendMessage(ChatColor.GOLD + "EvolutionSMP 1.0.0 " + ChatColor.GRAY + "Commands:");
+            sender.sendMessage(ChatColor.GOLD + "EvolutionSMP 5.0.16 " + ChatColor.GRAY + "Commands:");
             sender.sendMessage(ChatColor.YELLOW + "/evo status");
             sender.sendMessage(ChatColor.YELLOW + "/evo menu " + ChatColor.GRAY + "(open the main menu)");
             sender.sendMessage(ChatColor.YELLOW + "/evo ascend " + ChatColor.GRAY + "(T4: attempt Apex with 8 Evolution Shards)");
@@ -63,7 +63,7 @@ public final class EvolutionCommand implements CommandExecutor {
             sender.sendMessage(ChatColor.YELLOW + "/evo start " + ChatColor.GRAY + "(admin: open path selection)");
             sender.sendMessage(ChatColor.YELLOW + "/evo exp <player> <amount> " + ChatColor.GRAY + "(admin)");
             sender.sendMessage(ChatColor.YELLOW + "/evo tier <player> <T1|T2|T3|T4|APEX> " + ChatColor.GRAY + "(admin)");
-            sender.sendMessage(ChatColor.YELLOW + "/evofx <player> " + ChatColor.GRAY + "(admin: replay path reveal)");
+            sender.sendMessage(ChatColor.YELLOW + "/evo reveal <player> " + ChatColor.GRAY + "(admin: replay path reveal)");
             return true;
         }
         switch (args[0].toLowerCase(Locale.ROOT)) {
