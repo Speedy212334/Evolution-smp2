@@ -1,38 +1,44 @@
-# EvolutionSMP 1.0.0 — Architecture
+# EvolutionSMP 5.0.16 — Architecture
 
 ## Product shape
-One Paper plugin and one distributable JAR. Gameplay and cinematic FX are separate internal packages/services but are started and stopped by the same plugin lifecycle. Resource-pack generation is a deterministic build tool shipped with the source.
+Two server plugin JARs share one resource pack:
+- **EvolutionSMP**: progression, abilities, persistence, menus, guide, and path-awakening cinematic.
+- **EvolutionFX**: optional visual add-on containing configurable ItemDisplay animations and /evofx administration. It depends on EvolutionSMP's public visual-event API; the core remains fully playable without the add-on.
 
-## Compatibility gate
-- Intended server: Minecraft Java 26.3 / Paper 26.3.
-- Intended Java runtime/toolchain: 25.
-- The requested Paper API coordinate is configured as `26.3.build.+` and must resolve in Gradle before implementation is considered buildable. If it does not resolve, stop and report the blocker; do not silently downgrade.
-- `api-version` in plugin.yml is the minimum Bukkit/Paper API compatibility declaration, not proof that the requested server target exists.
+## Compatibility
+- Intended server: Paper 26.3.
+- Java runtime/toolchain: 25.
+- Paper API is pinned in Gradle to 26.3.build.242-stable; dependency resolution and compilation are CI gates.
+- api-version is a plugin compatibility declaration, not proof of runtime testing.
 
 ## Domain rules
 - Seven paths: Hunt, Alchemy, Enchantment, Prospector, Ender, Trade, Calamity.
 - T1–T4 progression plus separate Apex state.
-- No automatic path assignment on first join. Admin-controlled start and reassignment.
-- Player state and progression-changing operations must be validated server-side, persistent, and safe across restart/reconnect.
-- T2–T4 death-orb rules and Apex exception must be explicit, tested domain rules.
+- No automatic first-join path assignment. /evo start opens path selection for all online players; each chooses their own path.
+- Player state and progression changes are validated server-side and persisted.
+- T2–T4 death-orb rules and the Apex exception are explicit domain rules.
+- Path Changer preserves the player's tier/Apex state, resets path XP, and clears path-specific cooldowns.
 
-## Internal modules
-- `domain`: paths, tiers, player progression, requirements, XP rules.
-- `application`: use cases and orchestration; no Bukkit inventory/event logic in domain rules.
-- `platform`: Paper listeners, commands, inventory adapters, scheduler integration.
-- `persistence`: versioned player data, migrations, safe writes.
-- `fx`: semantic visual events, bounded animation lifetimes, task cleanup.
-- `pack`: deterministic model/texture generation and validation.
-- `guide`: curated in-plugin help; no external AI service.
+## Modules
+- domain: paths, tiers, player progression, and XP rules.
+- service / persistence: progression orchestration, cached player state, and YAML persistence.
+- platform: Paper listeners, commands, inventory adapters, and scheduler integration.
+- fx: core semantic visual-event API and path-awakening cinematic.
+- EvolutionFX: optional animation runner, presets, and admin controls.
+- pack: deterministic namespaced item-model and texture generation plus validation.
+- guide: curated in-plugin help; no external AI service.
+
+## Visual integration
+The core emits a Bukkit EvolutionVisualEvent only after supported actions succeed. EvolutionFX listens and maps the event's preset ID to its configured animation library. If EvolutionFX is absent, these events have no gameplay effect. The six video-inspired presets use original project-authored textures and bounded particle/display budgets. No vanilla item or block textures/models are replaced; the Totem particle atlas is the only intended Minecraft-namespace override.
 
 ## Quality gates
-1. Resolve exact Paper API and Java toolchain.
-2. Compile the single plugin JAR.
-3. Run unit tests for progression, XP, orb/death behavior, and path registration.
-4. Validate command permissions and plugin descriptor.
-5. Validate generated pack metadata, models, and texture references.
-6. Report CI build and live-server smoke tests separately.
-7. Never describe a JAR as tested unless it was actually built and tested.
+1. Resolve the pinned Paper API and Java 25 toolchain.
+2. Compile the core and optional FX source sets.
+3. Run automated progression, Fracture physics, and domain regression tests.
+4. Verify both plugin descriptors, the visual-event bridge classes, and resource-pack metadata.
+5. Validate generated model/texture references and reject vanilla item/block asset overrides.
+6. Report CI results separately from live Paper/client testing.
+7. Never describe an artifact as tested unless it was built and validated at the exact commit being distributed.
 
-## Historical porting policy
-Old repositories, v6 experiments, FX classes, and pack generators are reference material. Audit each subsystem, port only code that passes review, and convert known regressions into tests. Do not copy the old separate-FX-JAR arrangement into this unified build.
+## Live-test boundary
+A successful CI run does not replace testing on a disposable Paper 26.3 server with multiple clients. PvP balance, client rendering, visibility rules, chunk safety under load, and compatibility with other server plugins still require live verification.
