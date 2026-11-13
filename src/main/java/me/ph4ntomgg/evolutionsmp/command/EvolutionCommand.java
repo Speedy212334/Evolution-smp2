@@ -60,7 +60,7 @@ public final class EvolutionCommand implements CommandExecutor {
             sender.sendMessage(ChatColor.YELLOW + "/evo pathchanger <player> " + ChatColor.GRAY + "(admin)");
             sender.sendMessage(ChatColor.YELLOW + "/evo gambit " + ChatColor.GRAY + "(Trade Apex)");
             sender.sendMessage(ChatColor.YELLOW + "/evo heart " + ChatColor.GRAY + "(Calamity Apex)");
-            sender.sendMessage(ChatColor.YELLOW + "/evo start <player> " + ChatColor.GRAY + "(admin: open path selection)");
+            sender.sendMessage(ChatColor.YELLOW + "/evo start " + ChatColor.GRAY + "(admin: open path selection)");
             sender.sendMessage(ChatColor.YELLOW + "/evo exp <player> <amount> " + ChatColor.GRAY + "(admin)");
             sender.sendMessage(ChatColor.YELLOW + "/evo tier <player> <T1|T2|T3|T4|APEX> " + ChatColor.GRAY + "(admin)");
             sender.sendMessage(ChatColor.YELLOW + "/evofx <player> " + ChatColor.GRAY + "(admin: replay path reveal)");
@@ -151,12 +151,14 @@ public final class EvolutionCommand implements CommandExecutor {
             }
             case "start" -> {
                 if (!sender.hasPermission("evolution.admin")) { sender.sendMessage(ChatColor.RED + "No permission."); return true; }
-                if (args.length < 2) { sender.sendMessage(ChatColor.RED + "Usage: /evo start <player>"); return true; }
-                Player target = Bukkit.getPlayerExact(args[1]);
-                if (target == null) { sender.sendMessage(ChatColor.RED + "That player is not online."); return true; }
-                // The target chooses their own path; the admin only initiates the flow.
-                menu.open(target, target);
-                sender.sendMessage("Opened the path-selection menu for " + target.getName() + ".");
+                if (args.length != 1) { sender.sendMessage(ChatColor.RED + "Usage: /evo start"); return true; }
+                int opened = 0;
+                for (Player target : Bukkit.getOnlinePlayers()) {
+                    // Global initiation: each online player chooses their own path.
+                    menu.open(target, target);
+                    opened++;
+                }
+                sender.sendMessage(ChatColor.GREEN + "Started Evolution path selection for " + opened + " online player(s).");
             }
             case "exp" -> {
                 if (!sender.hasPermission("evolution.admin")) { sender.sendMessage(ChatColor.RED + "No permission."); return true; }
