@@ -680,3 +680,77 @@ animations:
     sound-interval-ticks: 72
     sound-volume: 0.42
     sound-pitch: 0.72
+
+
+  # Wide, pale-gold orbital seal seen in the Pebbles ability showcase.
+  pebbles-radiant-seal:
+    material: PAPER
+    item-model: evolutionsmp:fx_rune
+    shape: orbit
+    cycle-ticks: 96
+    loop: false
+    copies: 8
+    radius: 2.2
+    height: 0.85
+    bob: 0.12
+    scale: 0.36
+    rotation-speed: 0.14
+    tilt: 0.12
+    particle: END_ROD
+    particle-count: 1
+    particle-interval-ticks: 3
+    particle-color: FFF5D6
+    particle-color-end: D7B66D
+    particle-size: 0.85
+    particle-spread: 0.045
+    particle-speed: 0.01
+    ring-enabled: true
+    ring-points: 48
+    ring-layers: 3
+    ring-interval-ticks: 2
+    ring-radius: 4.2
+    ring-height: 0.025
+    ring-size: 0.95
+    ring-color: FFE5A6
+    sound: BLOCK_BEACON_AMBIENT
+    sound-interval-ticks: 96
+    sound-volume: 0.18
+    sound-pitch: 1.45
+
+  # Cyan-black lightning spire for the high-contrast void attack sequence.
+  pebbles-cyan-spire:
+    material: PAPER
+    item-model: evolutionsmp:fx_flare
+    shape: rise
+    cycle-ticks: 56
+    loop: false
+    copies: 10
+    radius: 1.25
+    height: 0.15
+    bob: 0.08
+    scale: 0.4
+    rotation-speed: -0.26
+    tilt: 0.38
+    particle: ELECTRIC_SPARK
+    particle-count: 2
+    particle-interval-ticks: 2
+    particle-color: 63E8FF
+    particle-color-end: 173A75
+    particle-size: 1.25
+    particle-spread: 0.09
+    particle-speed: 0.035
+    trail-enabled: true
+    trail-color: 52DFFF
+    trail-duration-ticks: 24
+    ring-enabled: true
+    ring-points: 32
+    ring-layers: 2
+    ring-interval-ticks: 3
+    ring-radius: 2.4
+    ring-height: 0.04
+    ring-size: 1.05
+    ring-color: 3CD9FF
+    sound: BLOCK_BEACON_POWER_SELECT
+    sound-interval-ticks: 56
+    sound-volume: 0.36
+    sound-pitch: 1.65
