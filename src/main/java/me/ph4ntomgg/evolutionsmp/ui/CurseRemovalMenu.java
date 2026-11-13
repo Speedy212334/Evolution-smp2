@@ -1,6 +1,7 @@
 package me.ph4ntomgg.evolutionsmp.ui;
 
 import me.ph4ntomgg.evolutionsmp.domain.EvolutionPath;
+import me.ph4ntomgg.evolutionsmp.fx.EvolutionVisualEvent;
 import me.ph4ntomgg.evolutionsmp.domain.EvolutionTier;
 import me.ph4ntomgg.evolutionsmp.service.ProgressService;
 import org.bukkit.Bukkit;
@@ -110,6 +111,7 @@ public final class CurseRemovalMenu implements Listener {
             if (removed) {
                 held.setItemMeta(meta);
                 player.sendMessage(ChatColor.GREEN + "Selected curses removed.");
+                Bukkit.getPluginManager().callEvent(new EvolutionVisualEvent(player, "enchantment-ascension", 4));
             } else player.sendMessage(ChatColor.YELLOW + "No selected curse was present on the held item.");
             selections.remove(player.getUniqueId());
             targetItems.remove(player.getUniqueId());
