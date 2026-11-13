@@ -454,22 +454,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-, animation_text, re.MULTILINE))
-            emitted_animations = set()
-            for source_file in (ROOT.parent/'src/main/java').rglob('*.java'):
-                source_text = source_file.read_text(encoding='utf-8')
-                emitted_animations.update(re.findall(r'emitVisual\\([^,]+,\\s*"([a-z0-9-]+)"', source_text))
-                emitted_animations.update(re.findall(r'new EvolutionVisualEvent\\([^,]+,\\s*"([a-z0-9-]+)"', source_text))
-            missing_animations = emitted_animations - defined_animations
-            assert not missing_animations, f'Gameplay references missing EvolutionFX animations: {sorted(missing_animations)}'
-        # Dedicated video-reference sprites must remain separate assets.
-        for item_id in ('fx_bliss', 'fx_rift', 'fx_bloom', 'fx_void', 'fx_seal', 'fx_spire'):
-            assert f'assets/{namespace}/items/{item_id}.json' in names, f'Missing reference FX model: {item_id}'
-        # Verify all seven distinct path sigils are packaged.
-        for name in path_specs:
-            assert f'assets/{namespace}/textures/item/evolution_path_{name}.png' in names
-            assert f'assets/{namespace}/items/path_{name}.json' in names
-    print(f'Created {out} ({out.stat().st_size} bytes, {len(item_models)} custom item models).')
-
-if __name__ == '__main__':
-    main()
