@@ -33,6 +33,7 @@ sourceSets {
             include 'me/ph4ntomgg/evolutionsmp/fx/CustomAnimationManager.java'
             include 'me/ph4ntomgg/evolutionsmp/fx/EvolutionFXPlugin.java'
             include 'me/ph4ntomgg/evolutionsmp/fx/EvolutionFXCommand.java'
+            include 'me/ph4ntomgg/evolutionsmp/fx/EvolutionFXListener.java'
         }
         resources.setSrcDirs(['src/evolutionFx/resources'])
     }
