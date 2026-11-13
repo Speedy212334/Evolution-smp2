@@ -545,8 +545,8 @@ animations:
     rotation-speed: 0.28
     tilt: 0.48
     particle: END_ROD
-    particle-count: 2
-    particle-interval-ticks: 2
+    particle-count: 1
+    particle-interval-ticks: 5
     physics-gravity: 0.048
     physics-drag: 0.982
     physics-bounce: 0.12
@@ -562,7 +562,7 @@ animations:
     trail-color: FFE7A0
     trail-duration-ticks: 22
     ring-enabled: true
-    ring-points: 36
+    ring-points: 20
     ring-layers: 3
     ring-interval-ticks: 2
     ring-radius: 3.8
@@ -590,15 +590,15 @@ animations:
     rotation-speed: -0.31
     tilt: 0.72
     particle: SOUL_FIRE_FLAME
-    particle-count: 2
-    particle-interval-ticks: 2
+    particle-count: 1
+    particle-interval-ticks: 5
     particle-color: FF3157
     particle-color-end: 6B0D35
     particle-size: 1.25
     particle-spread: 0.11
     particle-speed: 0.035
     ring-enabled: true
-    ring-points: 40
+    ring-points: 20
     ring-layers: 3
     ring-interval-ticks: 2
     ring-radius: 3.25
@@ -661,15 +661,15 @@ animations:
     rotation-speed: 0.36
     tilt: 0.6
     particle: REVERSE_PORTAL
-    particle-count: 2
-    particle-interval-ticks: 2
+    particle-count: 1
+    particle-interval-ticks: 5
     particle-color: B66CFF
     particle-color-end: 35205F
     particle-size: 1.1
     particle-spread: 0.065
     particle-speed: 0.025
     ring-enabled: true
-    ring-points: 32
+    ring-points: 20
     ring-layers: 2
     ring-interval-ticks: 3
     ring-radius: 2.6
@@ -698,14 +698,14 @@ animations:
     tilt: 0.12
     particle: END_ROD
     particle-count: 1
-    particle-interval-ticks: 3
+    particle-interval-ticks: 5
     particle-color: FFF5D6
     particle-color-end: D7B66D
     particle-size: 0.85
     particle-spread: 0.045
     particle-speed: 0.01
     ring-enabled: true
-    ring-points: 48
+    ring-points: 20
     ring-layers: 3
     ring-interval-ticks: 2
     ring-radius: 4.2
@@ -732,8 +732,8 @@ animations:
     rotation-speed: -0.26
     tilt: 0.38
     particle: ELECTRIC_SPARK
-    particle-count: 2
-    particle-interval-ticks: 2
+    particle-count: 1
+    particle-interval-ticks: 5
     particle-color: 63E8FF
     particle-color-end: 173A75
     particle-size: 1.25
@@ -743,7 +743,7 @@ animations:
     trail-color: 52DFFF
     trail-duration-ticks: 24
     ring-enabled: true
-    ring-points: 32
+    ring-points: 20
     ring-layers: 2
     ring-interval-ticks: 3
     ring-radius: 2.4
