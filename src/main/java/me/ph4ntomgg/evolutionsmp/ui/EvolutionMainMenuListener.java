@@ -72,7 +72,7 @@ public final class EvolutionMainMenuListener implements Listener {
             }
             case 34 -> {
                 player.closeInventory();
-                if (player.hasPermission("evolution.admin")) player.sendMessage(ChatColor.YELLOW + "/evo start <player> • /evo exp <player> <amount> • /evo tier <player> <tier> • /evo pathchanger <player>");
+                if (player.hasPermission("evolution.admin")) player.sendMessage(ChatColor.YELLOW + "/evo start (global) • /evo exp <player> <amount> • /evo tier <player> <tier> • /evo pathchanger <player>");
                 else player.sendMessage(ChatColor.RED + "Administrator tools are restricted.");
             }
             default -> { }
