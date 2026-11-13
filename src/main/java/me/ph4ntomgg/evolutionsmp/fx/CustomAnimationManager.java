@@ -44,7 +44,7 @@ public final class CustomAnimationManager {
     );
     private static final int MAX_COPIES = 16;
     private static final int MAX_GLOBAL_DISPLAYS = 256;
-    private static final int MAX_PARTICLES_PER_ANIMATION_TICK = 48;
+    private static final int MAX_PARTICLES_PER_ANIMATION_TICK = 64;
     private static final int MAX_RUNTIME_TICKS = 12_000;
 
     private final JavaPlugin plugin;
