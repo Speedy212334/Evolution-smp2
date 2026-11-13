@@ -8,7 +8,7 @@ import org.bukkit.util.Vector;
  * Kept separate from Bukkit scheduling so the physics can be regression-tested.
  */
 final class FracturePhysics {
-    static final double HORIZONTAL_LAUNCH_SPEED = 1.10;
+    static final double HORIZONTAL_LAUNCH_SPEED = 0.32;
     static final double VERTICAL_LAUNCH_SPEED = 1.15;
 
     private FracturePhysics() { }
