@@ -1,6 +1,7 @@
 package me.ph4ntomgg.evolutionsmp.ability;
 
 import me.ph4ntomgg.evolutionsmp.domain.EvolutionPath;
+import me.ph4ntomgg.evolutionsmp.fx.EvolutionVisualEvent;
 import me.ph4ntomgg.evolutionsmp.domain.PlayerProgress;
 import me.ph4ntomgg.evolutionsmp.service.ProgressService;
 import org.bukkit.Bukkit;
@@ -91,6 +92,7 @@ public final class OreResonanceService implements Listener {
         player.sendTitle(ChatColor.AQUA + "ORE RESONANCE", ChatColor.GRAY + "Nearby ores are being revealed.", 5, 35, 10);
         player.sendMessage(ChatColor.AQUA + "Ore Resonance activated. Highlights last 60 seconds.");
         world.playSound(origin, Sound.BLOCK_AMETHYST_BLOCK_RESONATE, 0.9f, 1.25f);
+        Bukkit.getPluginManager().callEvent(new EvolutionVisualEvent(player, "pebbles-radiant-seal", 3));
         world.spawnParticle(Particle.END_ROD, origin.clone().add(0.5, 1.0, 0.5), 24, 0.45, 0.4, 0.45, 0.025);
 
         session.scanTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> scanLayer(session), 1L, 1L);
