@@ -14,7 +14,7 @@ Target: Paper 26.3, Java 25. Run on a disposable test server with a backup and a
 ## 2. Progression, persistence, and commands
 
 - First join: no path is assigned automatically.
-- Run `/evo start <player>` as an in-game admin and from console; confirm the online target receives the path menu.
+- Run `/evo start` as an in-game admin; confirm every online player receives their own path-selection menu. Confirm the command rejects extra arguments and does not assign a path to offline players.
 - Assign each of the seven paths and confirm the reveal cinematic cleans up.
 - Use Path Changer at T1, T2, T3, T4, and Apex. Confirm tier is preserved, path XP resets to zero, and path cooldowns reset.
 - Confirm changing paths cannot cancel Gambit's delayed armor destruction or its 20-minute armor lock.
@@ -108,3 +108,14 @@ Automated Java 25 compilation, unit tests, resource-pack generation, and artifac
 - Install both JARs and verify `/evofx list`, `/evofx play`, `/evofx stop`, and `/evofx reload`; confirm `evolutionfx.admin` controls access.
 - Confirm FX model IDs resolve through the shared `evolutionsmp` resource-pack namespace.
 - Confirm the existing EvolutionSMP GUI and alert styling are unchanged.
+
+
+## 7. Video-reference visual presets
+
+- Install the EvolutionFX JAR and the matching resource pack on a clean Paper 26.3 server/client pair.
+- Run `/evofx list`; confirm the Bliss Gem and Pebbles-inspired presets are present.
+- Preview `bliss-gem-shatter`, `pebbles-crimson-rift`, `pebbles-impact-bloom`, `pebbles-void-collapse`, `pebbles-radiant-seal`, and `pebbles-cyan-spire` with `/evofx play <id> <player> <seconds>`.
+- Confirm custom models render rather than missing-model placeholders; check every preset at normal render distance and with the pack reloaded.
+- Confirm effects clean up on timeout, death, quit, world change, `/evofx stop`, `/evofx reload`, and plugin disable.
+- Verify the original EvolutionSMP main GUI title, slots, icons, navigation, click handling, and alerts are unchanged.
+- Verify the new presets remain optional admin-preview animations and do not silently trigger during unrelated combat actions.
