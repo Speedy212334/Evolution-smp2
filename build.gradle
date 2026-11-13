@@ -29,6 +29,8 @@ sourceSets {
         }
     }
     evolutionFx {
+        // The optional add-on listens for the core plugin's public visual event API.
+        compileClasspath += sourceSets.main.output
         java {
             srcDir 'src/main/java'
             include 'me/ph4ntomgg/evolutionsmp/fx/CustomAnimationManager.java'
