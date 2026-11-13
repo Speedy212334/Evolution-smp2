@@ -429,7 +429,7 @@ def main():
                 assert z.read(name).startswith(b'\x89PNG\r\n\x1a\n'), f'Invalid PNG: {name}'
         # Every configured EvolutionFX item-model reference must resolve to
         # a generated namespaced item definition; fail the build on pack drift.
-        animations_file = ROOT/'src/evolutionFx/resources/animations.yml'
+        animations_file = ROOT.parent/'src/evolutionFx/resources/animations.yml'
         if animations_file.exists():
             animation_text = animations_file.read_text(encoding='utf-8')
             referenced_models = set(re.findall(r'item-model:\s*evolutionsmp:([a-z0-9_]+)', animation_text))
