@@ -533,7 +533,7 @@ animations:
   # not a copied third-party texture.
   bliss-gem-shatter:
     material: PAPER
-    item-model: evolutionsmp:fx_shard
+    item-model: evolutionsmp:fx_bliss
     shape: physics-burst
     cycle-ticks: 54
     loop: false
@@ -578,7 +578,7 @@ animations:
   # Crimson vertical rift / branching energy column and a ground-level seal.
   pebbles-crimson-rift:
     material: PAPER
-    item-model: evolutionsmp:fx_rune
+    item-model: evolutionsmp:fx_rift
     shape: vortex
     cycle-ticks: 92
     loop: false
@@ -613,7 +613,7 @@ animations:
   # Bright, compact impact bloom for PvP hits and short ability impacts.
   pebbles-impact-bloom:
     material: PAPER
-    item-model: evolutionsmp:fx_spark
+    item-model: evolutionsmp:fx_bloom
     shape: physics-burst
     cycle-ticks: 30
     loop: false
@@ -649,7 +649,7 @@ animations:
   # Violet-black implosion with a tight spiral and a delayed outward release.
   pebbles-void-collapse:
     material: PAPER
-    item-model: evolutionsmp:fx_gem
+    item-model: evolutionsmp:fx_void
     shape: vortex
     cycle-ticks: 72
     loop: false
@@ -685,7 +685,7 @@ animations:
   # Wide, pale-gold orbital seal seen in the Pebbles ability showcase.
   pebbles-radiant-seal:
     material: PAPER
-    item-model: evolutionsmp:fx_rune
+    item-model: evolutionsmp:fx_seal
     shape: orbit
     cycle-ticks: 96
     loop: false
@@ -720,7 +720,7 @@ animations:
   # Cyan-black lightning spire for the high-contrast void attack sequence.
   pebbles-cyan-spire:
     material: PAPER
-    item-model: evolutionsmp:fx_flare
+    item-model: evolutionsmp:fx_spire
     shape: rise
     cycle-ticks: 56
     loop: false
