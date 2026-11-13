@@ -119,6 +119,48 @@ def fx_particle_texture(kind):
         draw_circle(p,16,16,10,(22,12,42),True)
         draw_polygon(p,[(16,5),(22,15),(16,27),(10,15)],violet,white,1)
         draw_line(p,10,15,22,15,white,1)
+    elif kind=="bliss":
+        draw_polygon(p,[(16,0),(20,9),(29,5),(24,14),(31,19),(21,21),(18,31),(13,22),(4,27),(8,17),(1,12),(12,10)],gold,(255,250,220),1)
+        draw_polygon(p,[(16,4),(19,13),(16,17),(12,12)],(255,255,235))
+        draw_line(p,16,4,16,28,(255,255,245),1)
+        draw_line(p,6,17,25,17,(255,238,170),1)
+    elif kind=="rift":
+        draw_polygon(p,[(13,0),(21,5),(17,12),(23,18),(18,31),(12,25),(14,18),(8,12)],(92,8,28),(255,74,105),2)
+        draw_line(p,17,3,13,12,(255,205,215),2)
+        draw_line(p,13,12,18,17,(255,90,125),2)
+        draw_line(p,18,17,13,27,(255,220,225),2)
+        draw_line(p,5,8,10,12,(255,74,105),1)
+        draw_line(p,21,22,27,26,(255,74,105),1)
+    elif kind=="bloom":
+        draw_circle(p,16,16,13,(255,255,245),True)
+        draw_circle(p,16,16,9,(255,116,135),True)
+        draw_circle(p,16,16,5,(255,255,245),True)
+        for angle in range(0,360,45):
+            rad=math.radians(angle)
+            draw_line(p,round(16+math.cos(rad)*9),round(16+math.sin(rad)*9),
+                      round(16+math.cos(rad)*15),round(16+math.sin(rad)*15),(255,245,230),2)
+    elif kind=="void":
+        draw_circle(p,16,16,14,(155,95,255),True)
+        draw_circle(p,16,16,11,(20,9,38),True)
+        draw_circle(p,16,16,8,(111,55,190),True)
+        draw_circle(p,16,16,5,(14,7,28),True)
+        draw_line(p,20,5,26,10,(225,195,255),2)
+        draw_line(p,11,23,6,27,(178,130,255),2)
+    elif kind=="seal":
+        draw_circle(p,16,16,14,(255,213,110),False)
+        draw_circle(p,16,16,10,(255,246,205),False)
+        draw_polygon(p,[(16,5),(20,14),(16,18),(12,14)],gold,(255,255,235),1)
+        draw_line(p,16,18,16,27,(255,238,170),2)
+        for angle in range(0,360,45):
+            rad=math.radians(angle)
+            draw_line(p,round(16+math.cos(rad)*11),round(16+math.sin(rad)*11),
+                      round(16+math.cos(rad)*14),round(16+math.sin(rad)*14),(255,255,235),1)
+    elif kind=="spire":
+        draw_polygon(p,[(16,0),(22,9),(19,14),(24,21),(16,31),(8,21),(13,14),(10,9)],(12,54,95),(125,240,255),2)
+        draw_polygon(p,[(16,3),(18,13),(16,25),(12,19)],(205,255,255))
+        draw_line(p,16,2,16,29,(255,255,255),1)
+        draw_line(p,6,22,11,18,(75,220,255),2)
+        draw_line(p,21,18,26,22,(75,220,255),2)
     else: # flare
         draw_polygon(p,[(16,1),(20,11),(29,7),(23,17),(30,24),(19,22),(14,31),(12,20),(3,23),(9,15),(4,8),(14,11)],orange,gold,1)
         draw_circle(p,16,16,4,white,True)
@@ -263,6 +305,12 @@ def main():
         'fx_particle_shard': fx_particle_texture("shard"),
         'fx_particle_rune': fx_particle_texture("rune"),
         'fx_particle_flare': fx_particle_texture("flare"),
+        'fx_particle_bliss': fx_particle_texture("bliss"),
+        'fx_particle_rift': fx_particle_texture("rift"),
+        'fx_particle_bloom': fx_particle_texture("bloom"),
+        'fx_particle_void': fx_particle_texture("void"),
+        'fx_particle_seal': fx_particle_texture("seal"),
+        'fx_particle_spire': fx_particle_texture("spire"),
     }
     for name,pixels in model_textures.items():
         png_rgba(textures/f'{name}.png',pixels)
@@ -304,6 +352,12 @@ def main():
         'fx_shard':'fx_particle_shard',
         'fx_rune':'fx_particle_rune',
         'fx_flare':'fx_particle_flare',
+        'fx_bliss':'fx_particle_bliss',
+        'fx_rift':'fx_particle_rift',
+        'fx_bloom':'fx_particle_bloom',
+        'fx_void':'fx_particle_void',
+        'fx_seal':'fx_particle_seal',
+        'fx_spire':'fx_particle_spire',
     }
     for name in path_specs:
         item_models[f'path_{name}']=f'evolution_path_{name}'
