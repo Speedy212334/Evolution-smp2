@@ -3,18 +3,49 @@ plugins {
 }
 
 group = 'me.ph4ntomgg'
-version = '1.0.0'
+version = '5.0.16'
 
 repositories {
-    mavenCentral()
     maven { url = 'https://repo.papermc.io/repository/maven-public/' }
+    mavenCentral()
 }
 
-def paperApiVersion = providers.gradleProperty('paperApiVersion').getOrElse('26.3.build.+')
+// Pin a stable Paper API build so dependency resolution is reproducible.
+def paperApiVersion = providers.gradleProperty('paperApiVersion').getOrElse('26.3.build.242-stable')
 dependencies {
     compileOnly "io.papermc.paper:paper-api:${paperApiVersion}"
     testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+sourceSets {
+    main {
+        java {
+            exclude 'me/ph4ntomgg/evolutionsmp/fx/CustomAnimationManager.java'
+            exclude 'me/ph4ntomgg/evolutionsmp/fx/EvolutionFXPlugin.java'
+            exclude 'me/ph4ntomgg/evolutionsmp/fx/EvolutionFXCommand.java'
+            exclude 'me/ph4ntomgg/evolutionsmp/fx/EvolutionFXListener.java'
+            exclude 'me/ph4ntomgg/evolutionsmp/command/EvolutionFXCommand.java'
+        }
+    }
+    evolutionFx {
+        // The optional add-on listens for the core plugin's public visual event API.
+        compileClasspath += sourceSets.main.output
+        java {
+            srcDir 'src/main/java'
+            include 'me/ph4ntomgg/evolutionsmp/fx/CustomAnimationManager.java'
+            include 'me/ph4ntomgg/evolutionsmp/fx/EvolutionFXPlugin.java'
+            include 'me/ph4ntomgg/evolutionsmp/fx/EvolutionFXCommand.java'
+            include 'me/ph4ntomgg/evolutionsmp/fx/EvolutionFXListener.java'
+        }
+        resources.setSrcDirs(['src/evolutionFx/resources'])
+    }
+}
+
+configurations {
+    evolutionFxCompileOnly.extendsFrom compileOnly
+    testCompileOnly.extendsFrom compileOnly
+    testRuntimeOnly.extendsFrom compileOnly
 }
 
 java {
@@ -34,6 +65,12 @@ jar {
     archiveBaseName = 'EvolutionSMP'
 }
 
+tasks.register('evolutionFxJar', Jar) {
+    dependsOn tasks.named('evolutionFxClasses')
+    archiveBaseName = 'EvolutionFX'
+    from sourceSets.evolutionFx.output
+}
+
 tasks.register('compatibilityReport') {
     doLast {
         println "EvolutionSMP ${project.version}"
@@ -46,29 +83,44 @@ tasks.register('compatibilityReport') {
 
 tasks.register('generateResourcePack', Exec) {
     def packOutput = layout.buildDirectory.file('pack/EvolutionSMP-ResourcePack-26.3.zip')
+    def detectedPython = System.getProperty('os.name').toLowerCase().contains('win') ? 'python' : 'python3'
+    def pythonExecutable = providers.gradleProperty('pythonExecutable').getOrElse(detectedPython)
     inputs.file('pack/generate_resource_pack.py')
     outputs.file(packOutput)
     doFirst { packOutput.get().asFile.parentFile.mkdirs() }
-    commandLine 'python3', 'pack/generate_resource_pack.py', '--version', '26.3',
+    commandLine pythonExecutable, 'pack/generate_resource_pack.py', '--version', '26.3',
             '--output', packOutput.get().asFile.absolutePath
 }
 
 
 tasks.register('verifyArtifacts') {
-    dependsOn 'jar', 'generateResourcePack'
+    dependsOn 'jar', 'evolutionFxJar', 'generateResourcePack'
     doLast {
         def jarFile = tasks.named('jar').get().archiveFile.get().asFile
         def packFile = layout.buildDirectory.file('pack/EvolutionSMP-ResourcePack-26.3.zip').get().asFile
-        if (!jarFile.exists() || jarFile.length() == 0) throw new GradleException('Unified plugin JAR is missing or empty')
+        if (!jarFile.exists() || jarFile.length() == 0) throw new GradleException('EvolutionSMP plugin JAR is missing or empty')
+        def fxJarFile = tasks.named('evolutionFxJar').get().archiveFile.get().asFile
+        if (!fxJarFile.exists() || fxJarFile.length() == 0) throw new GradleException('EvolutionFX plugin JAR is missing or empty')
         if (!packFile.exists() || packFile.length() == 0) throw new GradleException('Resource pack ZIP is missing or empty')
         def jarEntries = zipTree(jarFile).files.collect { it.name } as Set
-        ['plugin.yml', 'config.yml', 'animations.yml'].each { required ->
+        ['plugin.yml', 'config.yml'].each { required ->
             if (!jarEntries.contains(required)) throw new GradleException('Plugin JAR is missing ' + required)
+        }
+        new java.util.zip.ZipFile(jarFile).withCloseable { zip ->
+            if (zip.getEntry('me/ph4ntomgg/evolutionsmp/fx/EvolutionVisualEvent.class') == null) {
+                throw new GradleException('EvolutionSMP JAR is missing the visual event API')
+            }
+        }
+        new java.util.zip.ZipFile(fxJarFile).withCloseable { zip ->
+            ['plugin.yml', 'animations.yml', 'me/ph4ntomgg/evolutionsmp/fx/EvolutionFXListener.class'].each { required ->
+                if (zip.getEntry(required) == null) throw new GradleException('EvolutionFX JAR is missing ' + required)
+            }
         }
         new java.util.zip.ZipFile(packFile).withCloseable { zip ->
             if (zip.getEntry('pack.mcmeta') == null) throw new GradleException('Resource pack has no pack.mcmeta')
         }
         println "Verified " + jarFile.name + " (" + jarFile.length() + " bytes)"
+        println "Verified " + fxJarFile.name + " (" + fxJarFile.length() + " bytes)"
         println "Verified " + packFile.name + " (" + packFile.length() + " bytes)"
     }
 }

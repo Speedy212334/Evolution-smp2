@@ -8,6 +8,12 @@ public record PlayerProgress(UUID playerId, EvolutionPath path, EvolutionTier ti
         Objects.requireNonNull(playerId, "playerId");
         Objects.requireNonNull(tier, "tier");
         if (experience < 0) throw new IllegalArgumentException("experience cannot be negative");
+        if ((tier == EvolutionTier.T4 || tier == EvolutionTier.APEX) && experience != 0) {
+            throw new IllegalArgumentException("T4 and Apex players cannot retain progression XP");
+        }
+        if (path == null && (tier != EvolutionTier.T1 || experience != 0 || apex)) {
+            throw new IllegalArgumentException("Unassigned players must remain at T1 with zero XP");
+        }
         if (apex && path == null) throw new IllegalArgumentException("Apex players must have a path");
         if (apex && tier != EvolutionTier.APEX) throw new IllegalArgumentException("Apex flag and tier must agree");
         if (!apex && tier == EvolutionTier.APEX) throw new IllegalArgumentException("Apex tier requires Apex flag");
@@ -21,6 +27,11 @@ public record PlayerProgress(UUID playerId, EvolutionPath path, EvolutionTier ti
 
     public PlayerProgress withPath(EvolutionPath newPath) {
         return new PlayerProgress(playerId, Objects.requireNonNull(newPath), EvolutionTier.T1, 0, false);
+    }
+
+    /** Path Changers preserve the earned tier but reset path-specific XP progress. */
+    public PlayerProgress withPathPreservingTier(EvolutionPath newPath) {
+        return new PlayerProgress(playerId, Objects.requireNonNull(newPath), tier, 0, apex);
     }
 
     public PlayerProgress addExperience(long amount) {

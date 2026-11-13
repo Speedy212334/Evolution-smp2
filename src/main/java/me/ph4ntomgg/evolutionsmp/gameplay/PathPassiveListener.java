@@ -4,34 +4,50 @@ import me.ph4ntomgg.evolutionsmp.domain.EvolutionPath;
 import me.ph4ntomgg.evolutionsmp.domain.PlayerProgress;
 import me.ph4ntomgg.evolutionsmp.service.ProgressService;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Item;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockDropItemEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 public final class PathPassiveListener implements Listener {
+    private final JavaPlugin plugin;
     private final ProgressService progress;
     private final BukkitTask refreshTask;
+    private final NamespacedKey originalEfficiencyKey;
+    private final Map<UUID, Map<PotionEffectType, Integer>> managedEffects = new HashMap<>();
 
     public PathPassiveListener(JavaPlugin plugin, ProgressService progress) {
+        this.plugin = plugin;
         this.progress = progress;
+        this.originalEfficiencyKey = new NamespacedKey(plugin, "prospector_original_efficiency");
         this.refreshTask = plugin.getServer().getScheduler().runTaskTimer(plugin, this::refreshAll, 20L, 40L);
     }
 
@@ -40,45 +56,198 @@ public final class PathPassiveListener implements Listener {
         refresh(event.getPlayer());
     }
 
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        Player player = event.getPlayer();
+        clearManagedEffects(player);
+        restoreInventoryEfficiency(player);
+    }
+
     private void refreshAll() {
         for (Player player : org.bukkit.Bukkit.getOnlinePlayers()) refresh(player);
     }
 
+    public void refreshPlayer(Player player) {
+        if (player != null && player.isOnline()) refresh(player);
+    }
+
     private void refresh(Player player) {
-        PlayerProgress p = progress.get(player.getUniqueId());
-        if (!p.assigned()) return;
-        if (p.path() == EvolutionPath.HUNT) {
-            if (p.tier().rank() >= 3) maintain(player, PotionEffectType.SPEED, 1);
-            else if (p.tier().rank() >= 1) maintain(player, PotionEffectType.SPEED, 0);
-        } else if (p.path() == EvolutionPath.PROSPECTOR && p.tier().rank() >= 4) {
-            applyProspectorEfficiency(player);
-        } else if (p.path() == EvolutionPath.CALAMITY && p.tier().rank() >= 3) {
+        UUID id = player.getUniqueId();
+        PlayerProgress p = progress.get(id);
+        Set<PotionEffectType> desired = new HashSet<>();
+        if (p.assigned()) {
+            if (p.path() == EvolutionPath.HUNT) desired.add(PotionEffectType.SPEED);
+            if (p.path() == EvolutionPath.CALAMITY && p.tier().rank() >= 3) desired.add(PotionEffectType.STRENGTH);
+            if (p.path() == EvolutionPath.TRADE && p.tier().rank() >= 4) {
+                desired.add(PotionEffectType.HERO_OF_THE_VILLAGE);
+                desired.add(PotionEffectType.LUCK);
+            }
+        }
+
+        Map<PotionEffectType, Integer> managed = managedEffects.get(id);
+        if (managed != null) {
+            for (Map.Entry<PotionEffectType, Integer> entry : new HashMap<>(managed).entrySet()) {
+                if (!desired.contains(entry.getKey())) {
+                    PotionEffect current = player.getPotionEffect(entry.getKey());
+                    // Remove only the effect level maintained by this passive. A stronger
+                    // or long-duration potion effect supplied by gameplay must survive.
+                    if (isManagedEffect(current, entry.getValue())) player.removePotionEffect(entry.getKey());
+                    managed.remove(entry.getKey());
+                }
+            }
+            if (managed.isEmpty()) managedEffects.remove(id);
+        }
+
+        if (p.assigned() && p.path() == EvolutionPath.HUNT) {
+            maintain(player, PotionEffectType.SPEED, p.tier().rank() >= 3 ? 1 : 0);
+        }
+        if (p.assigned() && p.path() == EvolutionPath.CALAMITY && p.tier().rank() >= 3) {
             maintain(player, PotionEffectType.STRENGTH, 0);
-        } else if (p.path() == EvolutionPath.TRADE && p.tier().rank() >= 4) {
+        }
+        if (p.assigned() && p.path() == EvolutionPath.TRADE && p.tier().rank() >= 4) {
             maintain(player, PotionEffectType.HERO_OF_THE_VILLAGE, 1);
             maintain(player, PotionEffectType.LUCK, 1);
         }
-    }
 
-    private void applyProspectorEfficiency(Player player) {
-        // Tier IV and Apex Prospectors receive Efficiency X on every pickaxe in their inventory.
-        for (int slot = 0; slot < player.getInventory().getSize(); slot++) {
-            ItemStack item = player.getInventory().getItem(slot);
-            if (item == null || item.getType().isAir() || !item.getType().name().endsWith("_PICKAXE")) continue;
-            ItemMeta meta = item.getItemMeta();
-            if (meta == null || meta.getEnchantLevel(Enchantment.EFFICIENCY) >= 10) continue;
-            meta.addEnchant(Enchantment.EFFICIENCY, 10, true);
-            item.setItemMeta(meta);
+        if (p.assigned() && p.path() == EvolutionPath.PROSPECTOR && p.tier().rank() >= 4) {
+            applyProspectorEfficiency(player);
+        } else {
+            restoreInventoryEfficiency(player);
         }
     }
 
     private void maintain(Player player, PotionEffectType type, int amplifier) {
         PotionEffect current = player.getPotionEffect(type);
+        Map<PotionEffectType, Integer> managed = managedEffects.get(player.getUniqueId());
+        boolean alreadyManaged = managed != null && managed.containsKey(type);
         if (current == null || current.getAmplifier() < amplifier
-                || current.getAmplifier() == amplifier && current.getDuration() < 60
-                && current.isAmbient() && !current.hasParticles() && !current.hasIcon()) {
+                || current.getAmplifier() == amplifier && alreadyManaged && current.getDuration() < 60) {
             player.addPotionEffect(new PotionEffect(type, 100, amplifier, true, false, false), true);
+            managedEffects.computeIfAbsent(player.getUniqueId(), ignored -> new HashMap<>())
+                    .put(type, amplifier);
         }
+    }
+
+    private void applyProspectorEfficiency(Player player) {
+        for (int slot = 0; slot < player.getInventory().getSize(); slot++) {
+            ItemStack item = player.getInventory().getItem(slot);
+            if (item == null || item.getType().isAir() || !isEfficiencyTool(item.getType())) continue;
+            ItemMeta meta = item.getItemMeta();
+            if (meta == null) continue;
+            var data = meta.getPersistentDataContainer();
+            if (!data.has(originalEfficiencyKey, PersistentDataType.INTEGER)) {
+                data.set(originalEfficiencyKey, PersistentDataType.INTEGER,
+                        meta.getEnchantLevel(Enchantment.EFFICIENCY));
+            }
+            if (meta.getEnchantLevel(Enchantment.EFFICIENCY) != 10) {
+                meta.addEnchant(Enchantment.EFFICIENCY, 10, true);
+            }
+            item.setItemMeta(meta);
+        }
+    }
+
+    private boolean isEfficiencyTool(Material material) {
+        String name = material.name();
+        return name.endsWith("_PICKAXE") || name.endsWith("_AXE")
+                || name.endsWith("_SHOVEL") || name.endsWith("_HOE")
+                || material == Material.SHEARS;
+    }
+
+    private boolean restoreEfficiencyItem(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return false;
+        ItemMeta meta = item.getItemMeta();
+        var data = meta.getPersistentDataContainer();
+        Integer original = data.get(originalEfficiencyKey, PersistentDataType.INTEGER);
+        if (original == null) return false;
+        meta.removeEnchant(Enchantment.EFFICIENCY);
+        if (original > 0) meta.addEnchant(Enchantment.EFFICIENCY, original, true);
+        data.remove(originalEfficiencyKey);
+        item.setItemMeta(meta);
+        return true;
+    }
+
+    private void restoreInventoryEfficiency(Player player) {
+        for (int slot = 0; slot < player.getInventory().getSize(); slot++) {
+            ItemStack item = player.getInventory().getItem(slot);
+            if (restoreEfficiencyItem(item)) player.getInventory().setItem(slot, item);
+        }
+        ItemStack offhand = player.getInventory().getItemInOffHand();
+        if (restoreEfficiencyItem(offhand)) player.getInventory().setItemInOffHand(offhand);
+    }
+
+    private boolean isManagedEffect(PotionEffect current, int amplifier) {
+        return current != null && current.getAmplifier() == amplifier && current.getDuration() <= 120;
+    }
+
+    private void clearManagedEffects(Player player) {
+        Map<PotionEffectType, Integer> managed = managedEffects.remove(player.getUniqueId());
+        if (managed != null) {
+            managed.forEach((type, amplifier) -> {
+                PotionEffect current = player.getPotionEffect(type);
+                if (isManagedEffect(current, amplifier)) player.removePotionEffect(type);
+            });
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onDrop(PlayerDropItemEvent event) {
+        Item dropped = event.getItemDrop();
+        ItemStack stack = dropped.getItemStack();
+        if (restoreEfficiencyItem(stack)) dropped.setItemStack(stack);
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onPickup(EntityPickupItemEvent event) {
+        if (!(event.getEntity() instanceof Player player) || isProspectorTierFour(player)) return;
+        ItemStack stack = event.getItem().getItemStack();
+        if (restoreEfficiencyItem(stack)) event.getItem().setItemStack(stack);
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onInventoryTransfer(InventoryClickEvent event) {
+        if (!(event.getWhoClicked() instanceof Player player)) return;
+        boolean leavingPlayerInventory = event.isShiftClick()
+                || event.getClickedInventory() != null && event.getClickedInventory() != player.getInventory()
+                || event.getClick() == org.bukkit.event.inventory.ClickType.NUMBER_KEY;
+        if (!leavingPlayerInventory) return;
+
+        ItemStack current = event.getCurrentItem();
+        if (restoreEfficiencyItem(current)) event.setCurrentItem(current);
+        ItemStack cursor = event.getCursor();
+        if (restoreEfficiencyItem(cursor)) event.setCursor(cursor);
+        if (event.getClick() == org.bukkit.event.inventory.ClickType.NUMBER_KEY && event.getHotbarButton() >= 0) {
+            int slot = event.getHotbarButton();
+            ItemStack hotbar = player.getInventory().getItem(slot);
+            if (restoreEfficiencyItem(hotbar)) player.getInventory().setItem(slot, hotbar);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onInventoryDrag(InventoryDragEvent event) {
+        if (!(event.getWhoClicked() instanceof Player)) return;
+        boolean entersTopInventory = event.getRawSlots().stream()
+                .anyMatch(rawSlot -> rawSlot < event.getView().getTopInventory().getSize());
+        if (!entersTopInventory) return;
+        ItemStack cursor = event.getOldCursor();
+        if (isManagedEfficiencyItem(cursor)) event.setCancelled(true);
+    }
+
+    private boolean isManagedEfficiencyItem(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return false;
+        return item.getItemMeta().getPersistentDataContainer()
+                .has(originalEfficiencyKey, PersistentDataType.INTEGER);
+    }
+
+    @EventHandler
+    public void onDeath(PlayerDeathEvent event) {
+        for (ItemStack drop : event.getDrops()) restoreEfficiencyItem(drop);
+        // Also handle keep-inventory deaths, where the enchanted tools are not dropped.
+        restoreInventoryEfficiency(event.getEntity());
+    }
+
+    private boolean isProspectorTierFour(Player player) {
+        PlayerProgress p = progress.get(player.getUniqueId());
+        return p.assigned() && p.path() == EvolutionPath.PROSPECTOR && p.tier().rank() >= 4;
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -133,5 +302,9 @@ public final class PathPassiveListener implements Listener {
 
     public void shutdown() {
         refreshTask.cancel();
+        for (Player player : org.bukkit.Bukkit.getOnlinePlayers()) {
+            clearManagedEffects(player);
+            restoreInventoryEfficiency(player);
+        }
     }
 }

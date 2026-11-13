@@ -1,4 +1,4 @@
-# EvolutionSMP 1.0.0 Resource Pack
+# EvolutionSMP 5.0.16 Resource Pack
 
 Generate the Minecraft Java 26.3 pack from the repository root:
 
@@ -6,13 +6,14 @@ Generate the Minecraft Java 26.3 pack from the repository root:
 python3 pack/generate_resource_pack.py --version 26.3 --output build/pack/EvolutionSMP-ResourcePack-26.3.zip
 ```
 
-The generator is deterministic and validates:
-- Distinct Tier II, Tier III, and Tier IV orb silhouettes.
-- A separate Echo Shard texture.
-- A Totem of Undying texture and animated particle atlas.
-- Seven unique path sigils.
-- A dedicated Path Changer model.
-- Minecraft 26.3 item definitions and model references.
+The deterministic generator validates:
+- Distinct Tier II, Tier III, and Tier IV Evolution Orb silhouettes.
+- A separate Evolution Shard texture.
+- An animated Totem particle atlas (the vanilla Totem item texture/model is untouched).
+- Seven unique path sigils and a dedicated Path Changer model.
+- Six original reference-inspired FX textures: Bliss crystal, crimson rift, impact bloom, violet collapse, radiant seal, and cyan spire.
+- Namespaced item definitions, model references, and every item-model referenced by animations.yml.
+- No vanilla item or block model/texture overrides.
 - PNG integrity and pack metadata.
 
-The resource pack is built as a separate artifact beside the single unified plugin JAR. Automatic server delivery remains disabled until a real public HTTPS hosting URL and matching SHA-1 are configured.
+The resource pack is a separate artifact shared by the EvolutionSMP core JAR and optional EvolutionFX add-on. Automatic server delivery remains disabled until a real public HTTPS hosting URL and matching SHA-1 are configured.

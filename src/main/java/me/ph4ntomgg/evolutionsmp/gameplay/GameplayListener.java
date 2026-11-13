@@ -18,7 +18,9 @@ import org.bukkit.event.entity.EntityPotionEffectEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.inventory.meta.PotionMeta;
-import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.ClickType;
+import org.bukkit.inventory.BrewerInventory;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.block.Block;
@@ -27,6 +29,7 @@ import java.util.Map;
 import java.util.UUID;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.enchantment.EnchantItemEvent;
@@ -55,6 +58,8 @@ public final class GameplayListener implements Listener {
     private final ProgressService progress;
     private final JavaPlugin plugin;
     private final NamespacedKey orbXp;
+    private final NamespacedKey endEntryXpCooldownKey;
+    private final NamespacedKey huntKillXpKey;
     private final EvolutionItems items;
     private final Map<String, RecentBrewer> recentBrewers = new HashMap<>();
 
@@ -63,9 +68,11 @@ public final class GameplayListener implements Listener {
         this.plugin = plugin;
         this.items = new EvolutionItems(plugin);
         this.orbXp = items.orbXpKey();
+        this.endEntryXpCooldownKey = new NamespacedKey(plugin, "ender_end_entry_xp_cooldown");
+        this.huntKillXpKey = new NamespacedKey(plugin, "hunt_player_kill_xp_cooldown");
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onOreBreak(BlockBreakEvent event) {
         if (ORES.contains(event.getBlock().getType())) award(event.getPlayer(), EvolutionPath.PROSPECTOR, 8);
     }
@@ -76,7 +83,18 @@ public final class GameplayListener implements Listener {
         if (killer == null) return;
         EntityType type = event.getEntityType();
         if (type == EntityType.PLAYER) {
-            award(killer, EvolutionPath.HUNT, 40);
+            PlayerProgress hunter = progress.get(killer.getUniqueId());
+            if (hunter.path() == EvolutionPath.HUNT) {
+                long now = System.currentTimeMillis();
+                long last = event.getEntity().getPersistentDataContainer()
+                        .getOrDefault(huntKillXpKey, PersistentDataType.LONG, 0L);
+                if (now - last >= 600_000L) {
+                    event.getEntity().getPersistentDataContainer().set(huntKillXpKey, PersistentDataType.LONG, now);
+                    award(killer, EvolutionPath.HUNT, 40);
+                } else {
+                    killer.sendMessage(ChatColor.GRAY + "Hunt XP protection: this player was recently defeated.");
+                }
+            }
             return;
         }
         if (event.getEntity() instanceof Monster) award(killer, EvolutionPath.HUNT, 12);
@@ -86,11 +104,39 @@ public final class GameplayListener implements Listener {
         }
     }
 
-    @EventHandler
-    public void recordBrewingStandUser(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.getClickedBlock() == null
-                || event.getClickedBlock().getType() != Material.BREWING_STAND) return;
-        recentBrewers.put(blockKey(event.getClickedBlock()), new RecentBrewer(event.getPlayer().getUniqueId(), System.currentTimeMillis()));
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void recordBrewerContribution(InventoryClickEvent event) {
+        if (!(event.getWhoClicked() instanceof Player player)
+                || !(event.getView().getTopInventory() instanceof BrewerInventory brewer)
+                || event.getClickedInventory() != event.getView().getTopInventory()) return;
+
+        int slot = event.getRawSlot();
+        if (slot != 3 && slot != 4) return; // ingredient and fuel slots only
+
+        // Only count an insertion/replacement. Merely taking an item out of the
+        // brewing stand must not grant the XP credit for a completed brew.
+        org.bukkit.event.inventory.InventoryAction action = event.getAction();
+        boolean cursorInsertion = action == org.bukkit.event.inventory.InventoryAction.PLACE_ALL
+                || action == org.bukkit.event.inventory.InventoryAction.PLACE_ONE
+                || action == org.bukkit.event.inventory.InventoryAction.PLACE_SOME
+                || action == org.bukkit.event.inventory.InventoryAction.SWAP_WITH_CURSOR;
+        boolean hotbarInsertion = event.getClick() == ClickType.NUMBER_KEY
+                && action == org.bukkit.event.inventory.InventoryAction.HOTBAR_SWAP
+                && event.getHotbarButton() >= 0;
+        if (!cursorInsertion && !hotbarInsertion) return;
+
+        ItemStack contribution = hotbarInsertion
+                ? player.getInventory().getItem(event.getHotbarButton()) : event.getCursor();
+        if (contribution == null || contribution.getType().isAir()) return;
+
+        org.bukkit.Location location = brewer.getLocation();
+        if (location == null) return;
+        long now = System.currentTimeMillis();
+        // Expire abandoned stands whenever a new contribution is recorded so
+        // this cache cannot grow indefinitely if brewing never completes.
+        recentBrewers.entrySet().removeIf(entry -> now - entry.getValue().at() > 120_000L);
+        recentBrewers.put(blockKey(location.getBlock()),
+                new RecentBrewer(player.getUniqueId(), now));
     }
 
     @EventHandler
@@ -144,12 +190,11 @@ public final class GameplayListener implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onTrade(PlayerTradeEvent event) {
         Player player = event.getPlayer();
         PlayerProgress p = progress.get(player.getUniqueId());
         if (p.path() != EvolutionPath.TRADE) return;
-        progress.award(player.getUniqueId(), 15);
         MerchantRecipe adjusted = new MerchantRecipe(event.getTrade());
         if (p.tier().rank() >= 2) {
             int discount = p.tier().rank() >= 4 ? 2 : 1;
@@ -162,11 +207,22 @@ public final class GameplayListener implements Listener {
         }
     }
 
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onTradeReward(PlayerTradeEvent event) {
+        Player player = event.getPlayer();
+        award(player, EvolutionPath.TRADE, 15);
+    }
+
     @EventHandler
     public void onDimensionChange(PlayerChangedWorldEvent event) {
-        if (event.getPlayer().getWorld().getEnvironment() == org.bukkit.World.Environment.THE_END) {
-            award(event.getPlayer(), EvolutionPath.ENDER, 25);
-        }
+        Player player = event.getPlayer();
+        if (player.getWorld().getEnvironment() != org.bukkit.World.Environment.THE_END) return;
+        long now = System.currentTimeMillis();
+        long until = player.getPersistentDataContainer()
+                .getOrDefault(endEntryXpCooldownKey, PersistentDataType.LONG, 0L);
+        if (until > now) return;
+        player.getPersistentDataContainer().set(endEntryXpCooldownKey, PersistentDataType.LONG, now + 300_000L);
+        award(player, EvolutionPath.ENDER, 25);
     }
 
     private String blockKey(Block block) {
@@ -175,7 +231,7 @@ public final class GameplayListener implements Listener {
 
     private record RecentBrewer(UUID playerId, long at) { }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onEnchant(EnchantItemEvent event) {
         Player player = event.getEnchanter();
         award(player, EvolutionPath.ENCHANTMENT, Math.max(5, event.getExpLevelCost() * 3L));
@@ -190,7 +246,7 @@ public final class GameplayListener implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPotionConsume(PlayerItemConsumeEvent event) {
         Material type = event.getItem().getType();
         if (type != Material.POTION && type != Material.SPLASH_POTION && type != Material.LINGERING_POTION) return;
@@ -206,14 +262,17 @@ public final class GameplayListener implements Listener {
             for (PotionEffect effect : expected) {
                 PotionEffect active = player.getPotionEffect(effect.getType());
                 if (active == null) continue;
-                int duration = Math.min(24_000, (int) Math.ceil(active.getDuration() * multiplier));
+                int multipliedDuration = (int) Math.min(24_000L,
+                        (long) Math.ceil(active.getDuration() * multiplier));
+                // A long pre-existing effect must never be shortened by the cap.
+                int duration = Math.max(active.getDuration(), multipliedDuration);
                 player.addPotionEffect(new PotionEffect(active.getType(), duration, active.getAmplifier(),
                         active.isAmbient(), active.hasParticles(), active.hasIcon()), true);
             }
         });
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onEnderPearlTeleport(PlayerTeleportEvent event) {
         if (event.getCause() == PlayerTeleportEvent.TeleportCause.ENDER_PEARL) {
             award(event.getPlayer(), EvolutionPath.ENDER, 8);
@@ -223,6 +282,13 @@ public final class GameplayListener implements Listener {
     @EventHandler
     public void onDeath(PlayerDeathEvent event) {
         Player player = event.getEntity();
+        Player killer = player.getKiller();
+        if (killer != null) {
+            PlayerProgress hunter = progress.get(killer.getUniqueId());
+            if (hunter.path() == EvolutionPath.HUNT && hunter.tier().rank() >= 3) {
+                event.setDeathMessage(null);
+            }
+        }
         PlayerProgress state = progress.get(player.getUniqueId());
         if (!state.assigned() || state.apex() || state.tier().rank() < 2) return;
         long value = switch (state.tier()) {
@@ -239,18 +305,32 @@ public final class GameplayListener implements Listener {
         player.sendMessage(ChatColor.RED + "Your evolution has regressed to T1.");
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onOrbPickup(EntityPickupItemEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
         ItemStack stack = event.getItem().getItemStack();
         if (!stack.hasItemMeta()) return;
         Long value = stack.getItemMeta().getPersistentDataContainer().get(orbXp, PersistentDataType.LONG);
-        if (value == null) return;
+        if (value == null || value <= 0 || value > 5_000) return;
         PlayerProgress state = progress.get(player.getUniqueId());
         if (!state.assigned()) {
             event.setCancelled(true);
             player.sendMessage(ChatColor.RED + "You need an evolution path before collecting an Evolution Orb.");
             return;
+        }
+        if (state.tier() == EvolutionTier.T4 || state.apex()) {
+            event.setCancelled(true);
+            player.sendMessage(ChatColor.YELLOW + "T4 and Apex players cannot absorb additional Evolution Orb XP.");
+            return;
+        }
+        // Orbs are consumable progression items, not reusable inventory tokens.
+        // Cancel normal pickup and consume exactly one orb from the dropped stack.
+        event.setCancelled(true);
+        if (stack.getAmount() > 1) {
+            stack.setAmount(stack.getAmount() - 1);
+            event.getItem().setItemStack(stack);
+        } else {
+            event.getItem().remove();
         }
         progress.award(player.getUniqueId(), value);
         player.sendMessage(ChatColor.LIGHT_PURPLE + "Evolution Orb absorbed: +" + value + " XP");

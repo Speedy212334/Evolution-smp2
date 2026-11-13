@@ -14,12 +14,19 @@ public final class ProgressionRules {
     }
 
     public static long thresholdForNextTier(EvolutionTier tier, long t2, long t3, long t4) {
+        validateThresholds(t2, t3, t4);
         return switch (tier) {
             case T1 -> t2;
             case T2 -> t3;
             case T3 -> t4;
             case T4, APEX -> Long.MAX_VALUE;
         };
+    }
+
+    private static void validateThresholds(long t2, long t3, long t4) {
+        if (t2 < 1 || t3 <= t2 || t4 <= t3) {
+            throw new IllegalArgumentException("Tier XP thresholds must be positive and strictly increasing");
+        }
     }
 
     public static Optional<EvolutionTier> nextTier(EvolutionTier tier) {
@@ -36,14 +43,16 @@ public final class ProgressionRules {
     }
 
     public static PlayerProgress applyExperience(PlayerProgress current, long amount, long t2, long t3, long t4) {
-        if (!current.assigned() || current.apex()) return current;
-        if (amount < 0 || t2 < 1 || t3 < 1 || t4 < 1) throw new IllegalArgumentException("XP values must be positive");
+        if (amount < 0) throw new IllegalArgumentException("XP amount cannot be negative");
+        validateThresholds(t2, t3, t4);
+        if (!current.assigned() || current.tier() == EvolutionTier.T4 || current.apex()) return current;
         PlayerProgress updated = current.addExperience(amount);
         while (!updated.apex() && updated.assigned()) {
             long threshold = thresholdForNextTier(updated.tier(), t2, t3, t4);
             if (updated.experience() < threshold) break;
             EvolutionTier next = nextTier(updated.tier()).orElseThrow();
-            updated = updated.withTier(next, updated.experience() - threshold);
+            long remainder = next == EvolutionTier.T4 ? 0L : updated.experience() - threshold;
+            updated = updated.withTier(next, remainder);
         }
         return updated;
     }

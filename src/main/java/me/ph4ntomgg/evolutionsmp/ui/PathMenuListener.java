@@ -1,6 +1,10 @@
 package me.ph4ntomgg.evolutionsmp.ui;
 
 import me.ph4ntomgg.evolutionsmp.domain.EvolutionPath;
+import me.ph4ntomgg.evolutionsmp.ability.AbilityService;
+import me.ph4ntomgg.evolutionsmp.ability.OreResonanceService;
+import me.ph4ntomgg.evolutionsmp.gameplay.PathPassiveListener;
+import me.ph4ntomgg.evolutionsmp.gameplay.EnderAbilityListener;
 import me.ph4ntomgg.evolutionsmp.service.ProgressService;
 import me.ph4ntomgg.evolutionsmp.fx.CinematicEffects;
 import me.ph4ntomgg.evolutionsmp.item.EvolutionItems;
@@ -9,6 +13,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
@@ -22,14 +27,23 @@ public final class PathMenuListener implements Listener {
     private final JavaPlugin plugin;
     private final ProgressService progress;
     private final CinematicEffects effects;
+    private final AbilityService abilities;
+    private final OreResonanceService resonance;
+    private final PathPassiveListener passives;
+    private final EnderAbilityListener enderAbilities;
     private final Map<UUID, Session> sessions = new HashMap<>();
 
-    public PathMenuListener(JavaPlugin plugin, ProgressService progress, CinematicEffects effects) {
-        this.plugin = plugin; this.progress = progress; this.effects = effects;
+    public PathMenuListener(JavaPlugin plugin, ProgressService progress, CinematicEffects effects, AbilityService abilities, OreResonanceService resonance, PathPassiveListener passives, EnderAbilityListener enderAbilities) {
+        this.plugin = plugin; this.progress = progress; this.effects = effects; this.abilities = abilities; this.resonance = resonance; this.passives = passives; this.enderAbilities = enderAbilities;
     }
 
     public void track(Player target, Player viewer, boolean consumeToken) {
         sessions.put(viewer.getUniqueId(), new Session(target.getUniqueId(), consumeToken));
+    }
+
+    @EventHandler
+    public void onDrag(InventoryDragEvent event) {
+        if (PathSelectionMenu.TITLE.equals(event.getView().getTitle())) event.setCancelled(true);
     }
 
     @EventHandler
@@ -50,7 +64,12 @@ public final class PathMenuListener implements Listener {
             player.closeInventory();
             return;
         }
-        PlayerProgressAssign.assign(plugin, session.target(), player, paths[index], progress, effects);
+        PlayerProgressAssign.assign(plugin, session.target(), player, paths[index], progress, effects, session.consumeToken());
+        abilities.resetPathCooldowns(session.target());
+        resonance.resetPathState(session.target());
+        enderAbilities.resetPathCooldowns(session.target());
+        Player target = org.bukkit.Bukkit.getPlayer(session.target());
+        if (target != null) passives.refreshPlayer(target);
         sessions.remove(player.getUniqueId());
         player.closeInventory();
     }

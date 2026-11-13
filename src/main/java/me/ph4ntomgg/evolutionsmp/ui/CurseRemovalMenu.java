@@ -1,6 +1,7 @@
 package me.ph4ntomgg.evolutionsmp.ui;
 
 import me.ph4ntomgg.evolutionsmp.domain.EvolutionPath;
+import me.ph4ntomgg.evolutionsmp.fx.EvolutionVisualEvent;
 import me.ph4ntomgg.evolutionsmp.domain.EvolutionTier;
 import me.ph4ntomgg.evolutionsmp.service.ProgressService;
 import org.bukkit.Bukkit;
@@ -11,6 +12,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -27,6 +29,7 @@ public final class CurseRemovalMenu implements Listener {
     public static final String TITLE = ChatColor.DARK_PURPLE + "Curse Removal";
     private final ProgressService progress;
     private final Map<UUID, EnumSet<Curse>> selections = new HashMap<>();
+    private final Map<UUID, ItemStack> targetItems = new HashMap<>();
 
     public CurseRemovalMenu(ProgressService progress) { this.progress = progress; }
 
@@ -41,13 +44,21 @@ public final class CurseRemovalMenu implements Listener {
             player.sendMessage(ChatColor.RED + "Hold the item you want to cleanse in your main hand.");
             return;
         }
-        selections.put(player.getUniqueId(), EnumSet.noneOf(Curse.class));
         Inventory inv = Bukkit.createInventory(null, 27, TITLE);
         inv.setItem(13, held.clone());
         inv.setItem(11, toggle(Curse.BINDING, false));
         inv.setItem(15, toggle(Curse.VANISHING, false));
         inv.setItem(22, button(Material.LIME_CONCRETE, ChatColor.GREEN + "Confirm Removal", "Apply selected curse removals to the held item."));
+        // InventoryCloseEvent for a replaced menu clears its old session, so
+        // install the new selection state only after the new menu is open.
         player.openInventory(inv);
+        selections.put(player.getUniqueId(), EnumSet.noneOf(Curse.class));
+        targetItems.put(player.getUniqueId(), held.clone());
+    }
+
+    @EventHandler
+    public void drag(InventoryDragEvent event) {
+        if (TITLE.equals(event.getView().getTitle())) event.setCancelled(true);
     }
 
     @EventHandler
@@ -65,13 +76,31 @@ public final class CurseRemovalMenu implements Listener {
             toggle(selected, Curse.VANISHING);
             event.getInventory().setItem(15, toggle(Curse.VANISHING, selected.contains(Curse.VANISHING)));
         } else if (slot == 22) {
+            var state = progress.get(player.getUniqueId());
+            if (state.path() != EvolutionPath.ENCHANTMENT || state.tier().rank() < EvolutionTier.T4.rank()) {
+                player.sendMessage(ChatColor.RED + "Curse Removal requires Enchantment Tier IV.");
+                selections.remove(player.getUniqueId());
+                targetItems.remove(player.getUniqueId());
+                player.closeInventory();
+                return;
+            }
             ItemStack held = player.getInventory().getItemInMainHand();
-            if (held.getType().isAir()) {
-                player.sendMessage(ChatColor.RED + "The held item is missing.");
+            ItemStack original = targetItems.get(player.getUniqueId());
+            if (held.getType().isAir() || original == null || !held.isSimilar(original)) {
+                player.sendMessage(ChatColor.RED + "Keep the original item in your main hand while selecting curses.");
+                selections.remove(player.getUniqueId());
+                targetItems.remove(player.getUniqueId());
                 player.closeInventory();
                 return;
             }
             ItemMeta meta = held.getItemMeta();
+            if (meta == null) {
+                player.sendMessage(ChatColor.RED + "That item cannot store enchantments.");
+                selections.remove(player.getUniqueId());
+                targetItems.remove(player.getUniqueId());
+                player.closeInventory();
+                return;
+            }
             boolean removed = false;
             if (selected.contains(Curse.BINDING)) removed |= meta.removeEnchant(Enchantment.BINDING_CURSE);
             if (selected.contains(Curse.VANISHING)) removed |= meta.removeEnchant(Enchantment.VANISHING_CURSE);
@@ -82,15 +111,20 @@ public final class CurseRemovalMenu implements Listener {
             if (removed) {
                 held.setItemMeta(meta);
                 player.sendMessage(ChatColor.GREEN + "Selected curses removed.");
+                Bukkit.getPluginManager().callEvent(new EvolutionVisualEvent(player, "enchantment-ascension", 4));
             } else player.sendMessage(ChatColor.YELLOW + "No selected curse was present on the held item.");
             selections.remove(player.getUniqueId());
+            targetItems.remove(player.getUniqueId());
             player.closeInventory();
         }
     }
 
     @EventHandler
     public void close(InventoryCloseEvent event) {
-        if (TITLE.equals(event.getView().getTitle())) selections.remove(event.getPlayer().getUniqueId());
+        if (TITLE.equals(event.getView().getTitle())) {
+            selections.remove(event.getPlayer().getUniqueId());
+            targetItems.remove(event.getPlayer().getUniqueId());
+        }
     }
 
     private void toggle(EnumSet<Curse> set, Curse curse) {

@@ -1,6 +1,8 @@
 package me.ph4ntomgg.evolutionsmp.gameplay;
 
 import me.ph4ntomgg.evolutionsmp.domain.EvolutionPath;
+import me.ph4ntomgg.evolutionsmp.fx.EvolutionVisualEvent;
+import org.bukkit.Bukkit;
 import me.ph4ntomgg.evolutionsmp.domain.PlayerProgress;
 import me.ph4ntomgg.evolutionsmp.service.ProgressService;
 import org.bukkit.ChatColor;
@@ -26,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Alchemy's potion fusion system. Tier III+ Alchemists can fuse two ordinary
+ * Alchemy's potion fusion system. Tier IV and Apex Alchemists can fuse two ordinary
  * drinkable potions into one potion carrying the union of their effects.
  */
 public final class AlchemyFusionListener implements Listener {
@@ -97,6 +99,7 @@ public final class AlchemyFusionListener implements Listener {
         Map<Integer, ItemStack> overflow = player.getInventory().addItem(fused);
         overflow.values().forEach(item -> player.getWorld().dropItemNaturally(player.getLocation(), item));
         player.updateInventory();
+        Bukkit.getPluginManager().callEvent(new EvolutionVisualEvent(player, "alchemy-catalyst", 4));
     }
 
     private ItemStack createFusion(ItemStack first, ItemStack second) {

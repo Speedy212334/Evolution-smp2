@@ -12,14 +12,42 @@ class ProgressionRulesTest {
 
     @Test void xpAdvancesAcrossMultipleTiersAndCarriesRemainder() {
         PlayerProgress p = PlayerProgress.unassigned(UUID.randomUUID()).withPath(EvolutionPath.HUNT);
-        PlayerProgress advanced = ProgressionRules.applyExperience(p, 4_500);
+        PlayerProgress advanced = ProgressionRules.applyExperience(p, 4_600);
         assertEquals(EvolutionTier.T3, advanced.tier());
+        assertEquals(100, advanced.experience());
+    }
+
+    @Test void excessXpIsDiscardedWhenPlayerReachesTierFour() {
+        PlayerProgress p = PlayerProgress.unassigned(UUID.randomUUID()).withPath(EvolutionPath.ENDER)
+                .withTier(EvolutionTier.T3, 50);
+        PlayerProgress advanced = ProgressionRules.applyExperience(p, 100_000);
+        assertEquals(EvolutionTier.T4, advanced.tier());
         assertEquals(0, advanced.experience());
+    }
+
+    @Test void thresholdsMustBeStrictlyIncreasing() {
+        PlayerProgress p = PlayerProgress.unassigned(UUID.randomUUID()).withPath(EvolutionPath.HUNT);
+        assertThrows(IllegalArgumentException.class,
+                () -> ProgressionRules.applyExperience(p, 10, 100, 50, 200));
+    }
+
+    @Test void negativeXpIsRejectedEvenForUnassignedPlayers() {
+        PlayerProgress p = PlayerProgress.unassigned(UUID.randomUUID());
+        assertThrows(IllegalArgumentException.class, () -> ProgressionRules.applyExperience(p, -1));
+    }
+
+    @Test void tierFourDoesNotAccumulateUnusedXp() {
+        PlayerProgress p = PlayerProgress.unassigned(UUID.randomUUID()).withPath(EvolutionPath.ENDER)
+                .withTier(EvolutionTier.T4, 0);
+        PlayerProgress advanced = ProgressionRules.applyExperience(p, 10_000);
+        assertEquals(EvolutionTier.T4, advanced.tier());
+        assertEquals(0, advanced.experience());
+        assertFalse(advanced.apex());
     }
 
     @Test void t4DoesNotAutoGrantApex() {
         PlayerProgress p = PlayerProgress.unassigned(UUID.randomUUID()).withPath(EvolutionPath.ENDER)
-                .withTier(EvolutionTier.T4, 20_000);
+                .withTier(EvolutionTier.T4, 0);
         PlayerProgress advanced = ProgressionRules.applyExperience(p, 100_000);
         assertEquals(EvolutionTier.T4, advanced.tier());
         assertFalse(advanced.apex());

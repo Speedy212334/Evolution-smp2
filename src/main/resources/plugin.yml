@@ -1,16 +1,13 @@
 name: EvolutionSMP
-version: 1.0.0
+version: 5.0.16
 main: me.ph4ntomgg.evolutionsmp.EvolutionSMP
 api-version: '26.3'
 author: Ph4ntomgg
-description: A unified evolution progression and cinematic effects plugin.
+description: Evolution paths, progression, gameplay abilities, and menus.
 commands:
   evo:
     description: Main EvolutionSMP command
     usage: /evo
-  evofx:
-    description: EvolutionSMP cinematic effects controls
-    usage: /evofx
   enderchest:
     description: Open Ender Storage (Ender Tier IV)
     usage: /enderchest

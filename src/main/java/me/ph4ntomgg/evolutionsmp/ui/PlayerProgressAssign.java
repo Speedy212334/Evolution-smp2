@@ -14,8 +14,9 @@ final class PlayerProgressAssign {
     private PlayerProgressAssign() {}
 
     static void assign(JavaPlugin plugin, UUID targetId, Player viewer, EvolutionPath path,
-                       ProgressService progress, CinematicEffects effects) {
-        progress.assign(targetId, path);
+                       ProgressService progress, CinematicEffects effects, boolean preserveTier) {
+        if (preserveTier) progress.changePath(targetId, path);
+        else progress.assign(targetId, path);
         Player target = Bukkit.getPlayer(targetId);
         if (target != null) {
             // The cinematic owns the single target-facing title and path announcement.

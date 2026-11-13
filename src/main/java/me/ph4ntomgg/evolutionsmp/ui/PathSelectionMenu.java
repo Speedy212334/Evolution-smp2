@@ -1,6 +1,10 @@
 package me.ph4ntomgg.evolutionsmp.ui;
 
 import me.ph4ntomgg.evolutionsmp.domain.EvolutionPath;
+import me.ph4ntomgg.evolutionsmp.ability.AbilityService;
+import me.ph4ntomgg.evolutionsmp.ability.OreResonanceService;
+import me.ph4ntomgg.evolutionsmp.gameplay.PathPassiveListener;
+import me.ph4ntomgg.evolutionsmp.gameplay.EnderAbilityListener;
 import me.ph4ntomgg.evolutionsmp.service.ProgressService;
 import me.ph4ntomgg.evolutionsmp.fx.CinematicEffects;
 import me.ph4ntomgg.evolutionsmp.item.EvolutionItems;
@@ -22,9 +26,9 @@ public final class PathSelectionMenu {
     private final CinematicEffects effects;
     private final PathMenuListener listener;
 
-    public PathSelectionMenu(JavaPlugin plugin, ProgressService progress, CinematicEffects effects) {
+    public PathSelectionMenu(JavaPlugin plugin, ProgressService progress, CinematicEffects effects, AbilityService abilities, OreResonanceService resonance, PathPassiveListener passives, EnderAbilityListener enderAbilities) {
         this.plugin = plugin; this.progress = progress; this.effects = effects;
-        this.listener = new PathMenuListener(plugin, progress, effects);
+        this.listener = new PathMenuListener(plugin, progress, effects, abilities, resonance, passives, enderAbilities);
         plugin.getServer().getPluginManager().registerEvents(listener, plugin);
     }
 
@@ -41,7 +45,9 @@ public final class PathSelectionMenu {
             item.setItemMeta(meta);
             inv.setItem(new int[]{10,11,12,13,14,15,16}[i], item);
         }
-        listener.track(target, viewer, consumeToken);
+        // Opening a replacement inventory fires InventoryCloseEvent for the old
+        // menu. Track the new session afterwards so that close cleanup cannot erase it.
         viewer.openInventory(inv);
+        listener.track(target, viewer, consumeToken);
     }
 }

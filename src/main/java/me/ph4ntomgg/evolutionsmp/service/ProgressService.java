@@ -18,9 +18,11 @@ public final class ProgressService {
 
     public ProgressService(ProgressRepository repository, long t2Xp, long t3Xp, long t4Xp) {
         this.repository = repository;
-        this.t2Xp = Math.max(1, t2Xp);
-        this.t3Xp = Math.max(1, t3Xp);
-        this.t4Xp = Math.max(1, t4Xp);
+        // Keep thresholds strictly increasing and bounded so malformed config
+        // cannot overflow tier arithmetic or make progression run backwards.
+        this.t2Xp = Math.min(1_000_000_000_000L, Math.max(1L, t2Xp));
+        this.t3Xp = Math.max(this.t2Xp + 1L, Math.min(1_000_000_000_000L, Math.max(1L, t3Xp)));
+        this.t4Xp = Math.max(this.t3Xp + 1L, Math.min(1_000_000_000_000L, Math.max(1L, t4Xp)));
     }
 
     public long thresholdForNextTier(EvolutionTier tier) {
@@ -33,6 +35,12 @@ public final class ProgressService {
 
     public PlayerProgress assign(UUID id, EvolutionPath path) {
         PlayerProgress updated = get(id).withPath(path);
+        put(updated);
+        return updated;
+    }
+
+    public PlayerProgress changePath(UUID id, EvolutionPath path) {
+        PlayerProgress updated = get(id).withPathPreservingTier(path);
         put(updated);
         return updated;
     }
@@ -58,5 +66,8 @@ public final class ProgressService {
         repository.save(progress);
     }
 
-    public void flush() { cache.values().forEach(repository::save); }
+    public void flush() {
+        cache.values().forEach(repository::save);
+        repository.flush();
+    }
 }
