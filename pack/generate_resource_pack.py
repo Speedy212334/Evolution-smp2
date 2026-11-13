@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Generate deterministic 26.3 EvolutionSMP orb textures and a resource-pack ZIP."""
-import json, math, os, struct, zlib, zipfile, argparse, shutil
+import json, math, os, re, struct, zlib, zipfile, argparse, shutil
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -427,6 +427,17 @@ def main():
         for name in names:
             if name.endswith('.png'):
                 assert z.read(name).startswith(b'\x89PNG\r\n\x1a\n'), f'Invalid PNG: {name}'
+        # Every configured EvolutionFX item-model reference must resolve to
+        # a generated namespaced item definition; fail the build on pack drift.
+        animations_file = ROOT/'src/evolutionFx/resources/animations.yml'
+        if animations_file.exists():
+            animation_text = animations_file.read_text(encoding='utf-8')
+            referenced_models = set(re.findall(r'item-model:\\s*evolutionsmp:([a-z0-9_]+)', animation_text))
+            for item_id in referenced_models:
+                assert f'assets/{namespace}/items/{item_id}.json' in names, f'Missing FX item definition: {item_id}'
+        # Dedicated video-reference sprites must remain separate assets.
+        for item_id in ('fx_bliss', 'fx_rift', 'fx_bloom', 'fx_void', 'fx_seal', 'fx_spire'):
+            assert f'assets/{namespace}/items/{item_id}.json' in names, f'Missing reference FX model: {item_id}'
         # Verify all seven distinct path sigils are packaged.
         for name in path_specs:
             assert f'assets/{namespace}/textures/item/evolution_path_{name}.png' in names
