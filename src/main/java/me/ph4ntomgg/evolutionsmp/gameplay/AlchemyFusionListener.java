@@ -1,6 +1,8 @@
 package me.ph4ntomgg.evolutionsmp.gameplay;
 
 import me.ph4ntomgg.evolutionsmp.domain.EvolutionPath;
+import me.ph4ntomgg.evolutionsmp.fx.EvolutionVisualEvent;
+import org.bukkit.Bukkit;
 import me.ph4ntomgg.evolutionsmp.domain.PlayerProgress;
 import me.ph4ntomgg.evolutionsmp.service.ProgressService;
 import org.bukkit.ChatColor;
@@ -97,6 +99,7 @@ public final class AlchemyFusionListener implements Listener {
         Map<Integer, ItemStack> overflow = player.getInventory().addItem(fused);
         overflow.values().forEach(item -> player.getWorld().dropItemNaturally(player.getLocation(), item));
         player.updateInventory();
+        Bukkit.getPluginManager().callEvent(new EvolutionVisualEvent(player, "alchemy-catalyst", 4));
     }
 
     private ItemStack createFusion(ItemStack first, ItemStack second) {
