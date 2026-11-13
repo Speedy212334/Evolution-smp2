@@ -176,4 +176,4 @@ Administrators can preview them with:
 - `/evofx play pebbles-radiant-seal <player> 5`
 - `/evofx play pebbles-cyan-spire <player> 3`
 
-The presets use the existing EvolutionFX resource-pack item models and bounded particle/display budgets. They are previewable presets, not yet automatically bound to every gameplay ability. The existing main GUI layout is intentionally unchanged.
+The presets use the existing EvolutionFX resource-pack item models and bounded particle/display budgets. Successful Hunt Veil, Ender Void Swap, Prospector Ore Resonance, Calamity Fracture, and Apex activations now emit matching visual events when EvolutionFX is installed. The core remains playable without the add-on. The existing main GUI layout is intentionally unchanged.
